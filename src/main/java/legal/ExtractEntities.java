@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,71 +15,97 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ExtractEntities {
+	static List<Pattern> formJudgePatterns(List<PersonName> judgelist) {
+		List<Pattern> jps = new ArrayList<>();
+		for (PersonName pn : judgelist) {
+			String regex = pn.getWeakRegex();
+			Pattern p = Pattern.compile("((HON(ORABLE|\\.)|JUDGE\\:?)\\s+)+(" + regex + ")", Pattern.CASE_INSENSITIVE);
+			jps.add(p);
+		}
+		return jps;
+	}
 
 	public static void main(String[] args) throws IOException {
-		if (args.length != 4) {
-			System.out.println("args: partyfile partyoutfile docketfile docketOutfile");
+		if (args.length != 5) {
+			System.out.println("args: partyfile judgefile docketfile partyoutfile docketOutfile");
 			System.exit(-1);
 		}
 		String partyfile = args[0];
-		String outfile = args[1];
+		String judgefile = args[1];
 		String docketfile = args[2];
-		String docketOutfile = args[3];
-		Map<String, CaseNames> partymap = readParties(partyfile);
+		String outfile = args[3];
+		String docketOutfile = args[4];
+		Map<String, CaseParties> partymap = readParties(partyfile);
+		List<PersonName> judgelist = readJudgeList(judgefile);
+		List<Pattern> judgePatterns = formJudgePatterns(judgelist);
+		//		Map<String, CaseJudges> judgemap = readJudges(judgefile);
 
 		BufferedWriter wr = new BufferedWriter(new FileWriter(outfile));
-		for (CaseNames pn : partymap.values()) {
+		wr.write("\n\n================= Parties ====================\n\n");
+		for (CaseParties pn : partymap.values()) {
+			wr.write("\n" + pn + "\n");
+		}
+
+		wr.write("\n\n================= Judges ====================\n\n");
+		Collections.sort(judgelist);
+		for (PersonName pn : judgelist) {
 			wr.write(pn + "\n");
 		}
 		wr.close();
 
 		List<Case> cases = readCases(docketfile);
 
-		identifileParties(cases, docketOutfile, partymap);
+		identifyEntities(cases, docketOutfile, partymap, judgePatterns);
 	}
 
-	static void identifileParties(List<Case> cases, String outfile, Map<String, CaseNames> partymap) throws IOException {
+	static void identifyEntities(List<Case> cases, String outfile,
+			Map<String, CaseParties> partymap, List<Pattern> judgePatterns) throws IOException {
+
 		BufferedWriter wr = new BufferedWriter(new FileWriter(outfile));
 		for (Case c : cases) {
-			CaseNames cn = partymap.get(c.id);
+			CaseParties cn = partymap.get(c.id);
+			//			if (c.id.equals("CA_SFC_464245")) {
+			//				System.out.println("CA_SFC_464245");
+			//			}
 			for (Entry e : c.entries) {
-				String s = findParties(e.text, cn);
+				String s = findEntities(e.text, cn, judgePatterns);
 				wr.write(c.id + "\t" + e.sdate + "\t" + s + "\n");
 			}
 		}
 		wr.close();
-
 	}
 
-	static String findParties(String text, CaseNames cn) {
+	static String findEntities(String text, CaseParties cn, List<Pattern> judgePatterns) {
 		String remainText = text;
 		Map<String, String> replaceMap = new HashMap<>();
 		int replaceIndex = 1;
 		for (Party p : cn.parties) {
-			int idx = remainText.indexOf(p.raw);
-			if (idx >= 0) {
-				//				String s1 = remainText.substring(0, idx);
-				//				String s2 = p.raw;
-				//				String s3 = remainText.substring(idx + p.raw.length());
-				String s4 = "&" + replaceIndex++ + "&";
-				remainText = remainText.replace(p.raw, s4);
-				replaceMap.put(s4, p.raw);
+			int idx;
+			for (String raw : p.raw) {
+				idx = remainText.indexOf(raw);
+				if (idx >= 0) {
+					String s4 = "&" + replaceIndex++ + "&";
+					remainText = remainText.replace(raw, s4);
+					replaceMap.put(s4, raw);
+				}
 			}
 			idx = remainText.indexOf(p.name);
 			if (idx >= 0) {
-				//				String s1 = remainText.substring(0, idx);
-				//				String s2 = p.raw;
-				//				String s3 = remainText.substring(idx + p.raw.length());
 				String s4 = "&" + replaceIndex++ + "&";
 				remainText = remainText.replace(p.name, s4);
 				replaceMap.put(s4, p.name);
 			}
+			if (p.errSued != null) {
+				idx = remainText.indexOf(p.errSued);
+				if (idx >= 0) {
+					String s4 = "&" + replaceIndex++ + "&";
+					remainText = remainText.replace(p.errSued, s4);
+					replaceMap.put(s4, p.errSued);
+				}
+			}
 			if (p.nameCorp != null) {
 				idx = remainText.indexOf(p.nameCorp.stem);
 				if (idx >= 0) {
-					//					String s1 = remainText.substring(0, idx);
-					//					String s2 = p.nameCorp.stem;
-					//					String s3 = remainText.substring(idx + p.nameCorp.stem.length());
 					String s4 = "&" + replaceIndex++ + "&";
 					remainText = remainText.replace(p.nameCorp.stem, s4);
 					replaceMap.put(s4, p.nameCorp.stem);
@@ -88,10 +115,6 @@ public class ExtractEntities {
 				Pattern ptn = p.namePerson.getPattern();
 				Matcher m = ptn.matcher(remainText);
 				if (m.find()) {
-					//					String s1 = remainText.substring(0, m.start());
-					//					String s2 = m.group();
-					//					String s3 = remainText.substring(m.end());
-					//					remainText = s1 + "<=<" + s2 + ">=>" + s3;
 					String s4 = "&" + replaceIndex++ + "&";
 					remainText = remainText.replace(m.group(), s4);
 					replaceMap.put(s4, m.group());
@@ -104,10 +127,25 @@ public class ExtractEntities {
 				}
 			}
 		}
+		for (Pattern ptn : judgePatterns) {
+			Matcher m = ptn.matcher(remainText);
+			if (m.find()) {
+				String s4 = "&" + replaceIndex++ + "&";
+				String replaced = m.group();
+				remainText = remainText.replace(replaced, s4);
+				replaceMap.put(s4, replaced);
+				m = ptn.matcher(remainText);
+				if (m.find()) {
+					s4 = "&" + replaceIndex++ + "&";
+					remainText = remainText.replace(m.group(), s4);
+					replaceMap.put(s4, m.group());
+				}
+			}
+		}
 		if (!replaceMap.isEmpty()) {
 			for (String key : replaceMap.keySet()) {
 				String value = "<=<" + replaceMap.get(key) + ">=>";
-				String num = key.substring(1, 2);
+				String num = key.substring(1, key.length() - 1);
 				String regex = "\\&" + num + "\\&";
 				remainText = remainText.replaceAll(regex, value);
 			}
@@ -136,21 +174,24 @@ public class ExtractEntities {
 		return cases;
 	}
 
-	static Map<String, CaseNames> readParties(String partyfile) throws IOException {
-		Map<String, CaseNames> plist = new TreeMap<>();
-		String line;
-		BufferedReader brp = new BufferedReader(new FileReader(partyfile));
+	static Map<String, CaseParties> readParties(String partyfile) throws IOException {
+		Map<String, CaseParties> mapParty = new TreeMap<>();
+		BufferedReader br = new BufferedReader(new FileReader(partyfile));
+		String line = br.readLine();// throw away the first line, they are column names
 		String id = "";
-		CaseNames cn = null;
-		while ((line = brp.readLine()) != null) {
+		CaseParties cn = null;
+		while ((line = br.readLine()) != null) {
 			line = line.toUpperCase();
 			String[] items = line.split("\\t");
 			if (!items[0].equals(id)) {
 				id = items[0];
-				cn = plist.get(id);
+				//				if (id.equals("CA_SFC_464181")) {
+				//					System.out.println("CA_SFC_464181");
+				//				}
+				cn = mapParty.get(id);
 				if (cn == null) {
-					cn = new CaseNames(id);
-					plist.put(id, cn);
+					cn = new CaseParties(id);
+					mapParty.put(id, cn);
 				}
 			}
 			int role = findRole(items[2]);
@@ -160,8 +201,73 @@ public class ExtractEntities {
 				cn.addParty(p);
 			}
 		}
-		brp.close();
-		return plist;
+		br.close();
+		Party.Cmp cmp = new Party.Cmp();
+		for (CaseParties csn : mapParty.values()) {
+			for (Party p : csn.parties) {
+				p.raw.sort(cmp);
+			}
+		}
+		return mapParty;
+	}
+
+	static Map<String, CaseJudges> readJudges(String judgefile) throws IOException {
+		Map<String, CaseJudges> mapJudges = new TreeMap<>();
+		String line;
+		BufferedReader br = new BufferedReader(new FileReader(judgefile));
+		String id = "";
+		CaseJudges cn = null;
+		while ((line = br.readLine()) != null) {
+			line = line.toUpperCase();
+			String[] items = line.split("\\t");
+			if (!items[0].equals(id)) {
+				id = items[0];
+				//				if (id.equals("CA_SFC_466227")) {
+				//					System.out.println();
+				//				}
+				cn = mapJudges.get(id);
+				if (cn == null) {
+					cn = new CaseJudges(id);
+					mapJudges.put(id, cn);
+				}
+			}
+			PersonName p = PersonName.parse(items[1], PersonName.GivMidSur);
+			if (p != null) {
+				cn.addJudge(p);
+			}
+		}
+		br.close();
+		return mapJudges;
+	}
+
+	static List<PersonName> readJudgeList(String judgefile) throws IOException {
+		List<PersonName> judges = new ArrayList<>();
+		BufferedReader br = new BufferedReader(new FileReader(judgefile));
+		String line = br.readLine();
+		while ((line = br.readLine()) != null) {
+			line = line.toUpperCase();
+			String[] items = line.split("\\t");
+			if (items[1].startsWith("APPELLATE"))
+				continue;
+			PersonName _p = PersonName.parse(items[1], PersonName.GivMidSur);
+			if (items[1].equalsIgnoreCase("A. JAMES ROBERTSON II")) {
+				System.out.println();
+			}
+			if (_p != null) {
+				boolean b = false;
+				for (PersonName p : judges) {
+					if (p.samePerson(_p)) {
+						p.combine(_p);
+						b = true;
+						break;
+					}
+				}
+				if (!b)
+					judges.add(_p);
+			}
+		}
+		br.close();
+		return judges;
 	}
 
 	static int findRole(String _r) {
@@ -175,17 +281,18 @@ public class ExtractEntities {
 		return Party.ROLE_UNKNOWN;
 	}
 
-	static class CaseNames {
+	static class CaseParties {
 		String id;
 		List<Party> parties = new ArrayList<>();
 
-		public CaseNames(String _id) {
+		public CaseParties(String _id) {
 			id = _id;
 		}
 
 		void addParty(Party _p) {
 			for (Party p : parties) {
 				if (p.sameParty(_p)) {
+					p.combine(_p);
 					return;
 				}
 			}
@@ -196,13 +303,45 @@ public class ExtractEntities {
 			StringBuilder sb = new StringBuilder();
 			sb.append(id);
 			for (Party p : parties) {
-				sb.append("\n\t" + p);
+				sb.append("\n" + p);
 			}
 			return sb.toString();
 		}
 
 		List<Party> getParties() {
 			return parties;
+		}
+	}
+
+	static class CaseJudges {
+		String id;
+		List<PersonName> judges = new ArrayList<>();
+
+		public CaseJudges(String _id) {
+			id = _id;
+		}
+
+		void addJudge(PersonName _p) {
+			for (PersonName p : judges) {
+				if (p.samePerson(_p)) {
+					p.combine(_p);
+					return;
+				}
+			}
+			judges.add(_p);
+		}
+
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			sb.append(id);
+			for (PersonName p : judges) {
+				sb.append("\n" + p.normalName());
+			}
+			return sb.toString();
+		}
+
+		List<PersonName> getJudges() {
+			return judges;
 		}
 	}
 

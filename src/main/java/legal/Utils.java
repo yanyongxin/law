@@ -161,4 +161,38 @@ public class Utils {
 			return 0;
 		}
 	}
+
+	public static List<Object> listAND(List<? extends Object> list1, List<? extends Object> list2) {
+		List<Object> rlist = new ArrayList<>();
+		for (Object o : list1) {
+			if (list2.contains(o)) {
+				rlist.add(o);
+			}
+		}
+		return rlist;
+	}
+
+	public static List<Object> listXOR(List<? extends Object> list1, List<? extends Object> list2) {
+		List<Object> rlist = new ArrayList<>();
+		if (list1 == null && list2 == null) {
+			return rlist;
+		}
+		if (list1 != null && list2 == null) {
+			rlist.addAll(list1);
+		} else if (list2 != null && list1 == null) {
+			rlist.addAll(list2);
+		} else {
+			for (Object o : list1) {
+				if (!list2.contains(o)) {
+					rlist.add(o);
+				}
+			}
+			for (Object o : list2) {
+				if (!list1.contains(o)) {
+					rlist.add(o);
+				}
+			}
+		}
+		return rlist;
+	}
 }

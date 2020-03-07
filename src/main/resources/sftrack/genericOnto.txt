@@ -443,6 +443,7 @@ ugoerOfProc	instanceOf	Relation
 Be	instanceOf	Relation
 LosAngelesCA	instanceOf	City
 City	subclassOf	GeoPoliticalEntity
+UsState	subclassOf	GeoPoliticalEntity
 AddressClass		subclassOf	EntityClass
 HumanClass	subclassOf	EntityClass
 OrgCoSimonLawFirm	instanceOf	OrgCo
@@ -653,6 +654,12 @@ DocLegalClaimCounterclaim	define	DocTerm
 ClaimTerm	subclassOf	Document
 Document	ugoerOfProc	ProcCompel
 Document	ugoerOfProc	ProcStrike
+CityHongKong	instanceOf	City
+StateCalifornia	instanceOf	UsState
+StateDelaware	instanceOf	UsState
+StateNewYork	instanceOf	UsState
+StateTexas	instanceOf	UsState
+StateUtah	instanceOf	UsState
 StatusComplete	subclassOf	StatusProc
 StatusAs	subclassOf	StatusProc
 Attorney	ugoerOfProc	ProcTerminate

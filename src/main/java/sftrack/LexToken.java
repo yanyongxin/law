@@ -107,6 +107,12 @@ public class LexToken {
 		return s.replaceAll("\\W", "");
 	}
 
+	public void rebase(String _parent, int _offset) {
+		parent = _parent;
+		start += _offset;
+		end += _offset;
+	}
+
 	public String getText() {
 		return text;
 	}

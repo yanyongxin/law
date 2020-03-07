@@ -80,6 +80,7 @@
 {"text":"brief","type":"NP", "entity":"DocLegalBrief"}
 {"text":"briefing","type":"NP", "entity":"Briefing"}
 {"text":"by","type":"PRP","entity":"byAgent"}
+{"text":"California","type":"NP","entity":"StateCalifornia"}
 {"text":"cancelled","type":"VP","tense":"past","entity":"ProcCancel"}
 {"text":"canceling","type":"VP","tense":"ing","entity":"ProcCancel"}
 {"text":"cancelling","type":"VP","tense":"ing","entity":"ProcCancel"}
@@ -173,6 +174,7 @@
 {"text":"defendant","type":"NP","entity":"RoleLegalDefendant"}
 {"text":"defendants","type":"NP","entity":"RoleLegalDefendant"}
 {"text":"Defenses","type":"NP","entity":"DocDefense"}
+{"text":"DELAWARE","type":"NP","entity":"StateDelaware"}
 {"text":"deleted","type":"VP","tense":"past","entity":"ProcDelete"}
 {"text":"Deliberation","type":"NP","entity":"ProcDeliberation"}
 {"text":"Deliberations","type":"NP","entity":"ProcDeliberation"}
@@ -388,6 +390,7 @@
 {"text":"Name","type":"NP", "entity":"NameRef"}
 {"text":"needed","type":"VP", "tense":"past","entity":"ProcNeed"}
 {"text":"new","type":"ADJP", "entity":"StatusNew"}
+{"text":"NEW YORK","type":"NP","list":"new","entity":"StateNewYork"}
 {"text":"no","type":"ADJP", "entity":"StatusEmptySet"}
 {"text":"none","type":"NP", "entity":"OrgCoNone"}
 {"text":"Non-Infringement","type":"NP", "entity":"NonInfringement"}
@@ -613,6 +616,7 @@
 {"text":"terms","type":"NP", "entity":"DocTerm"}
 {"text":"TESTIMONY","type":"NP", "entity":"Testimony"}
 {"text":"text","type":"NP", "entity":"DocText"}
+{"text":"TEXAS","type":"NP","entity":"StateTexas"}
 {"text":"that","type":"DET", "entity":"That"}
 {"text":"which","type":"NP", "entity":"Which"}
 {"text":"the","type":"DET","entity":"The"}
@@ -637,6 +641,7 @@
 {"text":"Trial","type":"NP","entity":"ProcTrial"}
 {"text":"Trial\\s*day","type":"NP","list":"trial", "entity":"TrialDay"}
 {"text":"Tuesday","type":"TIMEP", "entity":"Tuesday"}
+{"text":"UTAH","type":"NP","entity":"StateUtah"}
 {"text":"under","type":"PRP","entity":"under"}
 {"text":"unopposed","type":"ADJP","entity":"StatusUnopposed"}
 {"text":"upon","type":"PRP","entity":"upon"}

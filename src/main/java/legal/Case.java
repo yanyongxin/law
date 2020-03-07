@@ -40,6 +40,7 @@ public class Case {
 	List<Entity> gel = new ArrayList<>();
 	List<Link> glk = new ArrayList<>();
 	List<PartyCluster> clusters = new ArrayList<>();
+	List<PersonName> judges = new ArrayList<>();
 	Date lastDate; // date of the last entry;
 
 	public static void main(String[] args) throws IOException {

@@ -60,9 +60,14 @@ public class SFsimple {
 		String testText = "Complaint against Comcast with jury demand by General Electric Company";
 		String test1 = "MOTION TO STRIKE COMPLAINT FILED BY DEFENDANT HYUNDAI MOTOR AMERICA HEARING SET FOR JUL-18-2017 AT 02:00 PM IN DEPT 302";
 		String test2 = "MEMORANDUM OF POINTS AND AUTHORITIES AND DEMURRER TO FIRST AMENDED COMPLAINT FILED BY DEFENDANT HYUNDAI MOTOR AMERICA";
+		String test3 = "WHOLE FOODS MARKET CALIFORNIA, INC.	Cross Defendant";
+		String test4 = "LAFLEUR, LENA INDIVIDUALLY, AND ON BEHALF OF THE ESTATE OF GERVIS LAFLEUR, DECEASED";
+		String test5 = "PFIZER, INC. A DELAWARE CORPORATION";
+		String test6 = "";
+		String test7 = "";
 		try {
 			Srunner srun = onto.createSrunner(true);
-			List<Phrase> phlist = CaseData.deToPhrases(test2, false);
+			List<Phrase> phlist = CaseData.deToPhrases(test4, false);
 			srun.insertList(phlist);
 			srun.execute();
 			Map<Integer, List<Phrase>> rpmap = srun.findAllPhrases();
