@@ -36,6 +36,14 @@ public class PersonName implements Comparable<PersonName> {
 	public Pattern getPattern() {
 		if (namePattern != null)
 			return namePattern;
+		String regex = this.getMediumRegex();
+		namePattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+		return namePattern;
+	}
+
+	public Pattern getPatternOld() {
+		if (namePattern != null)
+			return namePattern;
 		String sufx = "";
 		if (suffixes != null) {
 			for (String s : suffixes) {
@@ -225,16 +233,16 @@ public class PersonName implements Comparable<PersonName> {
 		}
 		String p2 = "\\b" + givname.substring(0, 1);
 		if (givname.length() == 1) {
-			p2 += "(\\.\\s*)?";
+			p2 += "(\\.|(\\w|-)+)?";
 		} else {
-			p2 += "(" + givname.substring(1) + "\\s*)?";
+			p2 += "(\\.|" + givname.substring(1) + ")?";
 		}
 		if (midname != null) {
 			if (midname instanceof String) {
 				String mid = (String) midname;
 				p2 += "(\\s*" + mid;
-				if (mid.length() == 1) {
-					p2 += "(\\w|-)*\\.?";
+				if (mid.length() == 1) {// mid initial may be a full middle name
+					p2 += "(\\.|(\\w|-)+)?";
 				}
 				p2 += ")?";
 			} else {
@@ -243,15 +251,15 @@ public class PersonName implements Comparable<PersonName> {
 				for (String mid : midlist) {
 					p2 += "(\\s*" + mid;
 					if (mid.length() == 1) {
-						p2 += "(\\w|-)*\\.?";
+						p2 += "(\\.|(\\w|-)+)?";
 					}
 					p2 += ")?";
 				}
 			}
 		} else { // when no midname is available, matching both givname and surname are considered a match
-			p2 += "(\\s\\w+\\.?)?";
+			p2 += "(\\s*\\w+\\.?){0,2}";
 		}
-		p2 = p2 + "\\s*" + "\\b" + surname + "\\b" + sufx;
+		p2 += "\\s*" + "\\b" + surname + "\\b" + sufx;
 		String regex = p1 + "|" + p2;
 		if (givname.length() == 1 && midname != null && (midname instanceof String)) {
 			// "A. JAMES ROBERTSON, II" can appear as "JAMES A. ROBERTSON, II" also. Don't know why.
@@ -266,7 +274,7 @@ public class PersonName implements Comparable<PersonName> {
 						pp.addSuffix(sx);
 					}
 				}
-				String rgx = pp.getWeakRegex();
+				String rgx = pp.getMediumRegex();
 				regex = regex + "|" + rgx;
 			}
 		}
@@ -330,6 +338,7 @@ public class PersonName implements Comparable<PersonName> {
 
 	public PersonName(String name) {
 		raw = name;
+		name = name.replaceAll("\\,\\,", ",");
 		int idx = name.indexOf("(");
 		if (idx > 0) {
 			name = name.substring(0, idx);

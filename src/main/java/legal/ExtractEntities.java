@@ -15,11 +15,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ExtractEntities {
+	static Pattern pClerk = Pattern.compile("CLERK\\:\\s*(\\w.+?\\w\\w)(\\;|\\.|\\,)", Pattern.CASE_INSENSITIVE);
+
 	static List<Pattern> formJudgePatterns(List<PersonName> judgelist) {
 		List<Pattern> jps = new ArrayList<>();
 		for (PersonName pn : judgelist) {
-			String regex = pn.getWeakRegex();
-			Pattern p = Pattern.compile("((HON(ORABLE|\\.)|JUDGE\\:?)\\s+)+(" + regex + ")", Pattern.CASE_INSENSITIVE);
+			//			String regW = pn.getWeakRegex();
+			String regM = pn.getMediumRegex();
+			String regJudge = "(HON(ORABLE|\\.)|(VISITING\\s)?JUDGE.?|VJ)\\s+";
+			// regJudge is optional for surname with givname of just an initial, but compulsory for just a surname:
+			String regex = "(" + regJudge + ")*(" + regM + ")|(" + regJudge + ")+" + pn.surname;
+			Pattern p = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
 			jps.add(p);
 		}
 		return jps;
@@ -51,16 +57,21 @@ public class ExtractEntities {
 		for (PersonName pn : judgelist) {
 			wr.write(pn + "\n");
 		}
-		wr.close();
 
 		List<Case> cases = readCases(docketfile);
 
-		identifyEntities(cases, docketOutfile, partymap, judgePatterns);
+		Map<String, Integer> clerks = identifyEntities(cases, docketOutfile, partymap, judgePatterns);
+		wr.write("\n\n================= Clerks ====================\n\n");
+		for (String key : clerks.keySet()) {
+			Integer I = clerks.get(key);
+			wr.write(key + "\t" + I + "\n");
+		}
+		wr.close();
 	}
 
-	static void identifyEntities(List<Case> cases, String outfile,
+	static Map<String, Integer> identifyEntities(List<Case> cases, String outfile,
 			Map<String, CaseParties> partymap, List<Pattern> judgePatterns) throws IOException {
-
+		Map<String, Integer> clerks = new TreeMap<>();
 		BufferedWriter wr = new BufferedWriter(new FileWriter(outfile));
 		for (Case c : cases) {
 			CaseParties cn = partymap.get(c.id);
@@ -68,14 +79,15 @@ public class ExtractEntities {
 			//				System.out.println("CA_SFC_464245");
 			//			}
 			for (Entry e : c.entries) {
-				String s = findEntities(e.text, cn, judgePatterns);
+				String s = findEntities(e.text, cn, judgePatterns, clerks);
 				wr.write(c.id + "\t" + e.sdate + "\t" + s + "\n");
 			}
 		}
 		wr.close();
+		return clerks;
 	}
 
-	static String findEntities(String text, CaseParties cn, List<Pattern> judgePatterns) {
+	static String findEntities(String text, CaseParties cn, List<Pattern> judgePatterns, Map<String, Integer> clerks) {
 		String remainText = text;
 		Map<String, String> replaceMap = new HashMap<>();
 		int replaceIndex = 1;
@@ -135,6 +147,30 @@ public class ExtractEntities {
 				remainText = remainText.replace(replaced, s4);
 				replaceMap.put(s4, replaced);
 				m = ptn.matcher(remainText);
+				if (m.find()) {
+					s4 = "&" + replaceIndex++ + "&";
+					remainText = remainText.replace(m.group(), s4);
+					replaceMap.put(s4, m.group());
+				}
+			}
+		}
+		int index = remainText.indexOf("CLERK");
+		if (index >= 0) {
+			Matcher m = pClerk.matcher(remainText);
+			if (m.find()) {
+				String s4 = "&" + replaceIndex++ + "&";
+				String replaced = m.group();
+				String clerkName = m.group(1);
+				Integer I = clerks.get(clerkName);
+				if (I == null) {
+					I = 1;
+				} else {
+					I++;
+				}
+				clerks.put(clerkName, I);
+				remainText = remainText.replace(replaced, s4);
+				replaceMap.put(s4, replaced);
+				m = pClerk.matcher(remainText);
 				if (m.find()) {
 					s4 = "&" + replaceIndex++ + "&";
 					remainText = remainText.replace(m.group(), s4);
