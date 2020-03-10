@@ -207,7 +207,7 @@ public class PersonName implements Comparable<PersonName> {
 				sufx += r;
 			}
 		}
-		String p1 = "\\b" + surname + sufx + ",\\s*" + givname + "\\b";
+		String p1 = "\\b" + surname + sufx + "\\,\\s*" + givname + "\\b";
 		if (givname.length() == 1) { // allow M. to MING-XING
 			p1 += "(\\w|-)*\\.?";
 		}
@@ -231,6 +231,103 @@ public class PersonName implements Comparable<PersonName> {
 				}
 			}
 		}
+
+		String r = "";
+		String r1 = givname.substring(0, 1) + "(\\.|" + givname.substring(1) + ")?\\s*"; // givname surname, g. surname
+		if (midname == null) {
+			String r2 = givname + "(\\s\\w+|\\w\\.)"; // givname unknownmidname surname
+			String r3 = givname + "\\s(\\w\\.\\s*){0,2}"; // givname unknown_midinitial_1. unknown_midinitial_2. surname
+			r = "\\b(" + r1 + "|" + r2 + "|" + r3 + ")\\s*";
+		} else {
+			if (midname instanceof String) {
+				String mid = (String) midname;
+				if (mid.length() == 1) {
+					String r4 = givname + "\\s+" + mid + "((\\.|(\\w|-)+)\\s*|\\s+)"; // givname m. surname
+					String r5 = givname.substring(0, 1) + "\\.\\s*" + mid + "\\.\\s*"; // g. m. surname
+					String r6 = givname.substring(0, 1) + mid + "\\s+"; // gm surname
+					r = "\\b(" + r1 + "|" + r4 + "|" + r5 + "|" + r6 + ")";
+				} else {
+					String giv = givname;
+					if (givname.length() == 1) {
+						giv += "\\.?";
+					}
+					String r3 = giv + "\\s+" + mid + "\\s+"; // givname midname surname
+					String r4 = giv + "\\s+" + mid.substring(0, 1) + "(\\.\\s*|\\s+)"; // givname m. surname
+					String r5 = givname.substring(0, 1) + "\\.\\s*" + mid.substring(0, 1) + "\\.\\s*"; // g. m. surname
+					String r6 = givname.substring(0, 1) + mid.substring(0, 1) + "\\s+"; // gm surname
+					r = "\\b(" + r1 + "|" + r3 + "|" + r4 + "|" + r5 + "|" + r6 + ")";
+				}
+			} else {
+				r = "\\b" + givname + "\\s+";
+				List<String> midlist = (List<String>) midname;
+				for (String mid : midlist) {
+					r += mid;
+					if (mid.length() == 1) {
+						r += "(\\.|(\\w|-)+)?";
+					}
+				}
+			}
+		}
+		r += "\\b" + surname + "\\b" + sufx;
+		String regex = p1 + "|" + r;
+		if (givname.length() == 1 && midname != null && (midname instanceof String)) {
+			// "A. JAMES ROBERTSON, II" can appear as "JAMES A. ROBERTSON, II" also. Don't know why.
+			String mid = (String) midname;
+			if (mid.length() > 1) {
+				PersonName pp = new PersonName();
+				pp.surname = surname;
+				pp.givname = mid;
+				pp.midname = givname;
+				if (suffixes != null) {
+					for (String sx : suffixes) {
+						pp.addSuffix(sx);
+					}
+				}
+				String rgx = pp.getMediumRegex();
+				regex = regex + "|" + rgx;
+			}
+		}
+		return regex;
+	}
+
+	public String getMediumRegexOld() {
+		String sufx = "";
+		if (suffixes != null) {
+			for (String s : suffixes) {
+				if (s.endsWith(".")) {
+					s = s.substring(0, s.length() - 1) + "\\.?";
+				} else {
+					s += "\\.?";
+				}
+				String r = "(\\,?\\s*" + s + ")?";
+				sufx += r;
+			}
+		}
+		String p1 = "\\b" + surname + sufx + "\\,\\s*" + givname + "\\b";
+		if (givname.length() == 1) { // allow M. to MING-XING
+			p1 += "(\\w|-)*\\.?";
+		}
+		if (midname != null) {
+			if (midname instanceof String) {
+				String mid = (String) midname;
+				p1 += "(\\s*" + mid;
+				if (mid.length() == 1) {
+					p1 += "(\\w|-)*\\.?"; // allow M. to MING-XING
+				}
+				p1 += ")?";
+			} else {
+				@SuppressWarnings("unchecked")
+				List<String> midlist = (List<String>) midname;
+				for (String mid : midlist) {
+					p1 += "(\\s*" + mid;
+					if (mid.length() == 1) {
+						p1 += "(\\w|-)*\\.?";
+					}
+					p1 += ")?";
+				}
+			}
+		}
+
 		String p2 = "\\b" + givname.substring(0, 1);
 		if (givname.length() == 1) {
 			p2 += "(\\.|(\\w|-)+)?";

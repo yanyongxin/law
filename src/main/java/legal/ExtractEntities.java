@@ -75,8 +75,8 @@ public class ExtractEntities {
 		BufferedWriter wr = new BufferedWriter(new FileWriter(outfile));
 		for (Case c : cases) {
 			CaseParties cn = partymap.get(c.id);
-			//			if (c.id.equals("CA_SFC_464245")) {
-			//				System.out.println("CA_SFC_464245");
+			//			if (c.id.equals("CA_SFC_464349")) {
+			//				System.out.println("CA_SFC_464349");
 			//			}
 			for (Entry e : c.entries) {
 				String s = findEntities(e.text, cn, judgePatterns, clerks);
@@ -89,6 +89,9 @@ public class ExtractEntities {
 
 	static String findEntities(String text, CaseParties cn, List<Pattern> judgePatterns, Map<String, Integer> clerks) {
 		String remainText = text;
+		if (text.startsWith("LAW AND MOTION 302, PLAINTIFF ANTHONY LEE'S UNOPPOSED MOTION")) {
+			System.out.println();
+		}
 		Map<String, String> replaceMap = new HashMap<>();
 		int replaceIndex = 1;
 		for (Party p : cn.parties) {
