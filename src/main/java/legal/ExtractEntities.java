@@ -15,7 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ExtractEntities {
-	static Pattern pClerk = Pattern.compile("CLERK\\:\\s*(\\w.+?\\w\\w)(\\;|\\.|\\,)", Pattern.CASE_INSENSITIVE);
+	static Pattern pClerk = Pattern.compile("CLERK\\:\\s*(\\w.+?\\w\\w)(?=(\\;|\\.|\\,|\\s*\\(|\\s*$))", Pattern.CASE_INSENSITIVE);
 
 	static List<Pattern> formJudgePatterns(List<PersonName> judgelist) {
 		List<Pattern> jps = new ArrayList<>();
