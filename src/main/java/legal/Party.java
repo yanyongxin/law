@@ -29,14 +29,14 @@ public class Party {
 	static final String regAsSomethingOf = "\\bAS (\\w+ )+OF ";
 	static final Map<String, Integer> mapRole = new HashMap<>();
 	static final Map<Integer, String> mapRoleReverse = new HashMap<>();
-	static final int TYPE_UNKNOWN = 0;
-	static final int TYPE_INDIVIDUAL = 1;
-	static final int TYPE_CORPORATION = 2;// CORP, INC, LLC, LTD, LLP, GROUP
-	static final int TYPE_ORGANIZATION = 3;// CORP, INC, LLC, LTD, LLP, GROUP
-	static final int TYPE_GOVERNMENT = 4;
-	static final int TYPE_DOESROESMOES = 5;
-	static final int TYPE_MINOR = 6;
-	static final int TYPE_OTHER = 10;
+	static final public int TYPE_UNKNOWN = 0;
+	static final public int TYPE_INDIVIDUAL = 1;
+	static final public int TYPE_CORPORATION = 2;// CORP, INC, LLC, LTD, LLP, GROUP
+	static final public int TYPE_ORGANIZATION = 3;// CORP, INC, LLC, LTD, LLP, GROUP
+	static final public int TYPE_GOVERNMENT = 4;
+	static final public int TYPE_DOESROESMOES = 5;
+	static final public int TYPE_MINOR = 6;
+	static final public int TYPE_OTHER = 10;
 
 	static final int ROLE_UNKNOWN = 0;
 	static final int ROLE_PLAINTIFF = 1;
@@ -108,7 +108,7 @@ public class Party {
 	String address; // some have address in their name field
 
 	List<Integer> roles = new ArrayList<>();
-	int type;// INDIVIDUAL, CORPORATION, GOVERNMENT, DOESROES, UNKNOWN
+	public int type;// INDIVIDUAL, CORPORATION, GOVERNMENT, DOESROES, UNKNOWN
 	List<CorpName> dba;
 	String errSued;//SUED ERRONEOUSLY HEREIN AS TAKITAKI MITIGLI, (ERRONEOUSLY SUED HEREIN AS "ALDRY BONIFACIO")
 	//HILL, DAVID INDIVIDUALLY, AND ON BEHALF OF THE ESTATE OF JAMES D. HILL, DECEASED

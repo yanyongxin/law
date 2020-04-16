@@ -26,7 +26,7 @@ public class Case {
 	static List<Case> cases = new ArrayList<>();
 	static Map<String, CaseNames> mapParty;
 	Map<String, List<Entry>> mdamap = new TreeMap<>();
-	List<Entry> entries;
+	public List<Entry> entries;
 	List<List<Entry>> daily; // entries of the same day
 	List<Other> others; // others, that cannot organized into anything
 	// Motions In limine grouped together:

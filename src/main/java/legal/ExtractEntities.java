@@ -14,11 +14,33 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import legal.Entry.DePhrase;
+
+/**
+ * Input three resource files: (1) party (2) judge (3) attorney;
+ * Input one data file: docket entries of cases, one entry each line of text;
+ * 
+ * Generate three files:
+ *  (1) docket entry output file. Each identified entity is surrounded by <==< >==>
+ *    Example:
+ * 		DECLARATION OF ASHWIN LADVA (TRANSACTION ID # 100033395) FILED BY PLAINTIFF BARRIENTOS, CLAUDIA CRUZ
+ * 	  becomes:
+ *		DECLARATION OF <=<ASHWIN LADVA>=> (TRANSACTION ID # 100033395) FILED BY PLAINTIFF <=<BARRIENTOS, CLAUDIA CRUZ>=>
+ *	(2) party list file:
+ * @author yanyo
+ *
+ */
 public class ExtractEntities {
 	static Pattern pClerk = Pattern.compile("CLERK\\:\\s*(\\w.+?\\w\\w)(?=(\\;|\\.|\\,|\\s*\\(|\\s*$))", Pattern.CASE_INSENSITIVE);
+	static Map<String, Integer> wordmap = new TreeMap<>();
+	public Map<String, CaseParties> parties;
+	public Map<String, CaseAttorneys> attorneys;
+	public List<Judge> judges;
+	public Map<String, Clerk> clerks = new TreeMap<>();
+	public List<Case> cases;
 
-	static List<Pattern> formJudgePatterns(List<PersonName> judgelist) {
-		List<Pattern> jps = new ArrayList<>();
+	static List<Judge> formJudgePatterns(List<PersonName> judgelist) {
+		List<Judge> jps = new ArrayList<>();
 		for (PersonName pn : judgelist) {
 			//			String regW = pn.getWeakRegex();
 			String regM = pn.getMediumRegex();
@@ -26,29 +48,90 @@ public class ExtractEntities {
 			// regJudge is optional for surname with givname of just an initial, but compulsory for just a surname:
 			String regex = "(" + regJudge + ")*(" + regM + ")|(" + regJudge + ")+" + pn.surname;
 			Pattern p = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
-			jps.add(p);
+			Judge j = new Judge(pn, p);
+			jps.add(j);
 		}
 		return jps;
 	}
 
+	public ExtractEntities(String[] args) throws IOException {
+		String partyInputfile = args[0];
+		String judgeInputfile = args[1];
+		String attorneyInputfile = args[2];
+		String docketInputfile = args[3];
+		long starttime = System.currentTimeMillis();
+		// parties are organized on a per case bases:
+		System.out.println("Read parties ... ");
+		parties = readParties(partyInputfile);
+		// attorneys are organized on a per case bases:
+		long attorneyTime = System.currentTimeMillis() - starttime;
+		System.out.println("Read attorneys ... " + attorneyTime);
+		attorneys = readAttorneys(attorneyInputfile);
+		// judges are in one list, because the judge file I got only cover some of the cases:
+		long judgeTime = System.currentTimeMillis() - starttime;
+		System.out.println("Read judges ... " + judgeTime);
+		List<PersonName> judgelist = readJudgeList(judgeInputfile);
+		// regex patterns are used directly, so convert judge names to regex patterns
+		judges = formJudgePatterns(judgelist);
+
+		// read docket entries for each case:
+		long caseTime = System.currentTimeMillis() - starttime;
+		System.out.println("read cases ... " + caseTime);
+		cases = readCases(docketInputfile);
+		// identify and mark mentions of entities in docket entries, also find mentions of clerks:
+		long identifyTime = System.currentTimeMillis() - starttime;
+		System.out.println("Identify entities in docket entries ... " + identifyTime);
+		identifyEntities_1(cases);
+		long endTime = System.currentTimeMillis() - starttime;
+		System.out.println("Done! " + endTime);
+	}
+
 	public static void main(String[] args) throws IOException {
-		if (args.length != 5) {
-			System.out.println("args: partyfile judgefile docketfile partyoutfile docketOutfile");
+		if (args.length != 8) {
+			System.out.println("args: partyInputfile judgeInputfile attorneyInputfile docketInputfile entityOutfile docketOutfile wordOutfile");
 			System.exit(-1);
 		}
-		String partyfile = args[0];
-		String judgefile = args[1];
-		String docketfile = args[2];
-		String outfile = args[3];
-		String docketOutfile = args[4];
-		Map<String, CaseParties> partymap = readParties(partyfile);
-		List<PersonName> judgelist = readJudgeList(judgefile);
-		List<Pattern> judgePatterns = formJudgePatterns(judgelist);
-		//		Map<String, CaseJudges> judgemap = readJudges(judgefile);
+	}
 
-		BufferedWriter wr = new BufferedWriter(new FileWriter(outfile));
+	public static void main_1(String[] args) throws IOException {
+		if (args.length != 8) {
+			System.out.println("args: partyInputfile judgeInputfile attorneyInputfile docketInputfile entityOutfile docketOutfile wordOutfile");
+			System.exit(-1);
+		}
+		String partyInputfile = args[0];
+		String judgeInputfile = args[1];
+		String attorneyInputfile = args[2];
+		String docketInputfile = args[3];
+		String entityOutfile = args[4];
+		String docketOutfile = args[5];
+		String wordOutfile = args[6];
+		String phraseOutfile = args[7];
+		long starttime = System.currentTimeMillis();
+		// parties are organized on a per case bases:
+		System.out.println("Read parties ... ");
+		Map<String, CaseParties> partymap = readParties(partyInputfile);
+		// attorneys are organized on a per case bases:
+		long attorneyTime = System.currentTimeMillis() - starttime;
+		System.out.println("Read attorneys ... " + attorneyTime);
+		Map<String, CaseAttorneys> attorneymap = readAttorneys(attorneyInputfile);
+		// judges are in one list, because the judge file I got only cover some of the cases:
+		long judgeTime = System.currentTimeMillis() - starttime;
+		System.out.println("Read judges ... " + judgeTime);
+		List<PersonName> judgelist = readJudgeList(judgeInputfile);
+		// regex patterns are used directly, so convert judge names to regex patterns
+		List<Judge> judges = formJudgePatterns(judgelist);
+
+		// write parties, judges, clerks into one file:
+		long writeTime = System.currentTimeMillis() - starttime;
+		System.out.println("write parties, attorneys, judges ... " + writeTime);
+		BufferedWriter wr = new BufferedWriter(new FileWriter(entityOutfile));
 		wr.write("\n\n================= Parties ====================\n\n");
 		for (CaseParties pn : partymap.values()) {
+			wr.write("\n" + pn + "\n");
+		}
+
+		wr.write("\n\n================= Attorneys ====================\n\n");
+		for (CaseAttorneys pn : attorneymap.values()) {
 			wr.write("\n" + pn + "\n");
 		}
 
@@ -57,29 +140,58 @@ public class ExtractEntities {
 		for (PersonName pn : judgelist) {
 			wr.write(pn + "\n");
 		}
-
-		List<Case> cases = readCases(docketfile);
-
-		Map<String, Integer> clerks = identifyEntities(cases, docketOutfile, partymap, judgePatterns);
+		// read docket entries for each case:
+		long caseTime = System.currentTimeMillis() - starttime;
+		System.out.println("read cases ... " + caseTime);
+		List<Case> cases = readCases(docketInputfile);
+		// identify and mark mentions of entities in docket entries, also find mentions of clerks:
+		long identifyTime = System.currentTimeMillis() - starttime;
+		System.out.println("Identify entities in docket entries ... " + identifyTime);
+		Map<String, Clerk> clerks = identifyEntities(cases, docketOutfile, partymap, attorneymap, judges);
+		long clerkTime = System.currentTimeMillis() - starttime;
+		System.out.println("write clerks ... " + clerkTime);
 		wr.write("\n\n================= Clerks ====================\n\n");
 		for (String key : clerks.keySet()) {
-			Integer I = clerks.get(key);
-			wr.write(key + "\t" + I + "\n");
+			Clerk I = clerks.get(key);
+			wr.write(key + "\t" + I.count + "\n");
 		}
 		wr.close();
+		long wordTime = System.currentTimeMillis() - starttime;
+		System.out.println("write words ... " + wordTime);
+		List<Pair> wordpairs = new ArrayList<>();
+		BufferedWriter wr2 = new BufferedWriter(new FileWriter(wordOutfile));
+		for (String word : wordmap.keySet()) {
+			if (word.length() == 0)
+				continue;
+			Integer cnt = wordmap.get(word);
+			wr2.write(word + "\t" + cnt + "\n");
+			Pair p = new Pair(cnt, word);
+			wordpairs.add(p);
+		}
+		wr2.write("\n\n===================== Count Sorted =========================\n\n");
+		Collections.sort(wordpairs);
+		for (Pair p : wordpairs) {
+			wr2.write(p.o2 + "\t" + p.o1 + "\n");
+		}
+		wr2.close();
+		long endTime = System.currentTimeMillis() - starttime;
+		System.out.println("Done! " + endTime);
 	}
 
-	static Map<String, Integer> identifyEntities(List<Case> cases, String outfile,
-			Map<String, CaseParties> partymap, List<Pattern> judgePatterns) throws IOException {
-		Map<String, Integer> clerks = new TreeMap<>();
+	static Map<String, Clerk> identifyEntities(List<Case> cases, String outfile, Map<String, CaseParties> partymap,
+			Map<String, CaseAttorneys> attorneymap, List<Judge> judges) throws IOException {
+		Map<String, Clerk> clerks = new TreeMap<>();
 		BufferedWriter wr = new BufferedWriter(new FileWriter(outfile));
 		for (Case c : cases) {
-			CaseParties cn = partymap.get(c.id);
+			CaseParties cp = partymap.get(c.id);
+			CaseAttorneys ca = attorneymap.get(c.id);
 			//			if (c.id.equals("CA_SFC_464349")) {
 			//				System.out.println("CA_SFC_464349");
 			//			}
 			for (Entry e : c.entries) {
-				String s = findEntities(e.text, cn, judgePatterns, clerks);
+				if (e.text.startsWith("Payment"))
+					continue;
+				String s = findEntities(e.text, cp, ca, judges, clerks);
 				wr.write(c.id + "\t" + e.sdate + "\t" + s + "\n");
 			}
 		}
@@ -87,11 +199,173 @@ public class ExtractEntities {
 		return clerks;
 	}
 
-	static String findEntities(String text, CaseParties cn, List<Pattern> judgePatterns, Map<String, Integer> clerks) {
-		String remainText = text;
-		if (text.startsWith("LAW AND MOTION 302, PLAINTIFF ANTHONY LEE'S UNOPPOSED MOTION")) {
-			System.out.println();
+	public static class Clerk {
+		String name;
+		int count;
+
+		public Clerk(String _name) {
+			name = _name;
+			count = 1;
 		}
+
+		int increment() {
+			count++;
+			return count;
+		}
+
+		public String toString() {
+			return name;
+		}
+	}
+
+	void identifyEntities_1(List<Case> cases) throws IOException {
+		for (Case c : cases) {
+			CaseParties cp = parties.get(c.id);
+			CaseAttorneys ca = attorneys.get(c.id);
+			for (Entry e : c.entries) {
+				if (e.text.startsWith("Payment"))
+					continue;
+
+				findEntities_1(e, cp, ca, judges, clerks);
+			}
+		}
+	}
+
+	static void breakTwo(String str, String template, int idx, int offset, List<Pair> list, List<DePhrase> plist, Object o) {
+		int index1 = offset;
+		String s1 = str.substring(0, idx);
+		int len = idx + template.length();
+		int index2 = offset + len;
+		String s2 = str.substring(len);
+		String s10 = s1.trim();
+		String s20 = s2.trim();
+		if (s10.length() > 0)
+			list.add(new Pair(Integer.valueOf(index1), s1));
+		if (s20.length() > 0)
+			list.add(new Pair(Integer.valueOf(index2), s2));
+		DePhrase dp = new DePhrase(template, offset + idx, index2, o);
+		plist.add(dp);
+	}
+
+	static void findEntities_1(Entry entry, CaseParties cn, CaseAttorneys ca, List<Judge> judges, Map<String, Clerk> clerks) {
+		String text = entry.text;
+		List<Pair> doneList = entry.doneList;
+		List<DePhrase> dephrases = entry.dephrases;
+		List<Pair> workList = new ArrayList<>();
+		List<Pair> nextList = new ArrayList<>();
+		nextList.add(new Pair(new Integer(0), text)); // initialize (offset, text)
+		while (!nextList.isEmpty()) {
+			workList.clear();
+			workList.addAll(nextList);
+			nextList.clear();
+			for (Pair pr : workList) {
+				int offset = (Integer) (pr.o1);
+				String str = (String) (pr.o2);
+				boolean b = false;
+				// for parties:
+				for (Party p : cn.parties) {
+					int idx;
+					for (String raw : p.raw) {
+						idx = str.indexOf(raw);
+						if (idx >= 0) {
+							breakTwo(str, raw, idx, offset, nextList, dephrases, p);
+							b = true;
+							break;
+						}
+					}
+					if (b)
+						break;
+					idx = str.indexOf(p.name);
+					if (idx >= 0) {
+						breakTwo(str, p.name, idx, offset, nextList, dephrases, p);
+						b = true;
+						break;
+					}
+					if (p.errSued != null) {
+						idx = str.indexOf(p.errSued);
+						if (idx >= 0) {
+							breakTwo(str, p.errSued, idx, offset, nextList, dephrases, p);
+							b = true;
+							break;
+						}
+					}
+					if (p.nameCorp != null) {
+						idx = str.indexOf(p.nameCorp.stem);
+						if (idx >= 0) {
+							breakTwo(str, p.nameCorp.stem, idx, offset, nextList, dephrases, p);
+							b = true;
+							break;
+						}
+					}
+					if (p.namePerson != null) {
+						Pattern ptn = p.namePerson.getPattern();
+						Matcher m = ptn.matcher(str);
+						if (m.find()) {
+							idx = m.start();
+							breakTwo(str, m.group(), idx, offset, nextList, dephrases, p);
+							b = true;
+							break;
+						}
+					}
+				} //	end for parties
+				if (b)
+					continue;// next in the workList
+				if (ca != null) {
+					for (Attorney p : ca.atts) {
+						if (p.name != null) {
+							Pattern ptn = p.name.getPattern();
+							Matcher m = ptn.matcher(str);
+							if (m.find()) {
+								breakTwo(str, m.group(), m.start(), offset, nextList, dephrases, p);
+								b = true;
+								break;
+							}
+						}
+					}
+				}
+				if (b)
+					continue;
+				for (Judge j : judges) {
+					Pattern ptn = j.pattern;
+					Matcher m = ptn.matcher(str);
+					if (m.find()) {
+						breakTwo(str, m.group(), m.start(), offset, nextList, dephrases, j);
+						b = true;
+						break;
+					}
+				}
+				if (b)
+					continue;
+				int index = str.indexOf("CLERK");
+				if (index >= 0) {
+					Matcher m = pClerk.matcher(str);
+					if (m.find()) {
+						String clerkName = m.group(1);
+						Clerk clk = clerks.get(clerkName);
+						if (clk == null) {
+							clk = new Clerk(clerkName);
+						} else {
+							clk.increment();
+						}
+						clerks.put(clerkName, clk);
+						breakTwo(str, m.group(), m.start(), offset, nextList, dephrases, clk);
+						b = true;
+					}
+				}
+				if (b)
+					continue;
+				// if reaches here, the string has not matched any entity:
+				doneList.add(pr);
+			} // end for pr : workList
+		} // while(!nextList.isEmpty())
+			// at this point, dephrase, and doneList are useful. 
+	}
+
+	static String findEntities(String text, CaseParties cn, CaseAttorneys ca, List<Judge> judges, Map<String, Clerk> clerks) {
+		String remainText = text;
+		//		if (text.startsWith("LAW AND MOTION 302, PLAINTIFF ANTHONY LEE'S UNOPPOSED MOTION")) {
+		//			System.out.println();
+		//		}
 		Map<String, String> replaceMap = new HashMap<>();
 		int replaceIndex = 1;
 		for (Party p : cn.parties) {
@@ -142,7 +416,26 @@ public class ExtractEntities {
 				}
 			}
 		}
-		for (Pattern ptn : judgePatterns) {
+		if (ca != null)
+			for (Attorney p : ca.atts) {
+				if (p.name != null) {
+					Pattern ptn = p.name.getPattern();
+					Matcher m = ptn.matcher(remainText);
+					if (m.find()) {
+						String s4 = "&" + replaceIndex++ + "&";
+						remainText = remainText.replace(m.group(), s4);
+						replaceMap.put(s4, m.group());
+						m = ptn.matcher(remainText);
+						if (m.find()) {
+							s4 = "&" + replaceIndex++ + "&";
+							remainText = remainText.replace(m.group(), s4);
+							replaceMap.put(s4, m.group());
+						}
+					}
+				}
+			}
+		for (Judge j : judges) {
+			Pattern ptn = j.pattern;
 			Matcher m = ptn.matcher(remainText);
 			if (m.find()) {
 				String s4 = "&" + replaceIndex++ + "&";
@@ -164,13 +457,13 @@ public class ExtractEntities {
 				String s4 = "&" + replaceIndex++ + "&";
 				String replaced = m.group();
 				String clerkName = m.group(1);
-				Integer I = clerks.get(clerkName);
-				if (I == null) {
-					I = 1;
+				Clerk clk = clerks.get(clerkName);
+				if (clk == null) {
+					clk = new Clerk(clerkName);
 				} else {
-					I++;
+					clk.increment();
 				}
-				clerks.put(clerkName, I);
+				clerks.put(clerkName, clk);
 				remainText = remainText.replace(replaced, s4);
 				replaceMap.put(s4, replaced);
 				m = pClerk.matcher(remainText);
@@ -181,6 +474,21 @@ public class ExtractEntities {
 				}
 			}
 		}
+		String cleanText = remainText.replaceAll("\\&\\d+\\&|\\(.+?\\)|\\\"|\\*", " ");
+		String[] words = cleanText.split("\\s+");
+		for (String s : words) {
+			if (s.matches("^(\\W|\\d).+|.+?\\d$"))// begin or end with numbers or non-alpha symbols
+				continue;
+			s = s.replaceAll("\\p{Punct}$", "").trim();
+			Integer cnt = wordmap.get(s);
+			if (cnt != null) {
+				cnt += 1;
+			} else {
+				cnt = 1;
+			}
+			wordmap.put(s, cnt);
+		}
+
 		if (!replaceMap.isEmpty()) {
 			for (String key : replaceMap.keySet()) {
 				String value = "<=<" + replaceMap.get(key) + ">=>";
@@ -250,12 +558,12 @@ public class ExtractEntities {
 		return mapParty;
 	}
 
-	static Map<String, CaseJudges> readJudges(String judgefile) throws IOException {
-		Map<String, CaseJudges> mapJudges = new TreeMap<>();
-		String line;
-		BufferedReader br = new BufferedReader(new FileReader(judgefile));
+	static Map<String, CaseAttorneys> readAttorneys(String attorneyfile) throws IOException {
+		Map<String, CaseAttorneys> mapLawyers = new TreeMap<>();
+		BufferedReader br = new BufferedReader(new FileReader(attorneyfile));
 		String id = "";
-		CaseJudges cn = null;
+		CaseAttorneys cn = null;
+		String line = br.readLine(); // skip the first line, column names. check file format to make sure this is true.
 		while ((line = br.readLine()) != null) {
 			line = line.toUpperCase();
 			String[] items = line.split("\\t");
@@ -264,19 +572,16 @@ public class ExtractEntities {
 				//				if (id.equals("CA_SFC_466227")) {
 				//					System.out.println();
 				//				}
-				cn = mapJudges.get(id);
+				cn = mapLawyers.get(id);
 				if (cn == null) {
-					cn = new CaseJudges(id);
-					mapJudges.put(id, cn);
+					cn = new CaseAttorneys(id);
+					mapLawyers.put(id, cn);
 				}
 			}
-			PersonName p = PersonName.parse(items[1], PersonName.GivMidSur);
-			if (p != null) {
-				cn.addJudge(p);
-			}
+			cn.addAttorney(items[1], items[2]);
 		}
 		br.close();
-		return mapJudges;
+		return mapLawyers;
 	}
 
 	static List<PersonName> readJudgeList(String judgefile) throws IOException {
@@ -289,9 +594,9 @@ public class ExtractEntities {
 			if (items[1].startsWith("APPELLATE"))
 				continue;
 			PersonName _p = PersonName.parse(items[1], PersonName.GivMidSur);
-			if (items[1].equalsIgnoreCase("A. JAMES ROBERTSON II")) {
-				System.out.println();
-			}
+			//			if (items[1].equalsIgnoreCase("A. JAMES ROBERTSON II")) {
+			//				System.out.println();
+			//			}
 			if (_p != null) {
 				boolean b = false;
 				for (PersonName p : judges) {
@@ -354,34 +659,164 @@ public class ExtractEntities {
 
 	static class CaseJudges {
 		String id;
-		List<PersonName> judges = new ArrayList<>();
+		List<Judge> judges = new ArrayList<>();
 
 		public CaseJudges(String _id) {
 			id = _id;
 		}
 
-		void addJudge(PersonName _p) {
-			for (PersonName p : judges) {
+		void addJudge(Judge _j) {
+			PersonName _p = _j.name;
+			for (Judge j : judges) {
+				PersonName p = j.name;
 				if (p.samePerson(_p)) {
 					p.combine(_p);
 					return;
 				}
 			}
-			judges.add(_p);
+			judges.add(_j);
 		}
 
 		public String toString() {
 			StringBuilder sb = new StringBuilder();
 			sb.append(id);
-			for (PersonName p : judges) {
+			for (Judge j : judges) {
+				PersonName p = j.name;
 				sb.append("\n" + p.normalName());
 			}
 			return sb.toString();
 		}
 
-		List<PersonName> getJudges() {
+		List<Judge> getJudges() {
 			return judges;
 		}
 	}
 
+	public static class Judge {
+		PersonName name;
+		Pattern pattern;
+
+		public Judge(PersonName _name, Pattern _pattern) {
+			name = _name;
+			pattern = _pattern;
+		}
+	}
+
+	public static class Lawfirm {
+		static List<Lawfirm> lawfirms = new ArrayList<>();
+		String name;
+
+		public Lawfirm(String _name) {
+			name = _name;
+		}
+
+		public static Lawfirm findFirm(String _name) {
+			for (Lawfirm firm : lawfirms) {
+				if (_name.equalsIgnoreCase(firm.name))
+					return firm;
+			}
+			return null;
+		}
+
+		public static Lawfirm createFirm(String _name) {
+			for (Lawfirm firm : lawfirms) {
+				if (_name.equalsIgnoreCase(firm.name))
+					return firm;
+			}
+			Lawfirm firm = new Lawfirm(_name);
+			lawfirms.add(firm);
+			return firm;
+		}
+
+		public boolean equals(Object o) {
+			if (!(o instanceof Lawfirm))
+				return false;
+			Lawfirm fm = (Lawfirm) o;
+			return name.equalsIgnoreCase(fm.name);
+		}
+	}
+
+	public static class Attorney {
+		PersonName name;
+		List<Lawfirm> firms = new ArrayList<>();
+		static List<Attorney> attorneys = new ArrayList<>();
+
+		protected Attorney(String _name, String _firm) {
+			name = PersonName.parse(_name, PersonName.SurGivMid);
+			addFirm(_firm);
+		}
+
+		public void addFirm(String _firm) {
+			Lawfirm fm = Lawfirm.createFirm(_firm);
+			if (!firms.contains(fm)) {
+				firms.add(fm);
+			}
+		}
+
+		public String toString() {
+			return name.toString();
+		}
+
+		public static Attorney createAttorney(String _name, String _firm) {
+			PersonName pn = PersonName.parse(_name, PersonName.SurGivMid);
+			// check if already in the registry
+			for (Attorney at : attorneys) {
+				if (at.name.samePerson(pn)) {
+					at.name.combine(pn);
+					if (!_firm.equalsIgnoreCase("None"))
+						at.addFirm(_firm);
+					return at;
+				}
+			}
+			// not in the registry. Create a new Attorney:
+			Attorney at = new Attorney(_name, _firm);
+			attorneys.add(at);
+			return at;
+		}
+
+		public boolean same(Attorney at) {
+			return name.samePerson(at.name);
+		}
+	}
+
+	static class CaseAttorneys {
+		String caseID;
+		List<Attorney> atts = new ArrayList<>();
+
+		public CaseAttorneys(String id) {
+			caseID = id;
+		}
+
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			sb.append(caseID);
+			for (Attorney a : atts) {
+				sb.append("\n" + a);
+			}
+			return sb.toString();
+		}
+
+		void addAttorney(String _name, String _firm) {
+			int idx = _name.indexOf('&');
+			if (idx >= 0)//FERGUSON & BERLAND
+				return;
+			idx = _name.indexOf("OFFICE");
+			if (idx >= 0)
+				return;
+			idx = _name.indexOf(" ' ");
+			if (idx >= 0)
+				return;
+			idx = _name.indexOf("DEPARTMENT");
+			if (idx >= 0)
+				return;
+
+			Attorney at = Attorney.createAttorney(_name, _firm);
+			for (Attorney att : atts) {
+				if (att.same(at)) {
+					return;
+				}
+			}
+			atts.add(at);
+		}
+	}
 }

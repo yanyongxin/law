@@ -47,6 +47,15 @@ public class LexToken {
 		return text.equalsIgnoreCase(tk.text);
 	}
 
+	public LexToken split(int splitPoint) {
+		String s1 = parent.substring(start, splitPoint);
+		String s2 = parent.substring(splitPoint, end);
+		LexToken next = new LexToken(parent, s2, splitPoint, end, type);
+		end = splitPoint;
+		text = s1;
+		return next;
+	}
+
 	protected LexToken(String p, String t, int x1, int x2, int tp) {
 		parent = p;
 		text = t;

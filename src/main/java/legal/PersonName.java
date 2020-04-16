@@ -268,7 +268,7 @@ public class PersonName implements Comparable<PersonName> {
 				}
 			}
 		}
-		r += "\\b" + surname + "\\b" + sufx;
+		r += "\\b" + surname + "S?\\b" + sufx;// the S? is added to accommodate "John Smiths opposition" 
 		String regex = p1 + "|" + r;
 		if (givname.length() == 1 && midname != null && (midname instanceof String)) {
 			// "A. JAMES ROBERTSON, II" can appear as "JAMES A. ROBERTSON, II" also. Don't know why.

@@ -917,25 +917,68 @@ public class Phrase implements Cloneable {
 		return false;
 	}
 
+	public boolean similar(Phrase ph) {
+		if (!synType.equals(ph.getSynType())) {
+			return false;
+		}
+		int myDepth = getDepth();
+		int phDepth = ph.getDepth();
+		int diffDepth = myDepth - phDepth;
+		if (diffDepth < -1 || diffDepth > 1) {
+			return false;
+		}
+		ERGraph g1 = getGraph();
+		ERGraph g2 = ph.getGraph();
+		Link lk1 = g1.getTopLink();
+		Link lk2 = g2.getTopLink();
+		if (lk1 != null && lk2 == null)
+			return false;
+		if (lk2 != null && lk1 == null)
+			return false;
+		if (lk1 != null && lk2 != null) {
+			return lk1.getType().equals(lk2.getType());
+		}
+		return true;
+	}
+
+	public int getDepth() {
+		if (subphrases == null || subphrases.size() == 0) {
+			return 1;
+		}
+		int maxDepth = 0;
+		for (Phrase ph : subphrases) {
+			int depth = ph.getDepth();
+			if (depth > maxDepth) {
+				maxDepth = depth;
+			}
+		}
+		return maxDepth + 1;
+	}
+
 	/**
 	 * 
 	 * @param p0
 	 *            separator, like ";", ","
 	 * @param p
 	 *            a phrase with head as a member
+	 * @bLeftToRight
+	 * 		true: phrase order: this, p0, p
+	 * 		false:phrase order: p, p0, this    
 	 * @return
 	 */
-	public Phrase addToSet(Phrase p0, Phrase p, String setName) {
+	public Phrase addToSet(Phrase p0, Phrase p, String setName, boolean bLeftToRight) {
 		ERGraph gp = p.getGraph();
 		ERGraph gt = this.getGraph();
 		Entity hd = gt.getHead();
 		Ontology onto = hd.onto;
 		String setType = "AND";
-		if (p0.text.equals("/") || p0.text.equalsIgnoreCase("or")) {
-			setType = "OR";
-		} else {
-			if (p0.text.equals("-")) {
-				setType = "RANGE";
+		if (p0 != null) {
+			if (p0.text.equals("/") || p0.text.equalsIgnoreCase("or")) {
+				setType = "OR";
+			} else {
+				if (p0.text.equals("-")) {
+					setType = "RANGE";
+				}
 			}
 		}
 		ERGraph gn;
@@ -959,7 +1002,11 @@ public class Phrase implements Cloneable {
 			// create a pseudo entity as head:
 			Entity en;
 			if (cls != null) {
-				en = new Entity(setName, cls, hd.getEntityType(), onto, this.begToken);
+				if (bLeftToRight) {
+					en = new Entity(setName, cls, hd.getEntityType(), onto, this.begToken);
+				} else {
+					en = new Entity(setName, cls, hd.getEntityType(), onto, p.getBegToken());
+				}
 			} else {
 				en = hd.clone();
 			}
@@ -977,7 +1024,20 @@ public class Phrase implements Cloneable {
 			gn.addLink(r2);
 		}
 		gn.setSetType(setType);
-		Phrase ph = new Phrase(this, p0, p, this.synType, gn);
+		Phrase ph;
+		if (p0 == null) {
+			if (bLeftToRight) {
+				ph = new Phrase(this, p, this.synType, gn);
+			} else {
+				ph = new Phrase(p, this, this.synType, gn);
+			}
+		} else {
+			if (bLeftToRight) {
+				ph = new Phrase(this, p0, p, this.synType, gn);
+			} else {
+				ph = new Phrase(p, p0, this, this.synType, gn);
+			}
+		}
 		return ph;
 	}
 

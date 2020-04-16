@@ -1,7 +1,9 @@
 package legal;
 
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -33,7 +35,7 @@ public class Entry implements Comparable<Entry> {
 	static final String SUMMONS = "SMMS";
 	static final String TRIAL = "TRAL";
 
-	String text;
+	public String text;
 	String sdate;
 	Date date;
 	String filer;
@@ -43,9 +45,11 @@ public class Entry implements Comparable<Entry> {
 	// COMPLAINT:CPL; SUMMONS:SMS; MOTION:MTN; OPPOSITION:OPP;MEMORANDUM:MEM;ORDER:ORD;DECLARATION:DCL;REPLY:RPL;
 	// CASE MANAGEMENT CONFERENCE:CMC; CASE MANAGEMENT STATEMENT:CMS; DEMURRER:DMR;NOTICE OF MOTION:NMN;
 	// HEARING:HRG; ANSWER:ANS;
+	public List<Pair> doneList = new ArrayList<>();
+	public List<DePhrase> dephrases = new ArrayList<>();
 
 	public Entry(String _d, String _t) {
-		text = _t;
+		text = _t.replaceAll("\\(.+?\\)", "");
 		sdate = _d;
 		date = Date.valueOf(sdate);
 	}
@@ -128,6 +132,24 @@ public class Entry implements Comparable<Entry> {
 
 	public String getType() {
 		return type;
+	}
+
+	public static class DePhrase {
+		public String text; // motherText.subString(start, end);
+		public int start;
+		public int end;
+		public Object entity; // Attorney, Judge, Party
+
+		public DePhrase(String _t, int _start, int _end, Object _e) {
+			text = _t;
+			start = _start;
+			end = _end;
+			entity = _e;
+		}
+
+		public String toString() {
+			return text;
+		}
 	}
 
 }

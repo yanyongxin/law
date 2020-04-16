@@ -262,25 +262,35 @@ public class Ontology {
 		// List<Link> links = new ArrayList<Link>();
 		BufferedReader br = new BufferedReader(new FileReader(ontofile));
 
-		String line;
-		while ((line = br.readLine()) != null) {
-			String[] split = line.split("\\s+");
-			if (split.length == 3) {
-				Entity e1 = getEntity(split[0]);
-				if (e1 == null) {
-					e1 = new Entity(split[0], null, Entity.TYPE_CLASS, this, -1);
-					addEntity(split[0], e1);
+		String line = "";
+		try {
+			while ((line = br.readLine()) != null) {
+				line = line.trim();
+				if (line.length() == 0)
+					continue;
+				if (line.charAt(0) == ';') { // skip
+					continue;
 				}
-				Entity e2 = getEntity(split[2]);
-				if (e2 == null) {
-					e2 = new Entity(split[2], null, Entity.TYPE_CLASS, this, -1);
-					addEntity(split[2], e2);
-				}
+				String[] split = line.split("\\s+");
+				if (split.length == 3) {
+					Entity e1 = getEntity(split[0]);
+					if (e1 == null) {
+						e1 = new Entity(split[0], null, Entity.TYPE_CLASS, this, -1);
+						addEntity(split[0], e1);
+					}
+					Entity e2 = getEntity(split[2]);
+					if (e2 == null) {
+						e2 = new Entity(split[2], null, Entity.TYPE_CLASS, this, -1);
+						addEntity(split[2], e2);
+					}
 
-				Link lk = new Link(split[1], e1, e2);
-				relations.add(lk);
-				addToRelationMap(lk);
+					Link lk = new Link(split[1], e1, e2);
+					relations.add(lk);
+					addToRelationMap(lk);
+				}
 			}
+		} catch (Exception ex) {
+			System.out.println(line);
 		}
 		br.close();
 		createParentMap(relations, parentMap);

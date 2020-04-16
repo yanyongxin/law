@@ -89,7 +89,7 @@ rule "Number_In_CaseNumber"	// 330 in 1:11-cv-00315-SLR
 		Phrase ph = new Phrase(p1, p2, r, 1);
 		ph.getGraph().remove(p2.getHead());
 		ph.setSynType("NUMREF");
-			insert(ph);
+		insert(ph);
 	 	ut.printPhrase(ph);
 end
 
@@ -423,7 +423,21 @@ rule "OrgCo_infer_name"
 			onto.createNewParty(partyName, onto, drools.getWorkingMemory(), p1.getHead());
 		}
 end
-
+rule "NP_AND_NP"
+	salience 100
+	when
+		p1: Phrase(synType=="NP", g1 : graph)
+		p2: Phrase(text.equalsIgnoreCase("and"), synType=="CONJ", begToken==p1.endToken)
+		p3: Phrase(synType=="NP", g2 : graph, begToken==p2.endToken)
+		eval(p1.similar(p3))
+	then
+		ut.print("Find NP_AND_NP for:  " + p1 +", "+ p2 +", "+p3 );
+		Phrase ph = p1.addToSet(p2, p3, p1.getHead().getName() + "AND" +  p3.getHead().getName(), true);
+		if(ph != null){
+			insert(ph);
+			ut.printPhrase(ph);
+		}
+end
 
 rule "NP_VP_Passive"
 	when
@@ -453,6 +467,23 @@ rule "BE_VP_past_Passive"
 		g.setTopLink(r);
 		Phrase ph = new Phrase(p1, p2, "VP", g);
 		ph.setTense("past");
+		insert(ph);
+		ut.printPhrase(ph);
+end
+
+rule "NP_IS_ADJP"	// CASE MANAGEMENT CONFERENCE ON JUN-07-2017 IS OFF CALENDAR
+	when
+		p1: Phrase(synType=="NP", head.isKindOf("Process"))
+		p0: Phrase(synType=="VP", begToken==p1.endToken, head.isKindOf("Be"));
+		p2: Phrase(synType=="ADJP", begToken==p0.endToken)
+//		r : Link(type=="valueOf", p2.head.isKindOf(arg1), p1.head.isKindOf(arg2))
+	then
+		ut.print("Find NP_IS_ADJP: " + p1 + ", " + p0 + ", " + p2 );
+		Link lk = new Link("hasAttribute", p1.getHead(), p2.getHead());
+		ERGraph g = ERGraph.combine(p1.getGraph(), p2.getGraph(), lk, 1);
+		Phrase ph = new Phrase(p1, p0, p2, "VP", g);
+		ph.setTense(p0.getTense());
+		ph.setSubject(p1);
 		insert(ph);
 		ut.printPhrase(ph);
 end
@@ -493,7 +524,10 @@ end
 
 rule "NP_ModifiedBy_VP" // NOTICE requesting Clerk to remove Tara C. Stuart as co-counsel.
 	when
-		p1: Phrase(synType=="NP", graph.containLink("hasDET", head, null)==null)
+		p1: Phrase(synType=="NP", graph.containLink("hasDET", head, null)==null
+				, graph.containLink("hasAttribute", head, onto.getEntity("Process"))==null
+				, graph.containLink("ugoerOfProc", head, null)==null
+				)
 		p2: Phrase(synType=="VP", begToken==p1.endToken, tense=="past" || tense=="ing", 
 				graph.containLink("hasAttribute", head, onto.getEntity("StatusPassive"))==null,	 // avoid combining "amended answer" + "be filed"
 				graph.containLink("ugoerOfProc", null, head)==null	 // order, amending D.I. 49 scheduling order
@@ -505,11 +539,11 @@ rule "NP_ModifiedBy_VP" // NOTICE requesting Clerk to remove Tara C. Stuart as c
 		ut.print("Find NP_ModifiedBy_VP: " + p1 + ", " + p2 );
 		Link r = new Link("ugoerOfProc", p1.getHead(), p2.getHead());
 		Phrase ph = new Phrase(p1, p2, r, 1);
-		ph.transferLinks("PRPRelation", p2.getHead(), p1.getHead());
+//		ph.transferLinks("PRPRelation", p2.getHead(), p1.getHead());
 		insert(ph);
 		ut.printPhrase(ph);
 end
-
+/*
 rule "NP_Transfer_filed_by"
 	salience 500
 	when
@@ -526,7 +560,7 @@ rule "NP_Transfer_filed_by"
 			ut.printPhrase(p1);
 		}
 end
-
+*/
 
 
 rule "TO_VP"
@@ -561,8 +595,20 @@ rule "ADVP_VP"
 		p1: Phrase(synType=="ADVP")
 		p2: Phrase(synType=="VP", begToken==p1.endToken, !graph.containLinkNot("hasAttribute", p1.getHead(), null))
 	then
-		ut.print("Find ADJP_VP: " + p1 + ", " + p2 );
+		ut.print("Find ADVP_VP: " + p1 + ", " + p2 );
 		Link r = new Link("hasAttribute", p2.getHead(), p1.getHead());
+		Phrase ph = new Phrase(p1, p2, r, 2);
+		insert(ph);
+		ut.printPhrase(ph);
+end
+
+rule "NP_ADVP"
+	when
+		p1: Phrase(synType=="NP", !graph.containLinkNot("hasAttribute", p1.getHead(), null))
+		p2: Phrase(synType=="ADVP", text.equalsIgnoreCase("only"), begToken==p1.endToken)
+	then
+		ut.print("Find NP_ADVP: " + p1 + ", " + p2 );
+		Link r = new Link("hasAttribute", p1.getHead(), p2.getHead());
 		Phrase ph = new Phrase(p1, p2, r, 2);
 		insert(ph);
 		ut.printPhrase(ph);
@@ -657,6 +703,18 @@ rule "VP_NP"
 //		}
 end
 
+rule "VP_TIMEP"	// summons served JUN-17-2012, conference held MAY-06-2016
+	when
+		p1: Phrase(synType=="VP", lk : graph.topLink, tense=="past")
+		p2: Phrase(synType=="TIMEP", graph.containLink("re", head, null)==null, begToken==p1.endToken)
+	then
+		ut.print("Find VP_TIMEP: " + p1 + ", " + p2 );
+		Link r = new Link("on", p2.getHead(), p1.getHead());
+		Phrase ph = new Phrase(p1, p2, r, 1);	// VP
+		insert(ph);
+		ut.printPhrase(ph);
+end
+
 rule "VPP_NP_TIMEP"
 	when
 		p1: Phrase(synType=="VP", lk : graph.topLink, graph.containLink("ugoerOfProc", null, head)==null)
@@ -732,6 +790,18 @@ rule "TIMEP_define_NP_not_set"	// Defendants' February 9, 2009 letter
 		ut.printPhrase(ph);
 end
 
+rule "IntelName_IntelName"	// John D. Smith Kevin H. Spooner
+	when
+		p1: Phrase(synType=="NP", head.isKindOf("IntelName") )
+		p2: Phrase(synType=="NP", head.isKindOf("IntelName"), begToken==p1.endToken)
+	then
+		ut.print("IntelName_IntelName: " + p1 + ", " + p2 );
+		Phrase ph = p1.addToSet(null, p2, p1.getHead().getName(), true);
+		if(ph != null){
+			insert(ph);
+			ut.printPhrase(ph);
+		}
+end
 
 rule "NP_define_NP_not_set"	// Defendants'  letter, Rule 16 conference
 	salience -100	// generic after specific
@@ -891,6 +961,18 @@ rule "PRP_VP"
 	 	ut.printPhrase(ph);
 end
 
+rule "NP_NUMP"	// "DEPT. 206"
+	when
+		p1: Phrase(synType=="NP", head.isKindOf("OrgHierarchy"), graph.topLink == null)
+		p2: Phrase(synType=="NUMP", text.length()<=4, head.isKindOf("NumberValue"), graph.topLink == null, begToken==p1.endToken) 
+	then
+		ut.print("Find NP_NUMP: " + p1 + ", " + p2 );
+		Link r = new Link("numberIdentified", p1.getHead(), p2.getHead());
+		Phrase ph = new Phrase(p1, p2, r, 1);
+		insert(ph);
+	 	ut.printPhrase(ph);
+end
+	
 rule "NP_PRP"
 	when
 		p1: Phrase(synType=="NP", lk : graph.topLink, g1 : graph, lk1 : graph.containLink("hasMember", head, null), graph.prpCount <3, graph.containLink("hasDET", head, null)==null, graph.containLink("hasOwner", head, null)==null)
@@ -1029,7 +1111,7 @@ rule "PRP_or_PRP"
 		p3: Phrase(synType=="PRP", head.isKindOf("PRPRelation"), graph.topLink == null, begToken==p2.endToken)
 	then
 		ut.print("Find PRP_PRP: " + p1 + ", " + p2+ ", " + p3 );
-		Phrase ph = p1.addToSet(p2, p3, "PRPRelation");
+		Phrase ph = p1.addToSet(p2, p3, "PRPRelation", true);
 		if(ph != null){
 			insert(ph);
 		}
@@ -1189,7 +1271,7 @@ rule "find top phrases"
 end
 
 
-rule "Collection_OR"
+rule "Collection_OR"//"answer/response"
 	salience 100
 	when
 		lk: Link(arg2.name=="CollectionClass", type=="subclassOf");
@@ -1199,7 +1281,7 @@ rule "Collection_OR"
 		not( exists (Link(this != lk, arg2.name=="CollectionClass", type=="subclassOf", arg1.isKindOf(lk.arg1), p1.head.isKindOf(arg1), p2.head.isKindOf(arg1))))
 	then
 		ut.print("Find collection_OR for:  " + p1 +", "+ p2 +", "+p3 );
-		Phrase ph = p1.addToSet(p2, p3, lk.getArg1().getName());
+		Phrase ph = p1.addToSet(p2, p3, lk.getArg1().getName(), true);
 		if(ph != null){
 			insert(ph);
 			ut.printPhrase(ph);
@@ -1216,14 +1298,14 @@ rule "VP_collection"
 		p3: Phrase(synType=="VP", tense==p1.getTense(), graph.topLink == null, begToken==p2.endToken)
 	then
 		ut.print("Find VP_collection for:  " + p1 +", "+ p2 +", "+p3 );
-		Phrase ph = p1.addToSet(p2, p3, p1.getHead().getName());
+		Phrase ph = p1.addToSet(p2, p3, p1.getHead().getName(), true);
 		if(ph != null){
 			insert(ph);
 			ut.printPhrase(ph);
 		}
 end
 
-rule "Collection_Range"
+rule "Collection_Range" //"07-2017"
 	salience 100
 	when
 		p1: Phrase(synType!=null, graph.topLink == null, head.isKindOf("EntityValue"));
@@ -1231,7 +1313,7 @@ rule "Collection_Range"
 		p3: Phrase(synType!=null, p1.synType==synType, graph.topLink == null, head.isKindOf("EntityValue"), begToken==p2.endToken)
 	then
 		ut.print("Find Collection_Range for:  " + p1 +", "+ p2 +", "+p3 );
-		Phrase ph = p1.addToSet(p2, p3, p1.getHead().getName());
+		Phrase ph = p1.addToSet(p2, p3, p1.getHead().getName(), true);
 		if(ph != null){
 			insert(ph);
 			ut.printPhrase(ph);
@@ -1625,8 +1707,9 @@ rule "Document_due_date"	// answer due 5/10/2011
 			ut.printPhrase(ph);
 end
 
-
-rule "Collection_2"
+/**
+// this is too ambitious, gets too complicated
+rule "Collection_2" //"trial, JURY TRIAL", 
 	salience 100
 	when
 		p1: Phrase(synType!=null, g1 : graph); //graph.isSet() == false, 
@@ -1648,14 +1731,16 @@ rule "Collection_2"
 		not Phrase(synType != null, begToken <= p1.begToken, endToken >= p3.endToken, head.isKindOf(p1.head) || p1.head.isKindOf(head))
 	then
 		ut.print("Find collection_2 for:  " + p1 +", "+ p2 +", "+p3 );
-			Phrase ph = p1.addToSet(p2, p3, p1.getHead().getName());
+			Phrase ph = p1.addToSet(p2, p3, p1.getHead().getName(), true);
 			if(ph != null){
 				insert(ph);
 					ut.printPhrase(ph);
 			}
 //		}
 end
-rule "Collection_3"
+*/
+/**
+rule "Collection_3"//"complaint , PROOF OF SERVICE"
 	salience 100
 	when
 		lk: Link(arg2.name=="CollectionClass", type=="subclassOf")
@@ -1706,14 +1791,14 @@ rule "Collection_3"
 		ERGraph g1 = p1.getGraph();
 		ERGraph g2 = p3.getGraph();
 		if(g1.topLinkMatch(g2)){
-			Phrase ph = p3.addToSetRightToLeft(p2, p1, lk.getArg1().getName());
+			Phrase ph = p3.addToSet(p2, p1, lk.getArg1().getName(), false);
 			if(ph != null){
 				insert(ph);
 				ut.printPhrase(ph);
 			}
 		}
 end
-
+*/
 
 rule "Number_Document"	// re 23 motion
 	when
