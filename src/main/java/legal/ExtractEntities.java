@@ -232,6 +232,7 @@ public class ExtractEntities {
 	}
 
 	static void breakTwo(String str, String template, int idx, int offset, List<Pair> list, List<DePhrase> plist, Object o) {
+		// list contains strings that contains no recognized entities
 		int index1 = offset;
 		String s1 = str.substring(0, idx);
 		int len = idx + template.length();
@@ -249,10 +250,10 @@ public class ExtractEntities {
 
 	static void findEntities_1(Entry entry, CaseParties cn, CaseAttorneys ca, List<Judge> judges, Map<String, Clerk> clerks) {
 		String text = entry.text;
-		List<Pair> doneList = entry.doneList;
-		List<DePhrase> dephrases = entry.dephrases;
-		List<Pair> workList = new ArrayList<>();
-		List<Pair> nextList = new ArrayList<>();
+		List<Pair> doneList = entry.doneList; // strings contains no entity of interest.
+		List<DePhrase> dephrases = entry.dephrases;// entities found in docket entry text
+		List<Pair> workList = new ArrayList<>();// Strings to be check for entities of interest in the current iteration
+		List<Pair> nextList = new ArrayList<>();// to be worked on in the next iteration,contains strings may contain more entities of interest
 		nextList.add(new Pair(new Integer(0), text)); // initialize (offset, text)
 		while (!nextList.isEmpty()) {
 			workList.clear();
@@ -758,6 +759,7 @@ public class ExtractEntities {
 		}
 
 		public static Attorney createAttorney(String _name, String _firm) {
+			_name = _name.replaceAll("\\(.+?\\)", "");
 			PersonName pn = PersonName.parse(_name, PersonName.SurGivMid);
 			// check if already in the registry
 			for (Attorney at : attorneys) {

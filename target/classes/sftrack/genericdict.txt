@@ -106,6 +106,8 @@
 {"text":"civil\\s*cover\\s*sheet","type":"NP","list":"civil", "entity":"CivilCoverSheet"}
 {"text":"Clerk","type":"NP","entity":"Clerk"}
 {"text":"claim","type":"NP","entity":"DocLegalClaim"}
+{"text":"CLAIMANT","type":"NP", "entity":"RoleLegalClaimant"}
+{"text":"CLAIMANTS","type":"NP", "entity":"RoleLegalClaimant"}
 {"text":"claimed","type":"VP","tense":"past","entity":"ProcClaim"}
 {"text":"claims","type":"NP","entity":"DocLegalClaim"}
 {"text":"Claims?\\s*Construction","type":"NP","list":"claim claims", "entity":"ClaimConstruction"}

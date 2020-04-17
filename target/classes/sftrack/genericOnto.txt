@@ -329,6 +329,7 @@ SymbolLeftBracket	instanceOf	Symbol
 SymbolRightBracket	instanceOf	Symbol
 SymbolPossess	instanceOf	Symbol
 SymbolDollar	instanceOf	Symbol
+RoleLegalClaimant subclassOf RoleLegal
 RoleLegalDefendant subclassOf RoleLegal
 RoleLegalPlaintiff subclassOf RoleLegal
 RoleLegalFiler subclassOf RoleLegal
@@ -977,6 +978,7 @@ LegalCase	re	IPEntity
 IntelName	subclassOf	EntityClass
 OrgCoName	subclassOf	IntelName
 HumanName	subclassOf	IntelName
+IntelName	subclassOf	IntelAgent
 StatusOnly	subclassOf	StatusProc
 Process	in	OrgHierarchy
 StatusEstimated	subclassOf	StatusProc

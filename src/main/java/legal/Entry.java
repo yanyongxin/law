@@ -49,7 +49,7 @@ public class Entry implements Comparable<Entry> {
 	public List<DePhrase> dephrases = new ArrayList<>();
 
 	public Entry(String _d, String _t) {
-		text = _t.replaceAll("\\(.+?\\)", "");
+		text = _t.replaceAll("\\(TRANSA.+?\\)", "").replaceAll("\\(Fee.+?\\)", "");//(TRANSACTION ID # 60057326)(Fee:$900.00)
 		sdate = _d;
 		date = Date.valueOf(sdate);
 	}
@@ -136,8 +136,8 @@ public class Entry implements Comparable<Entry> {
 
 	public static class DePhrase {
 		public String text; // motherText.subString(start, end);
-		public int start;
-		public int end;
+		public int start; // start byte offset
+		public int end; // end byte offset
 		public Object entity; // Attorney, Judge, Party
 
 		public DePhrase(String _t, int _start, int _end, Object _e) {
