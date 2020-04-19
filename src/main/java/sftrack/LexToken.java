@@ -26,6 +26,7 @@ public class LexToken {
 	public static final int LEX_NUMBER = 7;
 	public static final int LEX_TIME = 8;
 	public static final int LEX_CASENUMBER = 9;
+	public static final int LEX_ENTITY = 10;
 	public String parent; // parent string
 	char beforeChar = 0; // the character before this token. 0 = not part of
 							// sentence

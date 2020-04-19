@@ -104,73 +104,79 @@ public class DictPhrase {
 	}
 
 	public Phrase match(Phrase p) {
-		if (list != null) {
-			for (String s : list) {
-				if (s.equalsIgnoreCase(p.getText())) {
-					int tkpos = p.getBegToken();
-					List<LexToken> tks = p.getSentence();
-					LexToken bk = tks.get(tkpos);
-					int offset = bk.getStart();
-					String sent = bk.parent;
-					Matcher m = regex.matcher(sent);
-					if (m.find(offset)) {
-						int mstart = m.start();
-						if (mstart != offset) {
-							continue;
-						}
-						int mend = m.end();
-						String result = m.group().trim();
-						if (mend < sent.length()) {
-							char c = sent.charAt(mend);
-							if (c == 's' || c == 'S') {
-								result = result + c;
-								mend++;
+		try {
+			if (list != null) {
+				for (String s : list) {
+					if (s.equalsIgnoreCase(p.getText())) {
+						int tkpos = p.getBegToken();
+						List<LexToken> tks = p.getSentence();
+						LexToken bk = tks.get(tkpos);
+						int offset = bk.getStart();
+						String sent = bk.parent;
+						Matcher m = regex.matcher(sent);
+						if (m.find(offset)) {
+							int mstart = m.start();
+							if (mstart != offset) {
+								continue;
 							}
-						}
-						int end_tkpos = tks.size();
-						for (int i = tkpos; i < tks.size(); i++) {
-							if (tks.get(i).getStart() >= mend) {
-								end_tkpos = i;
-								break;
+							int mend = m.end();
+							String result = m.group().trim();
+							if (mend < sent.length()) {
+								char c = sent.charAt(mend);
+								if (c == 's' || c == 'S') {
+									result = result + c;
+									mend++;
+								}
 							}
+							int end_tkpos = tks.size();
+							for (int i = tkpos; i < tks.size(); i++) {
+								if (tks.get(i).getStart() >= mend) {
+									end_tkpos = i;
+									break;
+								}
+							}
+							Phrase ph = new Phrase(result, this.getSynType(), this.getGraph().cloneInstance(p.getBegToken()), tkpos, end_tkpos, tks);
+							Entity eh = ph.getHead();
+							if (eh.getName().equals("RuleNumber")) {
+								// change (643:RuleNumber:INSTANCE:(500:RuleNumber)) to (643:7.1:INSTANCE:(500:RuleNumber))
+								eh.name = result;
+							}
+							if (this.getSynType().equals("VP")) {
+								ph.setTense(this.getTense());
+							}
+							return ph;
 						}
-						Phrase ph = new Phrase(result, this.getSynType(), this.getGraph().cloneInstance(p.getBegToken()), tkpos, end_tkpos, tks);
-						Entity eh = ph.getHead();
-						if (eh.getName().equals("RuleNumber")) {
-							// change (643:RuleNumber:INSTANCE:(500:RuleNumber)) to (643:7.1:INSTANCE:(500:RuleNumber))
-							eh.name = result;
-						}
-						if (this.getSynType().equals("VP")) {
-							ph.setTense(this.getTense());
-						}
-						return ph;
 					}
 				}
+			} else {
+				Phrase ph = matchOne(p);
+				if (ph == null) {
+					return null;
+				}
+				if (this.getSynType().equals("VP")) {
+					ph.setTense(this.getTense());
+				}
+				return ph;
+				// List<Phrase> pl = matchAll(p);
+				// if (pl != null && pl.size() > 0) {
+				// Phrase ph;
+				// if (pl.size() == 1) {
+				// ph = new Phrase(p, this.getSynType(),
+				// this.getGraph().cloneInstance());
+				// } else {
+				// ph = new Phrase(pl, this.getSynType(),
+				// this.getGraph().cloneInstance());
+				// }
+				// if (this.getSynType().equals("VP")) {
+				// ph.setTense(this.getTense());
+				// }
+				// return ph;
+				// }
 			}
-		} else {
-			Phrase ph = matchOne(p);
-			if (ph == null) {
-				return null;
-			}
-			if (this.getSynType().equals("VP")) {
-				ph.setTense(this.getTense());
-			}
-			return ph;
-			// List<Phrase> pl = matchAll(p);
-			// if (pl != null && pl.size() > 0) {
-			// Phrase ph;
-			// if (pl.size() == 1) {
-			// ph = new Phrase(p, this.getSynType(),
-			// this.getGraph().cloneInstance());
-			// } else {
-			// ph = new Phrase(pl, this.getSynType(),
-			// this.getGraph().cloneInstance());
-			// }
-			// if (this.getSynType().equals("VP")) {
-			// ph.setTense(this.getTense());
-			// }
-			// return ph;
-			// }
+			return null;
+		} catch (Exception ex) {
+			System.out.println(ex.getMessage());
+			ex.printStackTrace();
 		}
 		return null;
 	}

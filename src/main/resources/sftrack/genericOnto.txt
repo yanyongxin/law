@@ -30,6 +30,8 @@ ProcCreate	subclassOf	Process
 ProcDate	subclassOf	Process
 ProcDeliberation	subclassOf	Process
 ProcDemand	subclassOf	ProcRequest
+StatusEntire	subclassOf	StatusProc
+
 ProcDetermine	subclassOf	Process
 ProcJuryDemand	subclassOf	ProcRequest
 ProcDelete	subclassOf	Process
@@ -355,6 +357,7 @@ StatusHonorable	instanceOf	StatusProc
 StatusJoint	instanceOf	StatusProc
 StatusLack	instanceOf	StatusProc
 StatusLocal	instanceOf	StatusProc
+StatusMaster	instanceOf	StatusProc
 StatusNegative	instanceOf	StatusProc
 StatusNew	instanceOf	StatusProc
 StatusOpening	instanceOf	StatusProc
@@ -752,6 +755,7 @@ ProcPurchase	subclassOf	Process
 Document	define	ProcRequest
 ProcNeed	subclassOf	Process
 ProcRelease	subclassOf	Process
+DocRelease	subclassOf	Document
 FederalCircuit	subclassOf	CourtDistrict
 DocLegalAppeal	subclassOf	Document
 USCA	subclassOf	OrgGovCourt
@@ -993,3 +997,8 @@ Document	toPreposition	TimeRef
 Document	define	Hearing
 ProcAdd	toPreposition	Calendar
 Process	for	Meeting
+Calendar	subclassOf	Thing
+HumanSetJury	define	Calendar
+Calendar	ugoerOfProc	ProcSet
+Calendar	ugoerOfProc	ProcVacate
+DocMedicalReimbursementLien	subclassOf	Document

@@ -124,6 +124,7 @@
 {"text":"commence","type":"VP", "tense":"present","entity":"ProcBegin"}
 {"text":"commencing","type":"VP", "tense":"ing","entity":"ProcBegin"}
 {"text":"Commercial","type":"ADJP","entity":"StatusCommercial"}
+{"text":"Commercial\\s*Success\\s*Expert","type":"NP", "list":"commercial", "entity":"Expert"}
 //{"text":"Commissioner","type":"NP","entity":"Commissioner"}
 {"text":"Commissioner\\s*of\\s*Patents\\s*and\\s*Trademarks","type":"NP","list":"commissioner","entity":"CommissionerPatentTrademark"}
 {"text":"Common","type":"ADJP", "entity":"StatusCommon"}
@@ -233,6 +234,7 @@
 {"text":"enter","type":"VP", "tense":"present", "entity":"ProcEnter"}
 {"text":"entered","type":"VP", "tense":"past", "entity":"ProcEnter"}
 {"text":"ENTRY","type":"NP", "entity":"DocEntry"}
+{"text":"Entire","type":"ADJP", "entity":"StatusEntire"}
 {"text":"Errata","type":"NP", "entity":"Errata"}
 {"text":"Errata\\s*Sheet","type":"NP", "list":"errata", "entity":"ErrataSheet"}
 {"text":"Establishing","type":"VP", "tense":"ing", "entity":"ProcEstablish"}
@@ -247,7 +249,6 @@
 {"text":"Exhibits","type":"NP", "entity":"DocExhibit"}
 {"text":"EXPENSE","type":"NP", "entity":"ExpenseRef"}
 {"text":"EXPENSES","type":"NP", "entity":"ExpenseRef"}
-{"text":"Commercial\\s*Success\\s*Expert","type":"NP", "list":"commercial", "entity":"Expert"}
 {"text":"Expert","type":"NP", "entity":"Expert"}
 {"text":"Expert\\s*report","type":"NP", "list":"expert","entity":"DocLegalExpertReport"}
 {"text":"Experts","type":"NP", "entity":"Expert"}
@@ -373,6 +374,7 @@
 {"text":"mailing","type":"NP", "entity":"ProcMail"}
 {"text":"march","type":"TIMEP","entity":"Month_3"}
 {"text":"Markman","type":"ADJP", "entity":"Markman"}
+{"text":"Master","type":"ADJP","entity":"StatusMaster"}
 {"text":"Post-Markman","type":"ADJP", "entity":"PostMarkman"}
 {"text":"Post\\s*Markman","type":"ADJP", "list":"post", "entity":"PostMarkman"}
 {"text":"may","type":"TIMEP","entity":"Month_5"}
@@ -382,6 +384,8 @@
 {"text":"matters","type":"NP", "entity":"Matter"}
 {"text":"Mediation","type":"NP", "entity":"ProcMediation"}
 {"text":"Mediations","type":"NP", "entity":"ProcMediation"}
+
+{"text":"MEDICAL\\s*REIMBURSEMENT\\s*LIEN","type":"NP", "list":"medical","entity":"DocMedicalReimbursementLien"}
 {"text":"Memorandum","type":"NP", "entity":"DocLegalMemorandum"}
 {"text":"MEMORANDUM\\s*OPINION","type":"NP", "list":"memorandum","entity":"DocLegalMemorandumOpinion"}
 {"text":"MEMORANDUM\\s*ORDER","type":"NP", "list":"memorandum","entity":"DocLegalOrder"}
@@ -670,6 +674,7 @@
 {"text":"USCA","type":"NP","entity":"USCA"}
 {"text":"using","type":"VP", "tense":"ing", "entity":"ProcUse"}
 {"text":"Vacate","type":"VP", "tense":"present", "entity":"ProcVacate"}
+{"text":"Vacated","type":"VP", "tense":"past", "entity":"ProcVacate"}
 {"text":"VERDICT","type":"NP","entity":"DocVerdict"}
 {"text":"VERDICT\\s*sheet","type":"NP","list":"verdict", "entity":"DocVerdictSheet"}
 {"text":"Voir\\s*Dire","type":"NP","list":"Voir", "entity":"DocVoirDire"}

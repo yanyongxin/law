@@ -526,7 +526,7 @@ rule "NP_ModifiedBy_VP" // NOTICE requesting Clerk to remove Tara C. Stuart as c
 	when
 		p1: Phrase(synType=="NP", graph.containLink("hasDET", head, null)==null
 				, graph.containLink("hasAttribute", head, onto.getEntity("Process"))==null
-				, graph.containLink("ugoerOfProc", head, null)==null
+//				, graph.containLink("ugoerOfProc", head, null)==null
 				)
 		p2: Phrase(synType=="VP", begToken==p1.endToken, tense=="past" || tense=="ing", 
 				graph.containLink("hasAttribute", head, onto.getEntity("StatusPassive"))==null,	 // avoid combining "amended answer" + "be filed"
@@ -709,7 +709,7 @@ rule "VP_TIMEP"	// summons served JUN-17-2012, conference held MAY-06-2016
 		p2: Phrase(synType=="TIMEP", graph.containLink("re", head, null)==null, begToken==p1.endToken)
 	then
 		ut.print("Find VP_TIMEP: " + p1 + ", " + p2 );
-		Link r = new Link("on", p2.getHead(), p1.getHead());
+		Link r = new Link("on", p1.getHead(), p2.getHead());
 		Phrase ph = new Phrase(p1, p2, r, 1);	// VP
 		insert(ph);
 		ut.printPhrase(ph);
