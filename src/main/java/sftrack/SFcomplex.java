@@ -69,7 +69,12 @@ public class SFcomplex {
 		//		String test1 = "MOTION TO STRIKE COMPLAINT FILED BY DEFENDANT HYUNDAI MOTOR AMERICA HEARING SET FOR JUL-18-2017 AT 02:00 PM IN DEPT 302";
 		//		String test2 = "MEMORANDUM OF POINTS AND AUTHORITIES AND DEMURRER TO FIRST AMENDED COMPLAINT FILED BY DEFENDANT HYUNDAI MOTOR AMERICA";
 		ExtractEntities exE = new ExtractEntities(entityResources);
+		int caseCount = 0;
 		for (Case cs : exE.cases) {
+			caseCount++;
+			if (caseCount < 2)
+				continue;
+			System.out.println("\n================ " + cs.getID() + " ==================\n");
 			for (Entry e : cs.entries) {
 				if (e.dephrases.size() == 0 && e.doneList.size() == 0)
 					continue;

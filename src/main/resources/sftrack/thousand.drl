@@ -140,7 +140,7 @@ rule "month_date_year_name"	// July 4, 2013
 		ut.print("Find month_date_year: " + p1 + ", " + p2 + ", " + p3 + ", " + p4);
 		ERGraph g = new ERGraph();
 		Entity e0 = new Entity("MonthDateValue", onto);
-		int monthnum = LtUtil.getMonthNumber(p1.getHead().getName());
+		int monthnum = LtUtil.getMonthNumber(p1.getHead().getTheClass().getName());
 		Entity e1 = new Entity(""+ monthnum, onto.getEntity("MonthNumber"), Entity.TYPE_INSTANCE, onto, p1.getBegToken());
 		Entity e2 = new Entity(p2.getText(), onto.getEntity("DateNumber"), Entity.TYPE_INSTANCE, onto, p2.getBegToken());
 		Entity e3 = new Entity(p4.getText(), onto.getEntity("YearNumber"), Entity.TYPE_INSTANCE, onto, p4.getBegToken());
@@ -432,7 +432,8 @@ rule "NP_AND_NP"
 		eval(p1.similar(p3))
 	then
 		ut.print("Find NP_AND_NP for:  " + p1 +", "+ p2 +", "+p3 );
-		Phrase ph = p1.addToSet(p2, p3, p1.getHead().getName() + "AND" +  p3.getHead().getName(), true);
+		String name = p1.getHead().getName().replaceAll("\\s+", "") + "_AND_" + p3.getHead().getName().replaceAll("\\s+", "");
+		Phrase ph = p1.addToSet(p2, p3, name, true);
 		if(ph != null){
 			insert(ph);
 			ut.printPhrase(ph);
@@ -543,6 +544,22 @@ rule "NP_ModifiedBy_VP" // NOTICE requesting Clerk to remove Tara C. Stuart as c
 		insert(ph);
 		ut.printPhrase(ph);
 end
+
+rule "Process_ModifiedBy_VP" // RELEASE OF MEDICAL REIMBURSEMENT LIEN FILED BY CLAIMANT CITY AND COUNTY OF SAN FRANCISCO
+	when
+		p1: Phrase(synType=="NP", begToken==0, head.isKindOf("Process"))
+		p2: Phrase(synType=="VP", begToken==p1.endToken, tense=="past" || tense=="ing", 
+				graph.containLink("hasAttribute", head, onto.getEntity("StatusPassive"))==null,	 // avoid combining "amended answer" + "be filed"
+				graph.containLink("ugoerOfProc", null, head)==null	 // order, amending D.I. 49 scheduling order
+			)
+	then
+		ut.print("Find Process_ModifiedBy_VP: " + p1 + ", " + p2 );
+		Link r = new Link("ugoerOfProc", p1.getHead(), p2.getHead());
+		Phrase ph = new Phrase(p1, p2, r, 1);
+		insert(ph);
+		ut.printPhrase(ph);
+end
+
 /*
 rule "NP_Transfer_filed_by"
 	salience 500
@@ -796,7 +813,8 @@ rule "IntelName_IntelName"	// John D. Smith Kevin H. Spooner
 		p2: Phrase(synType=="NP", head.isKindOf("IntelName"), begToken==p1.endToken)
 	then
 		ut.print("IntelName_IntelName: " + p1 + ", " + p2 );
-		Phrase ph = p1.addToSet(null, p2, p1.getHead().getName(), true);
+		String name = p1.getHead().getName().replaceAll("\\s+", "") + p2.getHead().getName().replaceAll("\\s+", "");
+		Phrase ph = p1.addToSet(null, p2, name, true);
 		if(ph != null){
 			insert(ph);
 			ut.printPhrase(ph);
@@ -975,18 +993,21 @@ end
 	
 rule "NP_PRP"
 	when
-		p1: Phrase(synType=="NP", lk : graph.topLink, g1 : graph, lk1 : graph.containLink("hasMember", head, null), graph.prpCount <3, graph.containLink("hasDET", head, null)==null, graph.containLink("hasOwner", head, null)==null)
+		p1: Phrase(synType=="NP", lk : graph.topLink, g1 : graph, lk1 : graph.containLink("hasMember", head, null), graph.prpCount <3
+				, graph.containLink("hasDET", head, null)==null
+//				, graph.containLink("ugoerOfProc", head, null)==null
+				, graph.containLink("hasOwner", head, null)==null)
 		p2: Phrase(synType=="PRP", head.isKindOf("PRPRelation"), !head.isKindOf("of"), lk2: graph.topLink, begToken==p1.endToken)
 //		eval(lk2 != null && lk2.getType()=="PRPRelation" && !lk2.getArg2().isKindOf("Time"))// TIME is allowed on verb only, ie VP_PRP
 		eval(lk2 != null && lk2.getType()=="PRPRelation" && g1.containLink(lk2.getArg1().getName(), p1.getHead(), null)==null)// TIME is allowed on verb only, ie VP_PRP
 		(or
 			(
 				eval(lk1 == null) and
-				exists Link(type==p2.getHead().name, p1.getHead().isKindOf(arg1), lk2.arg2.isKindOf(arg2))
+				exists Link(type==p2.getHead().getTheClass().getName(), p1.getHead().isKindOf(arg1), lk2.arg2.isKindOf(arg2))
 			)
 			(
 				eval(lk1 != null) and
-				exists Link(type==p2.getHead().name, lk1.arg2.isKindOf(arg1), lk2.arg2.isKindOf(arg2))
+				exists Link(type==p2.getHead().getTheClass().getName(), lk1.arg2.isKindOf(arg1), lk2.arg2.isKindOf(arg2))
 			)
 		)
 //		eval(!(p1.getGraph().prpCount() > 3  && !p2.getHead().isKindOf("byAgent")))
@@ -996,7 +1017,7 @@ rule "NP_PRP"
 //		)
  	then
 		ut.print("Find NP_PRP: " + p1 + ", " + p2 );
-		Link r = new Link(lk2.getArg1().getName(), p1.getHead(), lk2.getArg2());
+		Link r = new Link(lk2.getArg1().getTheClass().getName(), p1.getHead(), lk2.getArg2());
 		Phrase ph = new Phrase(p1, p2, r, 1);
 		ph.getGraph().remove(p2.getHead());
 			insert(ph);
@@ -1061,6 +1082,10 @@ rule "NP_PRP_of"	// day 9 of trial (graph.containLink("hasValue", head, null))
 		)
 		p2: Phrase(synType=="PRP", head.isKindOf("of"), lk2: graph.topLink, begToken==p1.endToken)
 		eval(lk2 != null && lk2.getType()=="PRPRelation")
+		not (
+				eval(p1.getHead().isKindOf("Process")) and
+				exists Link(type=="ugoerOfProc", lk2.arg2.isKindOf(arg1), p1.head.isKindOf(arg2))
+			)
  	then
 		ut.print("Find NP_PRP_of: " + p1 + ", " + p2 );
 		Entity head = p1.getHead();
@@ -1068,20 +1093,42 @@ rule "NP_PRP_of"	// day 9 of trial (graph.containLink("hasValue", head, null))
 		int headAt = 1;
 		Phrase ph;
 		if(head.isKindOf("Measure")){
-				r = new Link("hasMeasure", lk2.getArg2(), head);
+			r = new Link("hasMeasure", lk2.getArg2(), head);
 			ph = new Phrase(p1, p2, r, 2);
 			ph.getGraph().remove(p2.getHead());
 			ph.getGraph().setHead(lk2.getArg2());
 			ph.setSynType("NP");
 		}
 		else{
-				r = new Link(lk2.getArg1().getName(), p1.getHead(), lk2.getArg2());
+			r = new Link(lk2.getArg1().getName(), p1.getHead(), lk2.getArg2());
 			ph = new Phrase(p1, p2, r, 1);
 			ph.getGraph().remove(p2.getHead());
 		}
 			insert(ph);
 	 	ut.printPhrase(ph);
 end
+
+
+rule "Process_of_Ugoer"	// Dismissal of Entire Action
+	when
+	   p1: Phrase(synType=="NP", head.isKindOf("Process"), lk : graph.topLink)
+		(or 
+			eval(lk==null) 
+			eval(lk !=null && (!(onto.isKindOf(lk.getType(), "ugoerOfProc") && lk.getArg2().equals(p1.getHead()))))
+		)
+		p2: Phrase(synType=="PRP", head.isKindOf("of"), lk2: graph.topLink, g: graph, begToken==p1.endToken)
+		eval(lk2 != null && lk2.getType()=="PRPRelation")
+		eval(lk2 != null && g.containLink("ugoerOfProc", lk2.getArg2(), null) ==null)
+		Link(type=="ugoerOfProc", lk2.arg2.isKindOf(arg1), p1.head.isKindOf(arg2))
+ 	then
+		ut.print("Find Process_of_Ugoer: " + p1 + ", " + p2 );
+		Link r = new Link("ugoerOfProc", lk2.getArg2(), p1.getHead());
+		Phrase ph = new Phrase(p1, p2, r, 1);
+		ph.getGraph().remove(p2.getHead());
+		insert(ph);
+	 	ut.printPhrase(ph);
+end
+
 rule "QUANTIFIER_PRP"
 // some of the books
 	when

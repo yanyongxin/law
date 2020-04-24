@@ -32,6 +32,13 @@ public class ERGraph implements Cloneable {
 		return pprint("");
 	}
 
+	public void setEntityName(String _name) {
+		if (entities.size() == 1) {
+			Entity e = entities.get(0);
+			e.setName(_name);
+		}
+	}
+
 	public List<Entity> getMembers(Entity e) {
 		List<Link> lks = this.containLinkList("hasMember", e, null);
 		if (lks != null) {

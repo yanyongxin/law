@@ -91,6 +91,7 @@
 {"text":"Case\\s*Management\\s*Statement","type":"NP","list":"case","entity":"DocCaseManagementStatement"}
 {"text":"(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)-\\d\\d-\\d+","type":"TIMEP","list":"JAN FEB MAR APR MAY JUN JUL AUG SEP OCT NOV DEC","entity":"DateValue"}
 {"text":"Case\\s*Number","type":"NP","list":"case","entity":"CaseNumber"}
+{"text":"Causes?\\s*of\\s*action","type":"NP","list":"cause causes","entity":"LegalCauseOfAction"}
 {"text":"certain","type":"ADJP", "entity":"StatusCertain"}
 {"text":"Certificate","type":"NP","entity":"Certificate"}
 {"text":"Certification","type":"NP","entity":"Certificate"}
@@ -384,7 +385,6 @@
 {"text":"matters","type":"NP", "entity":"Matter"}
 {"text":"Mediation","type":"NP", "entity":"ProcMediation"}
 {"text":"Mediations","type":"NP", "entity":"ProcMediation"}
-
 {"text":"MEDICAL\\s*REIMBURSEMENT\\s*LIEN","type":"NP", "list":"medical","entity":"DocMedicalReimbursementLien"}
 {"text":"Memorandum","type":"NP", "entity":"DocLegalMemorandum"}
 {"text":"MEMORANDUM\\s*OPINION","type":"NP", "list":"memorandum","entity":"DocLegalMemorandumOpinion"}
@@ -562,6 +562,7 @@
 {"text":"scheduling","type":"ADJP", "entity":"StatusScheduling"}
 {"text":"scheduling","type":"VP","tense":"ing","entity":"ProcSchedule"}
 {"text":"SEALED","type":"ADJP", "entity":"ProcSeal"}
+{"text":"SEALED","type":"VP","tense":"past", "entity":"ProcSeal"}
 {"text":"second","type":"ADJP","entity":"Second"}
 {"text":"section","type":"NP","entity":"Section"}
 {"text":"see","type":"VP","tense":"present", "entity":"ProcSee"}

@@ -516,7 +516,7 @@ ProcAssign	toPreposition	Human
 ProcExtend	toPreposition	DateValue
 ProcChange	toPreposition	DateValue
 ProcExtend	for	IntelAgent
-Document	pursuant_to	LegalRule
+Document	pursuant_to	LegalAuthorityDoc
 DocLegalAnswer	define	Deadline
 OrgCo	define	DocLegalAnswer
 Document	re	Document
@@ -1002,3 +1002,8 @@ HumanSetJury	define	Calendar
 Calendar	ugoerOfProc	ProcSet
 Calendar	ugoerOfProc	ProcVacate
 DocMedicalReimbursementLien	subclassOf	Document
+;don't know where to put LegalCauseOfAction
+LegalCauseOfAction	subclassOf	Thing
+LegalDecision	subclassOf	LegalAuthorityDoc
+LegalRule	subclassOf	LegalAuthorityDoc
+LegalAuthorityDoc	subclassOf	Document

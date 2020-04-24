@@ -43,6 +43,10 @@ public class Case {
 	List<PersonName> judges = new ArrayList<>();
 	Date lastDate; // date of the last entry;
 
+	public String getID() {
+		return id;
+	}
+
 	public static void main(String[] args) throws IOException {
 		if (args.length != 3) {
 			System.out.println("args: infile outfile partyfile");

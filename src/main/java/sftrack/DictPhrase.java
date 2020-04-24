@@ -85,7 +85,9 @@ public class DictPhrase {
 
 	public Phrase matchOne(Phrase p) {
 		if (text.equalsIgnoreCase(p.getText())) {
-			Phrase ph = new Phrase(p, this.getSynType(), this.getGraph().cloneInstance(p.getBegToken()));
+			ERGraph g = this.getGraph().cloneInstance(p.getBegToken());
+			g.setEntityName(p.getText());
+			Phrase ph = new Phrase(p, this.getSynType(), g);
 			return ph;
 		}
 		return null;
@@ -137,10 +139,11 @@ public class DictPhrase {
 							}
 							Phrase ph = new Phrase(result, this.getSynType(), this.getGraph().cloneInstance(p.getBegToken()), tkpos, end_tkpos, tks);
 							Entity eh = ph.getHead();
-							if (eh.getName().equals("RuleNumber")) {
-								// change (643:RuleNumber:INSTANCE:(500:RuleNumber)) to (643:7.1:INSTANCE:(500:RuleNumber))
-								eh.name = result;
-							}
+							eh.setName(result);
+							//							if (eh.getName().equals("RuleNumber")) {
+							//								// change (643:RuleNumber:INSTANCE:(500:RuleNumber)) to (643:7.1:INSTANCE:(500:RuleNumber))
+							//								eh.setName(result);
+							//							}
 							if (this.getSynType().equals("VP")) {
 								ph.setTense(this.getTense());
 							}

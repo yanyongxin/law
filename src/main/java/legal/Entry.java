@@ -49,7 +49,8 @@ public class Entry implements Comparable<Entry> {
 	public List<DePhrase> dephrases = new ArrayList<>();
 
 	public Entry(String _d, String _t) {
-		text = _t.replaceAll("\\(TRANSA.+?\\)", "").replaceAll("\\(Fee.+?\\)", "");//(TRANSACTION ID # 60057326)(Fee:$900.00)
+		text = _t.replaceAll("\\(TRANSA.+?\\)", "").replaceAll("\\(Fee.+?\\)", "").replaceAll("\\(SEALED.+?\\)", "");
+		//(TRANSACTION ID # 60057326)(Fee:$900.00)(SEALED DOCUMENT)
 		sdate = _d;
 		date = Date.valueOf(sdate);
 	}

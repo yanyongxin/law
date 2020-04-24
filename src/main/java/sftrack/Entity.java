@@ -116,6 +116,10 @@ public class Entity implements Cloneable {
 		return name;
 	}
 
+	public void setName(String _n) {
+		name = _n;
+	}
+
 	// this has to be pre-built. The following implementation is too wasteful,
 	// when Ontology is big.
 	public boolean isKindOf(Entity cls) {
