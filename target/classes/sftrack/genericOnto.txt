@@ -299,6 +299,7 @@ from	instanceOf	PRPRelation
 in	instanceOf	PRPRelation
 InAccordanceWith	instanceOf	PRPRelation
 inFavorOf	instanceOf	PRPRelation
+inSupportOf	instanceOf	PRPRelation
 of	instanceOf	PRPRelation
 on	instanceOf	PRPRelation
 over	instanceOf	PRPRelation
@@ -314,10 +315,6 @@ toPreposition	instanceOf	PRPRelation
 with	instanceOf	PRPRelation
 without	instanceOf	PRPRelation
 withRespectTo	instanceOf	PRPRelation
-CoTypeSuffixAbbrv subclassOf CoTypeSuffix
-CoTypeSuffixAbbrv subclassOf Abbreviation
-CoTypeSuffixAcrnm subclassOf CoTypeSuffix
-CoTypeSuffixAcrnm subclassOf Acronym
 CoTypeSuffix subclassOf TypeSuffix
 PersonSuffix subclassOf TypeSuffix
 SymbolApostrophe	instanceOf	PunctuationMark
@@ -417,8 +414,6 @@ Year	subclassOf	TimeRef
 ProcAnswer	subclassOf	ProcRespond
 ProcMoveAnswerRespond	subclassOf	ProcRespond
 ProcExtend	subclassOf	ProcAlterDomain
-MonthValueOf	instanceOf	valueOf
-DateValueOf	instanceOf	valueOf
 valueOf	subclassOf	Relation
 Affiliation	subclassOf	Relation
 ExpectedDue	instanceOf	Relation
@@ -460,7 +455,7 @@ MoneyRef	subclassOf	CollectionClass
 Deadline	subclassOf	TimeRef
 ugoerOfProc	instanceOf	Relation
 numberIdentified	instanceOf	Relation
-Be	instanceOf	Relation
+ProcBe	subclassOf	Process
 LosAngelesCA	instanceOf	City
 City	subclassOf	GeoPoliticalEntity
 UsState	subclassOf	GeoPoliticalEntity
@@ -479,7 +474,7 @@ Ninth	instanceOf	NumberSerial
 InPersonSchedulingConference	instanceOf	Conference
 Courtroom	subclassOf	IndoorSpace
 Office	subclassOf	IndoorSpace
-DateValue	valueOf	TimeRef
+DateValue	valueOf	DateRef
 QuantifierAll	instanceOf	Quantifier
 QuantifierAny	instanceOf	Quantifier
 QuantifierEach	instanceOf	Quantifier
@@ -489,8 +484,9 @@ Proceedings	subclassOf	Meeting
 ProcTrial	subclassOf	LitiPhase
 ProcTrial	subclassOf	Meeting
 Briefing	subclassOf	Meeting
-LitigationParty	subclassOf	RoleLegal
+LitigationParty	subclassOf	IntelAgent
 NonParty	subclassOf	RoleLegal
+MovingParty	subclassOf	LitigationParty
 Human	subclassOf	IntelAgent
 OrgCo	subclassOf	IntelAgent
 RoleLegal	subclassOf	IntelAgent
@@ -730,6 +726,7 @@ Telephone	define	NumberClass
 Process	per	Process
 ProcRedact	subclassOf	Process
 ProcRedact	define	DocLegalNotice
+NoticeOfMotion	subclassOf	DocLegalNotice
 ErrataSheet	subclassOf	Document
 Transcript	subclassOf	Document
 DocLegalMemorandum	subclassOf	Document
@@ -1007,3 +1004,20 @@ LegalCauseOfAction	subclassOf	Thing
 LegalDecision	subclassOf	LegalAuthorityDoc
 LegalRule	subclassOf	LegalAuthorityDoc
 LegalAuthorityDoc	subclassOf	Document
+ProcAcknowledge	define	TimeRef
+Document	inSupportOf	Document
+Process	inSupportOf	Document
+Document	inSupportOf	Process
+Process	inSupportOf	Process
+CourtReportingService	subclassOf	Document
+MotionHearing	subclassOf	Hearing
+hasAttribute	per	Process
+DocLegalDemurrer	subclassOf	Document
+OfOrgCoSuffix	subclassOf	Relation
+OrgCo	OfOrgCoSuffix	CoTypeSuffix
+; identify 4 different types:
+IndividualParty	subclassOf	LitigationParty
+OrgCoParty	subclassOf	LitigationParty
+GovernmentParty	subclassOf	LitigationParty
+; when we don't know which type, or a mix of types, we use generic type:
+GenericParty	subclassOf	LitigationParty

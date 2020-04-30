@@ -2,6 +2,7 @@
 {"text":"above-captioned","type":"ADJP", "entity":"StatusAboveCaptioned"}
 {"text":"access","type":"NP", "entity":"ProcAccess"}
 {"text":"ACKNOWLEDGMENT","type":"NP", "entity":"ProcAcknowledge"}
+{"text":"ACKNOWLEDGEMENT","type":"NP", "entity":"ProcAcknowledge"}
 {"text":"ACTION","type":"NP", "entity":"LegalCase"}
 {"text":"ACTIONS","type":"NP", "entity":"LegalCase"}
 {"text":"added","type":"VP", "tense":"past", "entity":"ProcAdd"}
@@ -45,7 +46,7 @@
 {"text":"appointing","type":"VP", "tense":"ing", "entity":"ProcAppoint"}
 {"text":"answering\\s*brief","type":"NP", "list":"answering", "entity":"DocLegalAnsweringBrief"}
 {"text":"april","type":"TIMEP","entity":"Month_4"}
-{"text":"are","type":"VP","tense":"present", "entity":"Be"}
+{"text":"are","type":"VP","tense":"present", "entity":"ProcBe"}
 {"text":"argued","type":"VP","tense":"past","entity":"ProcArgument"}
 {"text":"Argument","type":"NP","entity":"ProcArgument"}
 {"text":"as","type":"PRP","entity":"as"}
@@ -71,7 +72,7 @@
 {"text":"Availability","type":"NP","entity":"StatusAvailable"}
 {"text":"BANKRUPTCY","type":"NP","entity":"ProcBankruptcy"}
 {"text":"based\\s*(up)?on","type":"PRP","list":"based","entity":"based_on"}  
-{"text":"be","type":"VP", "tense":"present", "entity":"Be"}
+{"text":"be","type":"VP", "tense":"present", "entity":"ProcBe"}
 {"text":"before","type":"PRP","entity":"before"}
 {"text":"between","type":"PRP","entity":"between"}
 {"text":"beginning","type":"VP", "tense":"ing", "entity":"ProcBegin"}
@@ -165,6 +166,7 @@
 {"text":"Counterclaim-Plaintiffs","type":"NP","entity":"RoleCounterclaimant"}
 {"text":"COUNTERCLAIMs","type":"NP", "entity":"DocLegalCounterclaim"}
 {"text":"Court","type":"NP", "entity":"OrgGovCourt"}
+{"text":"COURT\\s*REPORTING\\s*SERVICES\\s*LESS\\s*THAN\\s*1\\s*HOUR","type":"NP","list":"Court","entity":"CourtReportingService"}
 {"text":"Courtroom\\s*\\d\\p{Alpha}","type":"NP", "list":"Courtroom","entity":"Courtroom"}
 {"text":"Create","type":"VP", "tense":"present","entity":"ProcCreate"}
 {"text":"Credit\\s*Card","type":"NP","list":"credit","entity":"CreditCard"}
@@ -187,6 +189,7 @@
 {"text":"deleted","type":"VP","tense":"past","entity":"ProcDelete"}
 {"text":"Deliberation","type":"NP","entity":"ProcDeliberation"}
 {"text":"Deliberations","type":"NP","entity":"ProcDeliberation"}
+{"text":"DEMURRER","type":"NP","entity":"DocLegalDemurrer"}
 {"text":"Demanded","type":"VP","tense":"past","entity":"ProcDemand"}
 {"text":"denied","type":"VP","tense":"past","entity":"ProcDeny"}
 {"text":"denying","type":"VP","tense":"ing","entity":"ProcDeny"}
@@ -313,7 +316,8 @@
 {"text":"in","type":"PRP","entity":"in"}
 {"text":"in\\s*accordance\\s*with","type":"PRP","list":"in", "entity":"InAccordanceWith"}
 {"text":"in\\s*favor\\s*of","type":"PRP","list":"in", "entity":"inFavorOf"}
-{"text":"inc","type":"ORGSUFFIX","entity":"CoTypeSuffixAbbrv"}
+{"text":"in\\s*support\\s*of","type":"PRP","list":"in", "entity":"inSupportOf"}
+{"text":"inc","type":"ORGSUFFIX","entity":"CoTypeSuffix"}
 {"text":"information","type":"NP","entity":"Information"}
 {"text":"informing","type":"VP", "tense":"ing", "entity":"ProcInform"}
 {"text":"Infringement","type":"NP","entity":"ProcInfringement"}
@@ -329,7 +333,7 @@
 {"text":"Interrogatory","type":"NP", "entity":"DocLegalInterrogatory"}
 {"text":"Interrogatories","type":"NP", "entity":"DocLegalInterrogatory"}
 {"text":"Invalidity","type":"NP", "entity":"Invalidity"}
-{"text":"is","type":"VP","tense":"present", "entity":"Be"}
+{"text":"is","type":"VP","tense":"present", "entity":"ProcBe"}
 {"text":"Issuance","type":"NP", "entity":"ProcIssueDoc"}
 {"text":"issue","type":"NP", "entity":"Issue"}
 {"text":"issue","type":"VP", "tense":"present", "entity":"ProcIssueDoc"}
@@ -355,6 +359,7 @@
 {"text":"jury\\s*trial","type":"NP","list":"jury","entity":"JuryTrial"}
 {"text":"lack","type":"NP","entity":"StatusLack"}
 {"text":"lack","type":"ADJP","entity":"StatusLack"}
+{"text":"law\\s*and\\s*motion\\,?\\s*\\d+","type":"NP", "list":"law", "entity":"MotionHearing"}
 {"text":"law\\s*firm","type":"NP", "list":"law", "entity":"Lawfirm"}
 {"text":"lead","type":"ADJP","entity":"StatusLead"}
 {"text":"left","type":"VP","tense":"past","entity":"ProcLeave"}
@@ -363,15 +368,17 @@
 {"text":"lifting","type":"VP","tense":"ing","entity":"ProcLift"}
 {"text":"line","type":"NP","entity":"DocLine"}
 {"text":"list","type":"NP", "entity":"ListRef"}
-{"text":"\\,?\\s*llc\\.?","type":"ORGSUFFIX","list":", llc","entity":"CoTypeSuffixAcrnm"}
+{"text":"llc","type":"ORGSUFFIX","entity":"CoTypeSuffix"}
 {"text":"local","type":"ADJP","entity":"StatusLocal"}
 {"text":"logistics","type":"NP","entity":"Logistics"}
 {"text":"Los\\s*Angeles\\,?(\\s*CA)?", "type":"NP","list":"los","entity":"LosAngelesCA"}
-{"text":"LP","type":"ORGSUFFIX","entity":"CoTypeSuffixAbbrv"}
+{"text":"LP","type":"ORGSUFFIX","entity":"CoTypeSuffix"}
+{"text":"LLP","type":"ORGSUFFIX","entity":"CoTypeSuffix"}
 {"text":"MANDATE","type":"NP", "entity":"DocLegalMandate"}
 {"text":"Magistrate","type":"NP", "entity":"TypeJudgeMagistrate"}
 {"text":"Magistrate\\s*Consent\\s*Notice","type":"NP", "list":"Magistrate", "entity":"DocLegalMagistrateConsentNotice"}
 {"text":"Magistrate\\s*Consent\\s*Form","type":"NP", "list":"Magistrate", "entity":"DocLegalMagistrateConsentForm"}
+{"text":"mail","type":"NP", "entity":"ProcMail"}
 {"text":"mailing","type":"NP", "entity":"ProcMail"}
 {"text":"march","type":"TIMEP","entity":"Month_3"}
 {"text":"Markman","type":"ADJP", "entity":"Markman"}
@@ -402,6 +409,7 @@
 {"text":"Monday","type":"TIMEP", "entity":"Monday"}
 {"text":"move\\,?\\s*answer\\,?\\s*or\\s*otherwise\\s*respond\\s*to", "type":"VP", "tense":"present", "list":"move", "entity":"ProcMoveAnswerRespond"}
 {"text":"move\\,?\\s*answer\\,?\\s*or\\s*otherwise\\s*plead(\\s*to)?", "type":"VP", "tense":"present", "list":"move", "entity":"ProcMoveAnswerPlead"}
+{"text":"moving\\s*party", "type":"NP","list":"moving", "entity":"MovingParty"}
 {"text":"multi(\\s*|-)?media", "type":"ADJP", "list":"multi multimedia multi-media", "entity":"StatusMultimedia"}
 {"text":"Name","type":"NP", "entity":"NameRef"}
 {"text":"needed","type":"VP", "tense":"past","entity":"ProcNeed"}
@@ -416,6 +424,7 @@
 {"text":"not","type":"ADVP", "entity":"StatusNegative"}
 {"text":"Notice\\,?\\s*Consent\\s*and\\s*Referral\\s*forms?","type":"NP", "list":"notice", "entity":"DocLegalNoticeConsentReferralForm"}
 {"text":"notice","type":"NP", "entity":"DocLegalNotice"}
+{"text":"notice\\s*of\\s*motion","type":"NP", "list":"notice", "entity":"NoticeOfMotion"}
 //{"text":"notice\\s*of\\s*appeal","type":"NP", "list":"notice", "entity":"NoticeOfAppeal"}
 {"text":"Notification","type":"NP", "entity":"DocLegalNotice"}
 {"text":"November","type":"TIMEP","entity":"Month_11"}
@@ -484,7 +493,7 @@
 {"text":"Pro\\s*Hac\\s*Vice\\s*Appearance","type":"NP","list":"pro","entity":"ProcProHacViceAppearance"}
 {"text":"produce","type":"VP","tense":"present","entity":"ProcProduction"}
 {"text":"Production","type":"NP","entity":"ProcProduction"}
-{"text":"Proof\\s*Of\\s*Service","type":"NP","list":"proof", "entity":"DocProofOfService"}
+{"text":"Proof\\s*Of\\s*(Electronic\\s*)?Service","type":"NP","list":"proof", "entity":"DocProofOfService"}
 {"text":"Proposed","type":"ADJP", "entity":"StatusProposed"}
 {"text":"Protective","type":"ADJP", "entity":"StatusProtective"}
 {"text":"Protocol","type":"NP", "entity":"Protocol"}
@@ -682,7 +691,7 @@
 {"text":"VERSION","type":"NP","entity":"VersionRef"}
 {"text":"viewed","type":"VP", "tense":"past", "entity":"ProcView"}
 {"text":"voluntary","type":"ADJP","entity":"StatusVoluntary"}
-{"text":"was","type":"VP","tense":"past", "entity":"Be"}
+{"text":"was","type":"VP","tense":"past", "entity":"ProcBe"}
 {"text":"week","type":"NP", "entity":"Week"}
 {"text":"Wednesday","type":"TIMEP", "entity":"Wednesday"}
 {"text":"will","type":"ADVP","entity":"will"}

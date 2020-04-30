@@ -27,6 +27,10 @@ public class Entity implements Cloneable {
 		return position;
 	}
 
+	public static void resetSerial() {
+		globalIDSource.set(1);
+	}
+
 	// private static ThreadLocal<Ontology> ontoRef = new
 	// ThreadLocal<Ontology>();
 	// public static void setOntology(Ontology onto) {

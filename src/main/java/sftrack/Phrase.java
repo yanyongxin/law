@@ -924,20 +924,22 @@ public class Phrase implements Cloneable {
 		int myDepth = getDepth();
 		int phDepth = ph.getDepth();
 		int diffDepth = myDepth - phDepth;
-		if (diffDepth < -1 || diffDepth > 1) {
+		if (diffDepth > 1) {//NOTICE OF MOTION AND PLAINTIFFS MOTION FOR JUDGMENT ON THE PLEADINGS 
+			// the second phrase can be long, but the first cannot be too long
+			//			if (diffDepth < -1 || diffDepth > 1) {
 			return false;
 		}
-		ERGraph g1 = getGraph();
-		ERGraph g2 = ph.getGraph();
-		Link lk1 = g1.getTopLink();
-		Link lk2 = g2.getTopLink();
-		if (lk1 != null && lk2 == null)
-			return false;
-		if (lk2 != null && lk1 == null)
-			return false;
-		if (lk1 != null && lk2 != null) {
-			return lk1.getType().equals(lk2.getType());
-		}
+		//		ERGraph g1 = getGraph();
+		//		ERGraph g2 = ph.getGraph();
+		//		Link lk1 = g1.getTopLink();
+		//		Link lk2 = g2.getTopLink();
+		//		if (lk1 != null && lk2 == null)
+		//			return false;
+		//		if (lk2 != null && lk1 == null)
+		//			return false;
+		//		if (lk1 != null && lk2 != null) {
+		//			return lk1.getType().equals(lk2.getType());
+		//		}
 		return true;
 	}
 

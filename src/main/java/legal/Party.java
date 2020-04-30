@@ -205,6 +205,11 @@ public class Party {
 	 * @return
 	 */
 	public boolean sameParty(Party _p) {
+		//		if (_p.nameCorp != null && this.nameCorp != null) {
+		//			if (_p.nameCorp.stem.equals("HOSIE RICE") && this.nameCorp.stem.equals("HOSIE RICE")) {
+		//				System.out.println("HOSIE RICE");
+		//			}
+		//		}
 		if (_p.type != type) {
 			return false;
 		}
@@ -347,6 +352,7 @@ public class Party {
 			CorpName on = new CorpName(_name);// "COSTCO WHOLESALE CORPORATION","SEPHORA USA, INC.", "LC BUSINESS SYSTEMS CORP"
 			party.setName(_name);
 			party.setCorp(on);
+			party.setType(TYPE_CORPORATION);
 			return party;
 		}
 		m = pCorpAttach.matcher(_name);
@@ -354,6 +360,7 @@ public class Party {
 			CorpName on = new CorpName(_name);
 			party.setName(_name);
 			party.setCorp(on);
+			party.setType(TYPE_CORPORATION);
 			return party;
 		}
 		m = pGov.matcher(_name);

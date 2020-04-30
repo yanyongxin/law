@@ -626,7 +626,7 @@ public class ExtractEntities {
 		return Party.ROLE_UNKNOWN;
 	}
 
-	static class CaseParties {
+	public static class CaseParties {
 		String id;
 		List<Party> parties = new ArrayList<>();
 
@@ -653,7 +653,7 @@ public class ExtractEntities {
 			return sb.toString();
 		}
 
-		List<Party> getParties() {
+		public List<Party> getParties() {
 			return parties;
 		}
 	}

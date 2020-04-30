@@ -28,7 +28,9 @@ import legal.Case;
 import legal.Entry;
 import legal.Entry.DePhrase;
 import legal.ExtractEntities;
+import legal.ExtractEntities.CaseParties;
 import legal.Pair;
+import legal.Party;
 import sftrack.Ontology.Srunner;
 
 public class SFcomplex {
@@ -75,10 +77,16 @@ public class SFcomplex {
 			if (caseCount < 2)
 				continue;
 			System.out.println("\n================ " + cs.getID() + " ==================\n");
+			CaseParties cp = exE.parties.get(cs.getID());
+			List<Party> parties = cp.getParties();
+			for (Party pt : parties) {
+				System.out.println(pt);
+			}
 			for (Entry e : cs.entries) {
 				if (e.dephrases.size() == 0 && e.doneList.size() == 0)
 					continue;
 				try {
+					Entity.resetSerial();
 					Srunner srun = onto.createSrunner(true);
 					List<Phrase> phlist = generatePhraseList(e);
 					srun.insertList(phlist);
@@ -126,13 +134,13 @@ public class SFcomplex {
 				if (dp.entity instanceof legal.Party) {
 					legal.Party party = (legal.Party) dp.entity;
 					if (party.type == legal.Party.TYPE_INDIVIDUAL || party.type == legal.Party.TYPE_MINOR) {
-						Entity e3 = new Entity(ph.getText(), onto.getEntity("HumanName"), Entity.TYPE_INSTANCE, onto, ph.getBegToken());
+						Entity e3 = new Entity(ph.getText(), onto.getEntity("IndividualParty"), Entity.TYPE_INSTANCE, onto, ph.getBegToken());
 						ph.setGraph(e3);
 					} else if (party.type == legal.Party.TYPE_DOESROESMOES) {
-						Entity e3 = new Entity(ph.getText(), onto.getEntity("IntelName"), Entity.TYPE_INSTANCE, onto, ph.getBegToken());
+						Entity e3 = new Entity(ph.getText(), onto.getEntity("GenericParty"), Entity.TYPE_INSTANCE, onto, ph.getBegToken());
 						ph.setGraph(e3);
 					} else {
-						Entity e3 = new Entity(ph.getText(), onto.getEntity("OrgCoName"), Entity.TYPE_INSTANCE, onto, ph.getBegToken());
+						Entity e3 = new Entity(ph.getText(), onto.getEntity("OrgCoParty"), Entity.TYPE_INSTANCE, onto, ph.getBegToken());
 						ph.setGraph(e3);
 					}
 				} else if (dp.entity instanceof legal.ExtractEntities.Attorney) {
