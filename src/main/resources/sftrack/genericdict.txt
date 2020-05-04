@@ -30,6 +30,7 @@
 {"text":"an","type":"DET", "entity":"A"}
 {"text":"and","type":"CONJ", "entity":"ConjAnd"}
 {"text":"ANDA","type":"NP", "entity":"ANDA"}
+{"text":"Anti(-| )SLAPP","type":"ADJP","list":"anti","entity":"AntiSLAPP"}
 {"text":"any","type":"QUANTIFIER","entity":"QuantifierAny"}
 {"text":"answer","type":"VP", "tense":"present", "entity":"ProcAnswer"}
 {"text":"answer","type":"NP", "entity":"DocLegalAnswer"}
@@ -80,6 +81,7 @@
 {"text":"Bill\\s*of\\s*Costs?","type":"NP", "list":"bill", "entity":"BillofCosts"}
 {"text":"brief","type":"NP", "entity":"DocLegalBrief"}
 {"text":"briefing","type":"NP", "entity":"Briefing"}
+{"text":"by","type":"PRP","entity":"byMeans"}
 {"text":"by","type":"PRP","entity":"byAgent"}
 {"text":"Calendar","type":"NP","entity":"Calendar"}
 {"text":"California","type":"NP","entity":"StateCalifornia"}
@@ -155,6 +157,7 @@
 {"text":"correct","type":"VP", "tense":"present","entity":"ProcCorrect"}
 {"text":"corrected","type":"ADJP", "entity":"ProcCorrect"}
 {"text":"corrected","type":"VP", "tense":"past","entity":"ProcCorrect"}
+{"text":"continued","type":"VP", "tense":"past","entity":"ProcContinue"}
 {"text":"CORRECTING","type":"ADJP", "entity":"ProcCorrect"}
 {"text":"Corporate\\s*Parent","type":"NP", "list":"Corporate", "entity":"CorporateParent"}
 {"text":"cost","type":"NP", "entity":"CostRef"}
@@ -177,6 +180,7 @@
 {"text":"Dated","type":"VP","tense":"past", "entity":"ProcDate"}
 {"text":"DAUBERT\\s*motion","type":"NP","list":"DAUBERT","entity":"DaubertMotion"}
 {"text":"Day","type":"NP","entity":"Day"}
+{"text":"Days","type":"NP","entity":"Day"}
 {"text":"Deadline","type":"NP","entity":"Deadline"}
 {"text":"Deadlines","type":"NP","entity":"Deadline"}
 {"text":"December","type":"TIMEP","entity":"Month_12"}
@@ -266,11 +270,11 @@
 {"text":"Federal","type":"ADJP", "entity":"StatusFederal"}
 {"text":"Federal\\s*Circuit","type":"NP", "list":"Federal","entity":"FederalCircuit"}
 {"text":"Fee","type":"NP", "entity":"FeeRef"}
+{"text":"Fee\\s*Paid\\s*On","type":"VP", "list":"Fee", "entity":"FeePaidOn", "Comment":"Short Phrase"}
 {"text":"Fees","type":"NP", "entity":"FeeRef"}
 {"text":"February","type":"TIMEP","entity":"Month_2"}
 {"text":"Fifth","type":"ADJP","entity":"Fifth"}
 {"text":"file","type":"VP", "tense":"present", "entity":"ProcFileDoc"}
-{"text":"filed","type":"ADJP", "entity":"ProcFileDoc"}
 {"text":"filed","type":"VP", "tense":"past", "entity":"ProcFileDoc"}
 {"text":"filer","type":"NP", "entity":"RoleLegalFiler"}
 {"text":"filing","type":"VP", "tense":"ing", "entity":"ProcFileDoc"}
@@ -334,6 +338,7 @@
 {"text":"Interrogatories","type":"NP", "entity":"DocLegalInterrogatory"}
 {"text":"Invalidity","type":"NP", "entity":"Invalidity"}
 {"text":"is","type":"VP","tense":"present", "entity":"ProcBe"}
+{"text":"iso","type":"PRP","entity":"inSupportOf"}
 {"text":"Issuance","type":"NP", "entity":"ProcIssueDoc"}
 {"text":"issue","type":"NP", "entity":"Issue"}
 {"text":"issue","type":"VP", "tense":"present", "entity":"ProcIssueDoc"}
@@ -383,6 +388,8 @@
 {"text":"march","type":"TIMEP","entity":"Month_3"}
 {"text":"Markman","type":"ADJP", "entity":"Markman"}
 {"text":"Master","type":"ADJP","entity":"StatusMaster"}
+{"text":"Master\\s*Calendar\\s*jury","type":"NP", "list":"master", "entity":"MasterCalendar", "comment":"I don't know the difference"}
+{"text":"Master\\s*jury\\s*Calendar","type":"NP", "list":"master", "entity":"MasterCalendar"}
 {"text":"Post-Markman","type":"ADJP", "entity":"PostMarkman"}
 {"text":"Post\\s*Markman","type":"ADJP", "list":"post", "entity":"PostMarkman"}
 {"text":"may","type":"TIMEP","entity":"Month_5"}
@@ -397,7 +404,9 @@
 {"text":"MEMORANDUM\\s*OPINION","type":"NP", "list":"memorandum","entity":"DocLegalMemorandumOpinion"}
 {"text":"MEMORANDUM\\s*ORDER","type":"NP", "list":"memorandum","entity":"DocLegalOrder"}
 {"text":"Memorandum\\s*of\\s*Points\\s*(\\&|and)\\s*Authorities","type":"NP", "list":"memorandum","entity":"DocLegalMemorandumPointsAuthorities"}
-{"text":"Minute\\s*Entry","type":"NP", "list":"minute","entity":"DocLegalMinuteEntry"}
+{"text":"Minute\\s*Entry","type":"NP", "list":"minute","entity":"DocLegalMinutes"}
+{"text":"Mini\\s*Minute","type":"NP", "list":"mini","entity":"DocLegalMinutes"}
+{"text":"minutes","type":"NP", "entity":"DocLegalMinutes"}
 {"text":"modify","type":"VP", "tense":"present", "entity":"ProcModify"}
 {"text":"modified","type":"VP", "tense":"past", "entity":"ProcModify"}
 {"text":"moot","type":"NP", "entity":"Moot"}
@@ -444,6 +453,7 @@
 {"text":"Opinion","type":"NP", "entity":"Opinion"}
 {"text":"Opposition","type":"NP", "entity":"ProcOpposition"}
 {"text":"Opposition","type":"NP", "entity":"RelationOpposition"}
+{"text":"Oppo\\.?","type":"NP", "list":"oppo","entity":"ProcOpposition"}
 {"text":"or","type":"CONJ", "entity":"ConjOr"}
 {"text":"oral","type":"ADJP", "entity":"StatusOral"}
 {"text":"Original","type":"ADJP", "entity":"StatusOriginal"}
@@ -453,6 +463,7 @@
 {"text":"Outline","type":"VP", "tense":"present","entity":"ProcOutline"}
 {"text":"Outlining","type":"VP", "tense":"ing","entity":"ProcOutline"}
 {"text":"over","type":"PRP","entity":"over"}
+{"text":"paid","type":"VP", "tense":"past","entity":"ProcPay"}
 {"text":"paper","type":"NP", "entity":"Paper"}
 {"text":"Paragraph","type":"NP","entity":"Paragraph"}
 {"text":"parameters","type":"NP","entity":"Parameter"}
@@ -570,6 +581,7 @@
 {"text":"Scheduled","type":"VP","tense":"past","entity":"ProcSchedule"}
 {"text":"scheduling","type":"ADJP", "entity":"StatusScheduling"}
 {"text":"scheduling","type":"VP","tense":"ing","entity":"ProcSchedule"}
+{"text":"SEAL","type":"VP","tense":"present", "entity":"ProcSeal"}
 {"text":"SEALED","type":"ADJP", "entity":"ProcSeal"}
 {"text":"SEALED","type":"VP","tense":"past", "entity":"ProcSeal"}
 {"text":"second","type":"ADJP","entity":"Second"}
@@ -673,6 +685,7 @@
 {"text":"transferred","type":"VP","tense":"past", "entity":"ProcTransfer"}
 {"text":"Trial","type":"NP","entity":"ProcTrial"}
 {"text":"Trial\\s*day","type":"NP","list":"trial", "entity":"TrialDay"}
+{"text":"Trial\\s*setting","type":"NP","list":"trial", "entity":"TrialSetting"}
 {"text":"Tuesday","type":"TIMEP", "entity":"Tuesday"}
 {"text":"UTAH","type":"NP","entity":"StateUtah"}
 {"text":"under","type":"PRP","entity":"under"}
@@ -714,6 +727,7 @@
 {"text":"&","type":"SYMBOL","entity":"ConjAnd"}
 {"text":"'","type":"SYMBOL","entity":"SymbolApostrophe"}
 {"text":",","type":"SYMBOL","entity":"SymbolComma"}
+{"text":":","type":"SYMBOL","entity":"SymbolColon"}
 {"text":";","type":"SYMBOL","entity":"SymbolSemicolon"}
 //{"text":".","type":"SYMBOL","entity":"SymbolPeriod"}
 {"text":".","type":"SYMBOL","entity":"SymbolDot"}

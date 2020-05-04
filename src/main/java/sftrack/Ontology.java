@@ -105,6 +105,9 @@ public class Ontology {
 					continue;
 				}
 				String text = (String) jo.get("text");
+				//				if (text.equals("by")) {
+				//					System.out.println();
+				//				}
 				String type = (String) jo.get("type");
 				String entity = (String) jo.get("entity");
 				String tense = null;

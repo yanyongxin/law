@@ -33,7 +33,9 @@ public class ERGraph implements Cloneable {
 	}
 
 	public void setEntityName(String _name) {
-		if (entities.size() == 1) {
+		if (headEntity != null) {
+			headEntity.setName(_name);
+		} else if (entities.size() > 1) {
 			Entity e = entities.get(0);
 			e.setName(_name);
 		}
@@ -191,7 +193,8 @@ public class ERGraph implements Cloneable {
 				continue;
 			}
 			Entity e2 = le2.get(i);
-			if (e2.getName().equals(e1.getName())) {
+			if (e2.equivalent(e1)) {
+				//				if (e2.getName().equals(e1.getName())) {
 				List<Integer> next = new ArrayList<Integer>(l);
 				next.add(i);
 				if (next.size() == le2.size()) {
@@ -993,26 +996,30 @@ public class ERGraph implements Cloneable {
 	}
 
 	public void mergeSet(ERGraph eg) {
-		Entity hd = eg.getHead();
+		Entity hdRight = eg.getHead();
+		Entity hdLeft = this.headEntity;
 		Link lk;
+		Entity clsLeft = hdLeft.getTheClass();
+		Entity clsRight = hdRight.getTheClass();
+		merge(eg);
 		if (this.isSet()) {
-			merge(eg);
 			if (eg.isSet()) {
-				replaceLinks(hd, this.headEntity);
-				this.remove(hd);
+				replaceLinks(hdRight, hdLeft);
+				this.remove(hdRight);
 			} else {
-				lk = new Link("hasMember", this.headEntity, hd);
+				lk = new Link("hasMember", hdLeft, hdRight);
 				this.addLink(lk);
 			}
 		} else {
-			Entity hdthis = this.headEntity;
-			merge(eg);
 			if (eg.isSet()) {
-				lk = new Link("hasMember", hd, hdthis);
+				lk = new Link("hasMember", hdRight, hdLeft);
 				this.addLink(lk);
 			}
 			// the case both are not set is not considered here.
 			// it should be considered in the calling function
+		}
+		if (clsLeft.isKindOf("LitigationParty") && clsRight.isKindOf("LitigationParty") && !clsLeft.equals(clsRight)) {
+			this.getHead().setTheClass(onto.getEntity("GenericParty"));
 		}
 	}
 

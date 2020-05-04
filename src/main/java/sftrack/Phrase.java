@@ -56,8 +56,13 @@ public class Phrase implements Cloneable {
 	}
 
 	public boolean headLast() {
+		if (this.text.equalsIgnoreCase("stipulation and order REGARDING filing")) {
+			System.out.println();
+		}
 		if (graph.isSet()) {
-			return getLastPhrase().headLast();
+			Phrase last = subphrases.get(subphrases.size() - 1);
+			return last.headLast();
+			//return getLastPhrase().headLast();
 			// for (Phrase ph : subphrases) {
 			// if (ph.getHead() != ph.getLastPhrase().getHead()) {
 			// return false;
@@ -1001,6 +1006,9 @@ public class Phrase implements Cloneable {
 			gn = gp.duplicate();
 			gn.mergeSet(gt);
 		} else {
+			//			if (gt.getHead().getName().equals(gp.getHead().getName())) {
+			//				return null;
+			//			}
 			// create a pseudo entity as head:
 			Entity en;
 			if (cls != null) {
@@ -1013,19 +1021,23 @@ public class Phrase implements Cloneable {
 				en = hd.clone();
 			}
 			gn = new ERGraph(en);
-
 			gn.merge(gt);
 			gn.merge(gp);
-			// Prevent two identical entities to combine. This happens when "LG Electronics and LG" of  "LG Electronics and LG Mobile" is seen.
-			if (gt.getHead().getName().equals(gp.getHead().getName())) {
-				return null;
+			Entity cls_t = gt.getHead().getTheClass();
+			Entity cls_p = gp.getHead().getTheClass();
+			if (cls_t != null && cls_p != null) {
+				if (cls_t.isKindOf("LitigationParty") && cls_p.isKindOf("LitigationParty") && !cls_t.equals(cls_p)) {
+					en.setTheClass(onto.getEntity("GenericParty"));
+				}
 			}
+			// Prevent two identical entities to combine. This happens when "LG Electronics and LG" of  "LG Electronics and LG Mobile" is seen.
 			Link r1 = new Link("hasMember", en, gt.getHead());
 			Link r2 = new Link("hasMember", en, gp.getHead());
 			gn.addLink(r1);
 			gn.addLink(r2);
 		}
 		gn.setSetType(setType);
+		gn.setEntityName(setName);
 		Phrase ph;
 		if (p0 == null) {
 			if (bLeftToRight) {
@@ -1216,6 +1228,9 @@ public class Phrase implements Cloneable {
 	// }
 
 	public boolean equivalent(Phrase p) {
+		//		if (p.getText().equals(this.text) && text.equals("by")) {
+		//			System.out.println();
+		//		}
 		if (synType == null || !synType.equals(p.getSynType())) {
 			return false;
 		}

@@ -25,13 +25,13 @@ ProcConsider	subclassOf	Process
 ProcConsolidate	subclassOf	Process
 ProcContact	subclassOf	Process
 ProcContain	subclassOf	Process
+ProcContinue	subclassOf	Process
 ProcCorrect	subclassOf	Process
 ProcCreate	subclassOf	Process
 ProcDate	subclassOf	Process
 ProcDeliberation	subclassOf	Process
 ProcDemand	subclassOf	ProcRequest
 StatusEntire	subclassOf	StatusProc
-
 ProcDetermine	subclassOf	Process
 ProcJuryDemand	subclassOf	ProcRequest
 ProcDelete	subclassOf	Process
@@ -73,6 +73,7 @@ ProcMoveAnswerPlead	subclassOf	Process
 ProcOrder	subclassOf	Process
 ProcOutline	subclassOf	Process
 ProcParticipate	subclassOf	Process
+ProcPay	subclassOf	Process
 ProcPreclude	subclassOf	Process
 ProcProcess	subclassOf	Process
 ProcProHacViceAppearance	subclassOf	Process
@@ -246,8 +247,10 @@ ProcDiscovery	subclassOf	Document
 DocLegalExpertReport	subclass	Document
 DocLegalForm	subclassOf	Document
 DocLegalMemorandumOpinion	subclassOf	Document
-DocLegalMinuteEntry	subclassOf	Document
+DocLegalMinutes	subclassOf	Document
 DocLegalMotion	subclassOf	Document
+DocLegalMinutes	for	TimeValue
+DocLegalMinutes	for	OrgHierarchyDepartment
 DocLegalMotionForLeave	subclassOf	DocLegalMotion
 DocLegalMotionForDiscovery	subclassOf	DocLegalMotion
 DocLegalMotionToStay	subclassOf	DocLegalMotion
@@ -287,6 +290,7 @@ based_on	instanceOf	PRPRelation
 before	instanceOf	PRPRelation
 between	instanceOf	PRPRelation
 byAgent	instanceOf	PRPRelation
+byMeans	instanceOf	PRPRelation
 dueto	instanceOf	PRPRelation
 during	instanceOf	PRPRelation
 for	instanceOf	PRPRelation
@@ -320,6 +324,7 @@ PersonSuffix subclassOf TypeSuffix
 SymbolApostrophe	instanceOf	PunctuationMark
 SymbolComma	instanceOf	PunctuationMark
 SymbolSemicolon	instanceOf	PunctuationMark
+SymbolColon	instanceOf	PunctuationMark
 SymbolPeriod	instanceOf	PunctuationMark
 SymbolDot	instanceOf	Symbol
 SymbolHyphen	instanceOf	Symbol
@@ -414,7 +419,9 @@ Year	subclassOf	TimeRef
 ProcAnswer	subclassOf	ProcRespond
 ProcMoveAnswerRespond	subclassOf	ProcRespond
 ProcExtend	subclassOf	ProcAlterDomain
+; value plus unit form a Quantity:
 valueOf	subclassOf	Relation
+unitOf	subclassOf	Relation
 Affiliation	subclassOf	Relation
 ExpectedDue	instanceOf	Relation
 hasCoType	instanceOf	compoundRelation
@@ -497,6 +504,7 @@ DocLegalClaimCounterclaim	against	IntelAgent
 ;ProcReturnedExecuted	byAgent	IntelAgent
 ;ProcSignDoc	byAgent	IntelAgent
 Process	byAgent	IntelAgent
+Process	byMeans	Process
 MagistrateJudge	define	LegalJurisdiction
 DocLegalNoticeConsentReferralForm	re	LegalJurisdiction
 ProcIssueDoc	through	IntelAgent
@@ -563,11 +571,15 @@ Attorney	for	ProcElectronicNoticing
 RoleLegal	define	IntelAgent
 LegalRule	define	DocLegalOrder
 LegalRule	define	Meeting
+Meeting	at	TimeValue
 Meeting	before	Judge
 Meeting	before	Human
 Meeting	for	TimeValue
-Meeting	at	TimeValue
+Meeting	for	LitigationStatus
+Meeting	for	CourtDecision
 Meeting	in	IndoorSpace
+Meeting	in	OrgHierarchyDepartment
+Meeting	toPreposition	TimeValue
 ProcSubmit	toPreposition	OrgGovCourt
 ProcDiscovery	define	Meeting
 LitigationStatus	define	Meeting
@@ -994,8 +1006,11 @@ Document	toPreposition	TimeRef
 Document	define	Hearing
 ProcAdd	toPreposition	Calendar
 Process	for	Meeting
-Calendar	subclassOf	Thing
+; Calendar is not meeting, but has similar behavior in docket entry usage when attaching prepositions of time and place:
+Calendar	subclassOf	Meeting
+MasterCalendar	subclassOf	Calendar
 HumanSetJury	define	Calendar
+Calendar	ugoerOfProc	ProcContinue
 Calendar	ugoerOfProc	ProcSet
 Calendar	ugoerOfProc	ProcVacate
 DocMedicalReimbursementLien	subclassOf	Document
@@ -1021,3 +1036,11 @@ OrgCoParty	subclassOf	LitigationParty
 GovernmentParty	subclassOf	LitigationParty
 ; when we don't know which type, or a mix of types, we use generic type:
 GenericParty	subclassOf	LitigationParty
+Document	byMeans	ProcMail
+AntiSLAPP	subclassOf	StatusProc
+FeePaidOn	subclassOf	UselessPhrase
+TimeQuantity	subclassOf	Quantity
+Quantiy	subclassOf	Thing
+TrialSetting	subclassOf	CourtDecision
+ProcContinue	toPreposition	DateValue
+ProcContinue	toPreposition	Calendar

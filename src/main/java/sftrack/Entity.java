@@ -339,7 +339,7 @@ public class Entity implements Cloneable {
 		if (id == e.getID()) {
 			return true;
 		}
-		if (name != null && name.equalsIgnoreCase(e.getName())) {
+		if (name != null && name.equalsIgnoreCase(e.getName()) && e.getTheClass().equals(this.getTheClass())) {
 			return true;
 		}
 		return false;

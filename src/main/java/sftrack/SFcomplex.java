@@ -39,7 +39,7 @@ public class SFcomplex {
 	static String[] entityResources = { "C:\\data\\191023\\dockets\\judgeparty/ca_sfc_party.txt",
 			"C:\\data\\191023\\dockets\\judgeparty/ca_sfc_judge.txt",
 			"C:\\data\\191023\\dockets\\judgeparty/ca_sfc_attorney.txt",
-			"C:\\data\\191023\\dockets/motions_3.txt" };
+			"C:\\data\\191023\\dockets/testline.txt" };
 
 	public static void main(String[] args) throws IOException {
 		//		if (args.length != 2) {
@@ -74,8 +74,8 @@ public class SFcomplex {
 		int caseCount = 0;
 		for (Case cs : exE.cases) {
 			caseCount++;
-			if (caseCount < 2)
-				continue;
+			//			if (caseCount < 2)
+			//				continue;
 			System.out.println("\n================ " + cs.getID() + " ==================\n");
 			CaseParties cp = exE.parties.get(cs.getID());
 			List<Party> parties = cp.getParties();
@@ -85,6 +85,7 @@ public class SFcomplex {
 			for (Entry e : cs.entries) {
 				if (e.dephrases.size() == 0 && e.doneList.size() == 0)
 					continue;
+				System.out.println(e.text);
 				try {
 					Entity.resetSerial();
 					Srunner srun = onto.createSrunner(true);

@@ -834,7 +834,7 @@ rule "NP_define_NP_not_set"	// Defendants'  letter, Rule 16 conference
 	when
 //		p1: Phrase(synType=="NP", !graph.containLinkExcept(head, "define", 2, "hasAttribute", 1, "hasMember", 1) )
 		p1: Phrase(synType=="NP", !graph.containLinkExcept(head, "define hasAttribute hasMember hasValue", "2 1 1 1") )
-		p2: Phrase(synType=="NP", begToken==p1.endToken, toplink2 : graph.topLink, !isSet())
+		p2: Phrase(synType=="NP", begToken==p1.endToken, toplink2 : graph.topLink, !isSet(), !text.equals(p1.getText()))
 		(or eval(toplink2==null) eval(toplink2 !=null && onto.isKindOf(toplink2.getType(), "compoundRelation") == true))
 		exists Link(type=="define", p1.head.isKindOf(arg1), p2.head.isKindOf(arg2))
 //		(not Phrase(synType=="NP", begToken<=p1.begToken, endToken>=p2.endToken))//not already created, 
@@ -1002,13 +1002,17 @@ end
 	
 rule "NP_PRP"
 	when
-		p1: Phrase(synType=="NP", lk : graph.topLink, g1 : graph, lk1 : graph.containLink("hasMember", head, null), graph.prpCount <3
+		p1: Phrase(synType=="NP", lk : graph.topLink, g1 : graph, lk1 : graph.containLink("hasMember", head, null)
+		//, graph.prpCount <3
 				, graph.containLink("hasDET", head, null)==null
 //				, graph.containLink("ugoerOfProc", head, null)==null
 				, graph.containLink("hasOwner", head, null)==null)
-		p2: Phrase(synType=="PRP", head.isKindOf("PRPRelation"), !head.isKindOf("of"), lk2: graph.topLink, begToken==p1.endToken)
-//		eval(lk2 != null && lk2.getType()=="PRPRelation" && !lk2.getArg2().isKindOf("Time"))// TIME is allowed on verb only, ie VP_PRP
-		eval(lk2 != null && lk2.getType()=="PRPRelation" && g1.containLink(lk2.getArg1().getName(), p1.getHead(), null)==null)// TIME is allowed on verb only, ie VP_PRP
+		p2: Phrase(synType=="PRP", head.isKindOf("PRPRelation"), !head.isKindOf("of"), hd2:head
+				, graph.topLink != null, graph.topLink.getType()=="PRPRelation", lk2: graph.topLink, begToken==p1.endToken)
+		// cannot have same PRP twice (except "for"):
+		not(
+			eval(!hd2.isKindOf("for") && g1.containLink(lk2.getArg1().getName(), p1.getHead(), null)!=null)
+		)
 		(or
 			(
 				eval(lk1 == null) and
@@ -1019,18 +1023,61 @@ rule "NP_PRP"
 				exists Link(type==p2.getHead().getTheClass().getName(), lk1.arg2.isKindOf(arg1), lk2.arg2.isKindOf(arg2))
 			)
 		)
-//		eval(!(p1.getGraph().prpCount() > 3  && !p2.getHead().isKindOf("byAgent")))
-//		not (
-//		eval(lk !=null && onto.isKindOf(lk.getType(), "ugoerOfProc") && lk.getArg1().equals(p1.getHead())) and
-//		exists Link(type==p2.head.name, lk.arg2.isKindOf(arg1), lk2.arg2.isKindOf(arg2))
-//		)
 	then
 		ut.print("Find NP_PRP: " + p1 + ", " + p2 );
 		Link r = new Link(lk2.getArg1().getTheClass().getName(), p1.getHead(), lk2.getArg2());
 		Phrase ph = new Phrase(p1, p2, r, 1);
 		ph.getGraph().remove(p2.getHead());
-			insert(ph);
+		insert(ph);
 		ut.printPhrase(ph);
+end
+
+	
+rule "NP_PRP_SET"
+	when
+		p1: Phrase(synType=="NP", h1: head, g1 : graph, lk1 : graph.containLink("hasMember", head, null)
+				, graph.containLink("hasDET", head, null)==null
+				, graph.containLink("hasOwner", head, null)==null)
+		p2: Phrase(synType=="PRP", begToken==p1.endToken, head.isKindOf("PRPRelation"), isSet(), !head.isKindOf("of")
+				, lks : graph.containLinkList("hasMember", head, null), g2 : graph, h2: head, h2class:head.getTheClass().getName())
+		eval(lks.size()>=2 && g1.containLink(h2class, p1.getHead(), null)==null)// no more than one occurrence of same PRP
+		lk0: Link(type==h2class, h1.isKindOf(arg1))
+	then
+		ut.print("Find NP_PRP_SET: " + p1 + ", " + p2 + "==>" + lk0);
+		boolean b = false;
+		Entity prp0 = lk0.getArg2();
+		for(int i=0;i<lks.size();i++){
+			Link lk = (Link)lks.get(i);
+			Entity prp = lk.getArg2();
+			Link lkk = g2.containLink("PRPRelation", prp, null);
+			Entity obj = lkk.getArg2();
+			ut.print("\tTrying i=" + i + ", obj=" + obj + ", prp0=" + prp0);
+			if(obj.isKindOf(prp0)){
+				b = true;
+				ut.print("\ti=" + i + ", obj=" + obj + ", prp0=" + prp0);
+				break;
+			}
+		}
+		if(b){
+			Link lk = (Link)lks.get(0);
+			Entity prp = lk.getArg2();
+			Link lkk = g2.containLink("PRPRelation", prp, null);
+			Entity obj = lkk.getArg2();
+			Link r = new Link(h2class, h1, obj);
+			Phrase ph = new Phrase(p1, p2, r, 1);
+			ERGraph g = ph.getGraph();
+			for(int i=1;i<lks.size();i++){
+				lk = (Link)lks.get(i);
+				prp = lk.getArg2();
+				lkk = g2.containLink("PRPRelation", prp, null);
+				obj = lkk.getArg2();
+				r = new Link(h2class, h1, obj);
+				g.addLink(r);
+			}
+			g.remove(h2);
+			insert(ph);
+			ut.printPhrase(ph);
+		}
 end
 
 rule "NP_PRP_and_PRP"
@@ -1045,7 +1092,7 @@ rule "NP_PRP_and_PRP"
 		Link r = new Link(lk2.getArg1().getName(), p1.getHead(), lk2.getArg2());
 		Phrase ph = new Phrase(p1, p0, p2, r, 1);
 		ph.getGraph().remove(p2.getHead());
-			insert(ph);
+		insert(ph);
 		ut.printPhrase(ph);
 end
 
@@ -1369,6 +1416,23 @@ rule "find top phrases"
 //		ut.print(p1.getGraph().toGraph());
 end
 
+
+rule "Collection_OR_PRP"//"FOR STATUS OF AMENDED COMPLAINT OR FOR TRIAL SETTING"
+	salience 100
+	when
+		p1: Phrase(synType=="PRP", lk1: graph.topLink)
+		p2: Phrase(synType !=null, text=="/"||text.equalsIgnoreCase("or"), begToken==p1.endToken)
+		p3: Phrase(synType=="PRP", synType==p1.getSynType(), begToken==p2.endToken, lk2: graph.topLink)
+		eval(lk1 != null && lk2 != null && lk1.getType()=="PRPRelation" && lk2.getType()=="PRPRelation")
+		eval(lk2.getArg1().getName().equalsIgnoreCase(lk1.getArg1().getName()))
+	then
+		ut.print("Find Collection_OR_PRP for:  " + p1 +", "+ p2 +", "+p3 );
+		Phrase ph = p1.addToSet(p2, p3, (p1 +"_OR_"+p3).replaceAll("\\s+", ""), true);
+		if(ph != null){
+			insert(ph);
+			ut.printPhrase(ph);
+		}
+end
 
 rule "Collection_OR"//"answer/response"
 	salience 100
@@ -1719,6 +1783,37 @@ rule "SerialClass_NumberValue"	// Number 788,200, Rule 16.2b Scheduling Teleconf
 		ut.printPhrase(ph);	
 end
 
+rule "NumberValue_TimeRef"	// 2.0 Days
+	when
+		p1: Phrase(synType == "NUMP", g1:graph, head.isKindOf("NumberValue"))
+		p2: Phrase(synType == "NP", g2:graph, head.isKindOf("TimeRef"), graph.links==null, begToken==p1.endToken);
+	then
+		ut.print("Find NumberValue_TimeRef: " + p1 + ", " + p2 );
+		Entity en = new Entity(p1 + " " + p2, onto.getEntity("TimeQuantity"), Entity.TYPE_INSTANCE, onto, p1.getBegToken());
+		ERGraph g = new ERGraph(en);
+		g.merge(g1);
+		g.merge(g2);
+		Link r1 = new Link("valueOf", p1.getHead(), en);
+		Link r2 = new Link("unitOf", p2.getHead(), en);
+		g.addLink(r1);
+		g.addLink(r2);
+		Phrase ph = new Phrase(p1, p2, "TIMEP", g);
+		insert(ph);
+		ut.printPhrase(ph);
+end
+
+rule "Time_TimeQuantity"	// estimated time for trial: 2.0 Days
+	when
+		p1: Phrase(synType == "NP", g1:graph, head.isKindOf("TimeRef"))
+		p2: Phrase(synType=="SYMBOL", text==":", begToken==p1.endToken) 
+		p3: Phrase(synType == "TIMEP", g2:graph, head.isKindOf("TimeQuantity"), begToken==p2.endToken);
+	then
+		ut.print("Find Time_TimeQuantity: " + p1 + ", " + p2 + ", " + p3 );
+		Link r = new Link("valueOf", p1.getHead(), p3.getHead());
+		Phrase ph = new Phrase(p1, p2, p3, r, 1);
+		insert(ph);
+		ut.printPhrase(ph);
+end
 
 rule "NumberedClass_NumberClass"
 	when
