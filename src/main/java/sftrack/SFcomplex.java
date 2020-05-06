@@ -27,6 +27,7 @@ import org.kie.internal.io.ResourceFactory;
 import legal.Case;
 import legal.Entry;
 import legal.Entry.DePhrase;
+import legal.Entry.Section;
 import legal.ExtractEntities;
 import legal.ExtractEntities.CaseParties;
 import legal.Pair;
@@ -83,51 +84,53 @@ public class SFcomplex {
 				System.out.println(pt);
 			}
 			for (Entry e : cs.entries) {
-				if (e.dephrases.size() == 0 && e.doneList.size() == 0)
-					continue;
-				System.out.println(e.text);
-				try {
-					//					Entity.resetSerial();
-					Srunner srun = onto.createSrunner(true);
-					List<Phrase> phlist = generatePhraseList(e);
-					srun.insertList(phlist);
-					srun.execute();
-					Map<Integer, List<Phrase>> rpmap = srun.findAllPhrases();
-					List<Integer> keylist = Analysis.buildKeyList(rpmap);
-					//			assertTrue(keylist.size() > 0);
-					//					keylist.add(tokens.size());
-					keylist.add(phlist.get(phlist.size() - 1).endToken);
-					ArrayList<Integer> segments = new ArrayList<Integer>();
-					List<List<Analysis>> lla = Analysis.findBestNew(rpmap, keylist, TOP_N, segments);
-					List<Phrase> plist = DocketEntry.getPhraseList(lla);
+				for (Section sec : e.sections) {
+					if (sec.dephrases.size() == 0 && sec.doneList.size() == 0)
+						continue;
 					System.out.println(e.text);
-					for (Phrase ph : plist) {
-						System.out.println(ph.pprint("", false));
+					try {
+						//					Entity.resetSerial();
+						Srunner srun = onto.createSrunner(true);
+						List<Phrase> phlist = generatePhraseList(sec);
+						srun.insertList(phlist);
+						srun.execute();
+						Map<Integer, List<Phrase>> rpmap = srun.findAllPhrases();
+						List<Integer> keylist = Analysis.buildKeyList(rpmap);
+						//			assertTrue(keylist.size() > 0);
+						//					keylist.add(tokens.size());
+						keylist.add(phlist.get(phlist.size() - 1).endToken);
+						ArrayList<Integer> segments = new ArrayList<Integer>();
+						List<List<Analysis>> lla = Analysis.findBestNew(rpmap, keylist, TOP_N, segments);
+						List<Phrase> plist = DocketEntry.getPhraseList(lla);
+						System.out.println(e.text);
+						for (Phrase ph : plist) {
+							System.out.println(ph.pprint("", false));
+						}
+						ERGraph g = plist.get(0).getGraph();
+						srun.dispose();
+					} catch (Exception ex) {
+						fail(ex.getMessage());
 					}
-					ERGraph g = plist.get(0).getGraph();
-					srun.dispose();
-				} catch (Exception ex) {
-					fail(ex.getMessage());
 				}
 			}
 			break;
 		}
 	}
 
-	static List<Phrase> generatePhraseList(Entry e) {
+	static List<Phrase> generatePhraseList(Section sec) {
 		List<Phrase> phlist = Collections.synchronizedList(new ArrayList<Phrase>());
 		List<LexToken> tokens = new ArrayList<>();
-		for (DePhrase p : e.dephrases) {
+		for (DePhrase p : sec.dephrases) {
 			Pair pair = new Pair(Integer.valueOf(p.start), p);
-			e.doneList.add(pair);
+			sec.doneList.add(pair);
 		}
-		Collections.sort(e.doneList);// this result in reverse order
-		int top = e.doneList.size() - 1;
+		Collections.sort(sec.doneList);// this result in reverse order
+		int top = sec.doneList.size() - 1;
 		for (int i = top; i >= 0; i--) {
-			Pair p = e.doneList.get(i);
+			Pair p = sec.doneList.get(i);
 			if (p.o2 instanceof DePhrase) {
 				DePhrase dp = (DePhrase) (p.o2);
-				LexToken tk = new LexToken(e.text, dp.text.toLowerCase(), dp.start, dp.end, LexToken.LEX_ENTITY);
+				LexToken tk = new LexToken(sec.text, dp.text.toLowerCase(), dp.start, dp.end, LexToken.LEX_ENTITY);
 				Phrase ph = new Phrase(dp.text.toLowerCase(), tokens.size(), tokens.size() + 1, tokens);
 				tokens.add(tk);
 				phlist.add(ph);
@@ -164,76 +167,10 @@ public class SFcomplex {
 				for (LexToken tk : tks) {
 					tk.start += start; // shift to sentence coordinates
 					tk.end += start;
-					tk.parent = e.text;
+					tk.parent = sec.text;
 					Phrase ph = new Phrase(tk.text.toLowerCase(), j, j + 1, tokens);
 					phlist.add(ph);
 					j++;
-				}
-			}
-		}
-		return phlist;
-	}
-
-	static List<Phrase> generatePhraseList_old(Entry e) {
-		List<LexToken> tokens = null;
-		tokens = LexToken.tokenize(e.text);
-		List<Phrase> phlist = Collections.synchronizedList(new ArrayList<Phrase>());
-		if (tokens != null) {
-			int i = 0;
-			while (i < tokens.size()) {
-				LexToken tk = tokens.get(i);
-				boolean bDe = false;
-				for (DePhrase p : e.dephrases) {
-					if (tk.start == p.start) {
-						int j = i;
-						while (j < tokens.size()) {
-							LexToken ltk = tokens.get(j);
-							if (ltk.end >= p.end) {
-								if (ltk.end > p.end) {// John Smiths opposition ...
-									LexToken tk1 = ltk.split(p.end);
-									tokens.add(j + 1, tk1);
-								}
-								break;
-							} else {
-								j++;
-							}
-						}
-						Phrase ph = new Phrase(p.text.toLowerCase(), i, j + 1, tokens);
-						phlist.add(ph);
-						i = j + 1;
-						ph.synType = "NP";//Clerk, Judge, Attorney, party
-						if (p.entity instanceof legal.Party) {
-							legal.Party party = (legal.Party) p.entity;
-							if (party.type == legal.Party.TYPE_INDIVIDUAL || party.type == legal.Party.TYPE_MINOR) {
-								Entity e3 = new Entity(ph.getText(), onto.getEntity("HumanName"), Entity.TYPE_INSTANCE, onto, ph.getBegToken());
-								ph.setGraph(e3);
-							} else if (party.type == legal.Party.TYPE_DOESROESMOES) {
-								Entity e3 = new Entity(ph.getText(), onto.getEntity("IntelName"), Entity.TYPE_INSTANCE, onto, ph.getBegToken());
-								ph.setGraph(e3);
-							} else {
-								Entity e3 = new Entity(ph.getText(), onto.getEntity("OrgCoName"), Entity.TYPE_INSTANCE, onto, ph.getBegToken());
-								ph.setGraph(e3);
-							}
-						} else if (p.entity instanceof legal.ExtractEntities.Attorney) {
-							//					legal.ExtractEntities.Attorney attorney = (legal.ExtractEntities.Attorney)p.entity;
-							Entity e3 = new Entity(ph.getText(), onto.getEntity("Attorney"), Entity.TYPE_INSTANCE, onto, ph.getBegToken());
-							ph.setGraph(e3);
-						} else if (p.entity instanceof legal.ExtractEntities.Judge) {
-							//					legal.ExtractEntities.Judge judge = (legal.ExtractEntities.Judge)p.entity;
-							Entity e3 = new Entity(ph.getText(), onto.getEntity("Judge"), Entity.TYPE_INSTANCE, onto, ph.getBegToken());
-							ph.setGraph(e3);
-						} else if (p.entity instanceof legal.ExtractEntities.Clerk) {
-							Entity e3 = new Entity(ph.getText(), onto.getEntity("Clerk"), Entity.TYPE_INSTANCE, onto, ph.getBegToken());
-							ph.setGraph(e3);
-						}
-						bDe = true;
-						break;
-					}
-				}
-				if (!bDe) {
-					Phrase ph = new Phrase(tk.text.toLowerCase(), i, i + 1, tokens);
-					phlist.add(ph);
-					i++;
 				}
 			}
 		}

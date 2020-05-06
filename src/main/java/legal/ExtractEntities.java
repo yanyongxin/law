@@ -15,6 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import legal.Entry.DePhrase;
+import legal.Entry.Section;
 
 /**
  * Input three resource files: (1) party (2) judge (3) attorney;
@@ -249,117 +250,119 @@ public class ExtractEntities {
 	}
 
 	static void findEntities_1(Entry entry, CaseParties cn, CaseAttorneys ca, List<Judge> judges, Map<String, Clerk> clerks) {
-		String text = entry.text;
-		List<Pair> doneList = entry.doneList; // strings contains no entity of interest.
-		List<DePhrase> dephrases = entry.dephrases;// entities found in docket entry text
-		List<Pair> workList = new ArrayList<>();// Strings to be check for entities of interest in the current iteration
-		List<Pair> nextList = new ArrayList<>();// to be worked on in the next iteration,contains strings may contain more entities of interest
-		nextList.add(new Pair(new Integer(0), text)); // initialize (offset, text)
-		while (!nextList.isEmpty()) {
-			workList.clear();
-			workList.addAll(nextList);
-			nextList.clear();
-			for (Pair pr : workList) {
-				int offset = (Integer) (pr.o1);
-				String str = (String) (pr.o2);
-				boolean b = false;
-				// for parties:
-				for (Party p : cn.parties) {
-					int idx;
-					for (String raw : p.raw) {
-						idx = str.indexOf(raw);
+		for (Section sec : entry.sections) {
+			String text = sec.text;
+			List<Pair> doneList = sec.doneList; // strings contains no entity of interest.
+			List<DePhrase> dephrases = sec.dephrases;// entities found in docket entry text
+			List<Pair> workList = new ArrayList<>();// Strings to be check for entities of interest in the current iteration
+			List<Pair> nextList = new ArrayList<>();// to be worked on in the next iteration,contains strings may contain more entities of interest
+			nextList.add(new Pair(new Integer(0), text)); // initialize (offset, text)
+			while (!nextList.isEmpty()) {
+				workList.clear();
+				workList.addAll(nextList);
+				nextList.clear();
+				for (Pair pr : workList) {
+					int offset = (Integer) (pr.o1);
+					String str = (String) (pr.o2);
+					boolean b = false;
+					// for parties:
+					for (Party p : cn.parties) {
+						int idx;
+						for (String raw : p.raw) {
+							idx = str.indexOf(raw);
+							if (idx >= 0) {
+								breakTwo(str, raw, idx, offset, nextList, dephrases, p);
+								b = true;
+								break;
+							}
+						}
+						if (b)
+							break;
+						idx = str.indexOf(p.name);
 						if (idx >= 0) {
-							breakTwo(str, raw, idx, offset, nextList, dephrases, p);
+							breakTwo(str, p.name, idx, offset, nextList, dephrases, p);
+							b = true;
+							break;
+						}
+						if (p.errSued != null) {
+							idx = str.indexOf(p.errSued);
+							if (idx >= 0) {
+								breakTwo(str, p.errSued, idx, offset, nextList, dephrases, p);
+								b = true;
+								break;
+							}
+						}
+						if (p.nameCorp != null) {
+							idx = str.indexOf(p.nameCorp.stem);
+							if (idx >= 0) {
+								breakTwo(str, p.nameCorp.stem, idx, offset, nextList, dephrases, p);
+								b = true;
+								break;
+							}
+						}
+						if (p.namePerson != null) {
+							Pattern ptn = p.namePerson.getPattern();
+							Matcher m = ptn.matcher(str);
+							if (m.find()) {
+								idx = m.start();
+								breakTwo(str, m.group(), idx, offset, nextList, dephrases, p);
+								b = true;
+								break;
+							}
+						}
+					} //	end for parties
+					if (b)
+						continue;// next in the workList
+					if (ca != null) {
+						for (Attorney p : ca.atts) {
+							if (p.name != null) {
+								Pattern ptn = p.name.getPattern();
+								Matcher m = ptn.matcher(str);
+								if (m.find()) {
+									breakTwo(str, m.group(), m.start(), offset, nextList, dephrases, p);
+									b = true;
+									break;
+								}
+							}
+						}
+					}
+					if (b)
+						continue;
+					for (Judge j : judges) {
+						Pattern ptn = j.pattern;
+						Matcher m = ptn.matcher(str);
+						if (m.find()) {
+							breakTwo(str, m.group(), m.start(), offset, nextList, dephrases, j);
 							b = true;
 							break;
 						}
 					}
 					if (b)
-						break;
-					idx = str.indexOf(p.name);
-					if (idx >= 0) {
-						breakTwo(str, p.name, idx, offset, nextList, dephrases, p);
-						b = true;
-						break;
-					}
-					if (p.errSued != null) {
-						idx = str.indexOf(p.errSued);
-						if (idx >= 0) {
-							breakTwo(str, p.errSued, idx, offset, nextList, dephrases, p);
-							b = true;
-							break;
-						}
-					}
-					if (p.nameCorp != null) {
-						idx = str.indexOf(p.nameCorp.stem);
-						if (idx >= 0) {
-							breakTwo(str, p.nameCorp.stem, idx, offset, nextList, dephrases, p);
-							b = true;
-							break;
-						}
-					}
-					if (p.namePerson != null) {
-						Pattern ptn = p.namePerson.getPattern();
-						Matcher m = ptn.matcher(str);
+						continue;
+					int index = str.indexOf("CLERK");
+					if (index >= 0) {
+						Matcher m = pClerk.matcher(str);
 						if (m.find()) {
-							idx = m.start();
-							breakTwo(str, m.group(), idx, offset, nextList, dephrases, p);
-							b = true;
-							break;
-						}
-					}
-				} //	end for parties
-				if (b)
-					continue;// next in the workList
-				if (ca != null) {
-					for (Attorney p : ca.atts) {
-						if (p.name != null) {
-							Pattern ptn = p.name.getPattern();
-							Matcher m = ptn.matcher(str);
-							if (m.find()) {
-								breakTwo(str, m.group(), m.start(), offset, nextList, dephrases, p);
-								b = true;
-								break;
+							String clerkName = m.group(1);
+							Clerk clk = clerks.get(clerkName);
+							if (clk == null) {
+								clk = new Clerk(clerkName);
+							} else {
+								clk.increment();
 							}
+							clerks.put(clerkName, clk);
+							breakTwo(str, m.group(), m.start(), offset, nextList, dephrases, clk);
+							b = true;
 						}
 					}
-				}
-				if (b)
-					continue;
-				for (Judge j : judges) {
-					Pattern ptn = j.pattern;
-					Matcher m = ptn.matcher(str);
-					if (m.find()) {
-						breakTwo(str, m.group(), m.start(), offset, nextList, dephrases, j);
-						b = true;
-						break;
-					}
-				}
-				if (b)
-					continue;
-				int index = str.indexOf("CLERK");
-				if (index >= 0) {
-					Matcher m = pClerk.matcher(str);
-					if (m.find()) {
-						String clerkName = m.group(1);
-						Clerk clk = clerks.get(clerkName);
-						if (clk == null) {
-							clk = new Clerk(clerkName);
-						} else {
-							clk.increment();
-						}
-						clerks.put(clerkName, clk);
-						breakTwo(str, m.group(), m.start(), offset, nextList, dephrases, clk);
-						b = true;
-					}
-				}
-				if (b)
-					continue;
-				// if reaches here, the string has not matched any entity:
-				doneList.add(pr);
-			} // end for pr : workList
-		} // while(!nextList.isEmpty())
-			// at this point, dephrase, and doneList are useful. 
+					if (b)
+						continue;
+					// if reaches here, the string has not matched any entity:
+					doneList.add(pr);
+				} // end for pr : workList
+			} // while(!nextList.isEmpty())
+				// at this point, dephrase, and doneList are useful. 
+		}
 	}
 
 	static String findEntities(String text, CaseParties cn, CaseAttorneys ca, List<Judge> judges, Map<String, Clerk> clerks) {

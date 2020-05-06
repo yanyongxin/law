@@ -36,6 +36,7 @@ public class Entry implements Comparable<Entry> {
 	static final String TRIAL = "TRAL";
 
 	public String text;
+	public String raw;
 	String sdate;
 	Date date;
 	String filer;
@@ -45,14 +46,21 @@ public class Entry implements Comparable<Entry> {
 	// COMPLAINT:CPL; SUMMONS:SMS; MOTION:MTN; OPPOSITION:OPP;MEMORANDUM:MEM;ORDER:ORD;DECLARATION:DCL;REPLY:RPL;
 	// CASE MANAGEMENT CONFERENCE:CMC; CASE MANAGEMENT STATEMENT:CMS; DEMURRER:DMR;NOTICE OF MOTION:NMN;
 	// HEARING:HRG; ANSWER:ANS;
-	public List<Pair> doneList = new ArrayList<>();
-	public List<DePhrase> dephrases = new ArrayList<>();
+	public List<Section> sections = new ArrayList<>();
 
 	public Entry(String _d, String _t) {
+		raw = _t;
 		text = _t.replaceAll("\\(TRANSA.+?\\)", "").replaceAll("\\(Fee.+?\\)", "").replaceAll("\\(SEALED.+?\\)", "");
 		//(TRANSACTION ID # 60057326)(Fee:$900.00)(SEALED DOCUMENT)
 		sdate = _d;
 		date = Date.valueOf(sdate);
+		int offset = text.toLowerCase().lastIndexOf("filed by");
+		if (offset > 0) {
+			Section s0 = new Section(text.substring(0, offset), 0);
+			Section s1 = new Section(text.substring(offset), offset);
+			sections.add(s0);
+			sections.add(s1);
+		}
 	}
 
 	public Entry(String _d, String _t, String _type) {
@@ -153,4 +161,15 @@ public class Entry implements Comparable<Entry> {
 		}
 	}
 
+	public static class Section {
+		public String text;
+		int offset; // offset from the docket entry text
+		public List<Pair> doneList = new ArrayList<>();
+		public List<DePhrase> dephrases = new ArrayList<>();
+
+		Section(String _t, int _offset) {
+			text = _t;
+			offset = _offset;
+		}
+	}
 }
