@@ -509,6 +509,8 @@ public class ExtractEntities {
 		List<Entry> entries = null;
 		while ((line = br.readLine()) != null) {
 			String[] items = line.split("\\t");
+			if (items.length < 3)
+				continue;
 			if (!items[0].equals(caseID)) {
 				caseID = items[0];
 				entries = new ArrayList<>();

@@ -922,6 +922,18 @@ public class Phrase implements Cloneable {
 		return false;
 	}
 
+	public boolean isSubString(Phrase ph) {
+		String t1 = text.toLowerCase();
+		String t2 = ph.getText().toLowerCase();
+		if (t1.contains(t2)) {
+			return true;
+		}
+		if (t2.contains(t1)) {
+			return true;
+		}
+		return false;
+	}
+
 	public boolean similar(Phrase ph) {
 		if (!synType.equals(ph.getSynType())) {
 			return false;
@@ -929,13 +941,41 @@ public class Phrase implements Cloneable {
 		int myDepth = getDepth();
 		int phDepth = ph.getDepth();
 		int diffDepth = myDepth - phDepth;
-		if (diffDepth > 1) {//NOTICE OF MOTION AND PLAINTIFFS MOTION FOR JUDGMENT ON THE PLEADINGS 
+		if (diffDepth > 3) {//NOTICE OF MOTION AND PLAINTIFFS MOTION FOR JUDGMENT ON THE PLEADINGS 
 			// the second phrase can be long, but the first cannot be too long
 			//			if (diffDepth < -1 || diffDepth > 1) {
 			return false;
 		}
-		//		ERGraph g1 = getGraph();
-		//		ERGraph g2 = ph.getGraph();
+		ERGraph g1 = getGraph();
+		ERGraph g2 = ph.getGraph();
+		Entity h1 = g1.getHead();
+		Entity h2 = g2.getHead();
+		if (h1.isKindOf("Document") && h2.isKindOf("Document"))
+			return true;
+		if (h1.isKindOf("IntelAgent") && h2.isKindOf("IntelAgent"))
+			return true;
+		Entity cls1 = h1.getTheClass();
+		if (h2.isKindOf(cls1)) {
+			return true;
+		} else {
+			List<Link> list1 = h1.onto.findLinks("subclassOf", cls1, null);
+			for (Link lk : list1) {
+				cls1 = lk.getArg2();
+				if (h2.isKindOf(cls1))
+					return true;
+			}
+		}
+		Entity cls2 = h2.getTheClass();
+		if (h1.isKindOf(cls2)) {
+			return true;
+		} else {
+			List<Link> list2 = h1.onto.findLinks("subclassOf", cls2, null);
+			for (Link lk : list2) {
+				cls2 = lk.getArg2();
+				if (h1.isKindOf(cls2))
+					return true;
+			}
+		}
 		//		Link lk1 = g1.getTopLink();
 		//		Link lk2 = g2.getTopLink();
 		//		if (lk1 != null && lk2 == null)
@@ -945,7 +985,7 @@ public class Phrase implements Cloneable {
 		//		if (lk1 != null && lk2 != null) {
 		//			return lk1.getType().equals(lk2.getType());
 		//		}
-		return true;
+		return false;
 	}
 
 	public int getDepth() {
@@ -993,22 +1033,26 @@ public class Phrase implements Cloneable {
 		if (cls == null) {
 			cls = hd.theClass;
 		}
-		if (this.isSet() && cls != null && hd.isInstanceOf(cls)) {
-			// use duplicate() instead of clone() is very important. It makes
-			// sure different combinations of same phrase
-			// result in maximally similar Graph. This minimizes effort in
-			// ERGraph.equivalent() calculations. This can
-			// make a difference between complete in milliseconds or never
-			// complete, as I experienced. 2013.11.15.
+		/*		if (this.isSet() && cls != null && hd.isInstanceOf(cls)) {
+					// use duplicate() instead of clone() is very important. It makes
+					// sure different combinations of same phrase
+					// result in maximally similar Graph. This minimizes effort in
+					// ERGraph.equivalent() calculations. This can
+					// make a difference between complete in milliseconds or never
+					// complete, as I experienced. 2013.11.15.
+					gn = gt.duplicate();
+					gn.mergeSet(gp);
+				} else if (gp.isSet() && cls != null && gp.getHead().isInstanceOf(cls)) {
+					gn = gt.duplicate();
+					gn.mergeSet(gp);
+					//			gn = gp.duplicate();
+					//			gn.mergeSet(gt);
+				} 
+		*/
+		if (this.isSet() || gp.isSet()) {
 			gn = gt.duplicate();
 			gn.mergeSet(gp);
-		} else if (gp.isSet() && cls != null && gp.getHead().isInstanceOf(cls)) {
-			gn = gp.duplicate();
-			gn.mergeSet(gt);
 		} else {
-			//			if (gt.getHead().getName().equals(gp.getHead().getName())) {
-			//				return null;
-			//			}
 			// create a pseudo entity as head:
 			Entity en;
 			if (cls != null) {
@@ -1036,6 +1080,7 @@ public class Phrase implements Cloneable {
 			gn.addLink(r1);
 			gn.addLink(r2);
 		}
+
 		gn.setSetType(setType);
 		gn.setEntityName(setName);
 		Phrase ph;

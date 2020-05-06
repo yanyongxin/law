@@ -87,7 +87,7 @@ public class SFcomplex {
 					continue;
 				System.out.println(e.text);
 				try {
-					Entity.resetSerial();
+					//					Entity.resetSerial();
 					Srunner srun = onto.createSrunner(true);
 					List<Phrase> phlist = generatePhraseList(e);
 					srun.insertList(phlist);

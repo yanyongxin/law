@@ -738,7 +738,6 @@ Telephone	define	NumberClass
 Process	per	Process
 ProcRedact	subclassOf	Process
 ProcRedact	define	DocLegalNotice
-NoticeOfMotion	subclassOf	DocLegalNotice
 ErrataSheet	subclassOf	Document
 Transcript	subclassOf	Document
 DocLegalMemorandum	subclassOf	Document
@@ -963,6 +962,9 @@ DocLetter	define	DocLegalOrder
 Document	ugoerOfProc	Process
 DocLegalMandate	subclassOf	Document
 NoticeOfAppeal	subclassOf	DocLegalNotice
+NoticeOfEntryOfOrder	subclassOf	DocLegalNotice
+NoticeOfMotion	subclassOf	DocLegalNotice
+NoticeOfRuling	subclassOf	DocLegalNotice
 JointClaimConstructionAndPrehearingStatement	subclassOf	DocLegalStatement
 Markman	subclassOf	StatusProc
 PostMarkman	subclassOf	StatusProc
@@ -1044,3 +1046,16 @@ Quantiy	subclassOf	Thing
 TrialSetting	subclassOf	CourtDecision
 ProcContinue	toPreposition	DateValue
 ProcContinue	toPreposition	Calendar
+ProcVerify	subclassOf	Process
+StatusVerified	subclassOf	StatusProc
+DocLegalOpposition	subclassOf	Document
+StatusGood	subclassOf	StatusProc
+LegalCause	subclassOf	LegalCauseOfAction
+ProcShow	subclassOf	Process
+LegalCauseOfAction	ugoerOfProc	ProcShow
+StatusLate	subclassOf	StatusProc
+ProcPermit	subclassOf	Process
+Document	ugoerOfProc	ProcPermit
+Payment	ugoerOfProc	ProcPermit
+Document	ugoerOfProc	ProcPermit
+DocSupportingPapers	subclassOf	Document

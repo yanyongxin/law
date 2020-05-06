@@ -423,12 +423,22 @@ rule "OrgCo_infer_name"
 			onto.createNewParty(partyName, onto, drools.getWorkingMemory(), p1.getHead());
 		}
 end
-rule "NP_AND_NP"
+rule "NP_AND_NP"	//no opposition filed, and, good cause shown
 	salience 100
 	when
-		p1: Phrase(synType=="NP", g1 : graph)
-		p2: Phrase(text.equalsIgnoreCase("and"), synType=="CONJ", begToken==p1.endToken)
-		p3: Phrase(synType=="NP", g2 : graph, begToken==p2.endToken)
+		p1: Phrase(synType=="NP"
+			,graph.containLink("hasOwner", head, null) ==null
+			,graph.containLink("define", null, head) ==null
+			,graph.containLink("ugoerOfProc", head, null) ==null
+			,!head.isKindOf("LitigationParty")// for Party_,_party
+			)
+		p2: Phrase(text.equalsIgnoreCase("and")||text.equalsIgnoreCase(", and"), synType=="CONJ", begToken==p1.endToken)
+		p3: Phrase(synType=="NP", begToken==p2.endToken
+			,graph.containLink("hasOwner", head, null) ==null
+			,graph.containLink("define", null, head) ==null
+			,graph.containLink("ugoerOfProc", head, null) ==null
+			,!isSubString(p1)
+		)
 		eval(p1.similar(p3))
 	then
 		ut.print("Find NP_AND_NP for:  " + p1 +", "+ p2 +", "+p3 );
@@ -817,12 +827,31 @@ end
 
 rule "Party_Party"	// John D. Smith Kevin H. Spooner
 	when
-		p1: Phrase(synType=="NP", head.isKindOf("LitigationParty") )
-		p2: Phrase(synType=="NP", head.isKindOf("LitigationParty"), begToken==p1.endToken)
+		p1: Phrase(synType=="NP", head.isKindOf("LitigationParty"), graph.containLink("define", null, head) ==null)
+		p2: Phrase(synType=="NP", head.isKindOf("LitigationParty"), begToken==p1.endToken, !isSet())
+			// !isSet() to reduce combinations.
 	then
 		ut.print("Party_Party: " + p1 + ", " + p2 );
-		String name = p1.getHead().getName().replaceAll("\\s+", "") + p2.getHead().getName().replaceAll("\\s+", "");
+		String name = p1.getHead().getName().replaceAll("\\s+", "")+ "_" + p2.getHead().getName().replaceAll("\\s+", "");
 		Phrase ph = p1.addToSet(null, p2, name, true);
+		if(ph != null){
+			insert(ph);
+			ut.printPhrase(ph);
+		}
+end
+
+
+rule "Party_,_Party"	// John D. Smith, Kevin H. Spooner
+	when
+		p1: Phrase(synType=="NP", head.isKindOf("LitigationParty")
+				,graph.containLink("define", null, head) ==null
+				, graph.topLink == null )
+		p2: Phrase(synType!=null, text==","||text=="AND"||text.equalsIgnoreCase(", and"), begToken==p1.endToken);
+		p3: Phrase(synType=="NP", head.isKindOf("LitigationParty"), graph.topLink == null, begToken==p2.endToken)
+	then
+		ut.print("Party_,_Party: " + p1 + ", " + p2 +", "+p3 );
+		String name = p1.getHead().getName().replaceAll("\\s+", "")  + "_,_" + p3.getHead().getName().replaceAll("\\s+", "");
+		Phrase ph = p1.addToSet(p2, p3, name, true);
 		if(ph != null){
 			insert(ph);
 			ut.printPhrase(ph);
@@ -1327,7 +1356,7 @@ end
 rule "ADJP_NP"
 	when
 		p1: Phrase(synType=="ADJP" ||synType=="QUANTIFIER"  )
-		p2: Phrase(synType=="NP", begToken==p1.endToken, toplink2 : graph.topLink)
+		p2: Phrase(synType=="NP", begToken==p1.endToken, !isSet(), toplink2 : graph.topLink)
 		(or eval(toplink2==null) eval(toplink2 !=null && onto.isKindOf(toplink2.getType(), "compoundRelation") ))
 	then
 		ut.print("Find ADJP_NP: " + p1 + ", " + p2 );

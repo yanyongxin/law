@@ -494,6 +494,42 @@ public class Ontology {
 		return false;
 	}
 
+	public List<Link> findLinks(String lkname, Entity e1, Entity e2) {
+		List<Link> list = new ArrayList<>();
+		if (e1 != null && e2 != null) {
+			for (Link lk : relations) {
+				if (lk.type.equals(lkname)) {
+					if (e1.equals(lk.getArg1()) && e2.equals(lk.getArg2())) {
+						list.add(lk);
+					}
+				}
+			}
+		} else if (e1 != null && e2 == null) {
+			for (Link lk : relations) {
+				if (lk.type.equals(lkname)) {
+					if (e1.equals(lk.getArg1())) {
+						list.add(lk);
+					}
+				}
+			}
+		} else if (e1 == null && e2 != null) {
+			for (Link lk : relations) {
+				if (lk.type.equals(lkname)) {
+					if (e2.equals(lk.getArg2())) {
+						list.add(lk);
+					}
+				}
+			}
+		} else {
+			for (Link lk : relations) {
+				if (lk.type.equals(lkname)) {
+					list.add(lk);
+				}
+			}
+		}
+		return list;
+	}
+
 	/**
 	 * The entities in Ontology knowledge base are: (1) classes, they are either
 	 * a top-level or subclass (2) attributes

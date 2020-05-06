@@ -1003,17 +1003,27 @@ public class ERGraph implements Cloneable {
 		Entity clsRight = hdRight.getTheClass();
 		merge(eg);
 		if (this.isSet()) {
+			Entity thisClone = hdLeft.clone();
+			this.addEntity(thisClone);
+			replaceLinks(hdLeft, thisClone);
+			this.remove(hdLeft);
+			headEntity = thisClone;
 			if (eg.isSet()) {
-				replaceLinks(hdRight, hdLeft);
+				replaceLinks(hdRight, thisClone);
 				this.remove(hdRight);
 			} else {
-				lk = new Link("hasMember", hdLeft, hdRight);
+				lk = new Link("hasMember", thisClone, hdRight);
 				this.addLink(lk);
 			}
 		} else {
 			if (eg.isSet()) {
-				lk = new Link("hasMember", hdRight, hdLeft);
+				Entity thatClone = hdRight.clone();
+				this.addEntity(thatClone);
+				replaceLinks(hdRight, thatClone);
+				this.remove(hdRight);
+				lk = new Link("hasMember", thatClone, hdLeft);
 				this.addLink(lk);
+				this.headEntity = thatClone;
 			}
 			// the case both are not set is not considered here.
 			// it should be considered in the calling function
@@ -1066,14 +1076,14 @@ public class ERGraph implements Cloneable {
 	// This is necessary because old links are used in other places,
 	// modification will have unintended side effects.
 	public void replaceLinks(Entity eold, Entity enew) {
-		List<Link> lk = getLinks();
-		if (lk != null) {
-			for (int i = 0; i < lk.size(); i++) {
-				Link l = lk.get(i);
+		List<Link> lks = getLinks();
+		if (lks != null) {
+			for (int i = 0; i < lks.size(); i++) {
+				Link l = lks.get(i);
 				Link replacelink = l.replaceEntity(eold, enew);
 				if (replacelink != null) {
-					lk.remove(i);
-					lk.add(i, replacelink);
+					lks.remove(i);
+					lks.add(i, replacelink);
 				}
 			}
 		}

@@ -95,6 +95,7 @@
 {"text":"(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)-\\d\\d-\\d+","type":"TIMEP","list":"JAN FEB MAR APR MAY JUN JUL AUG SEP OCT NOV DEC","entity":"DateValue"}
 {"text":"Case\\s*Number","type":"NP","list":"case","entity":"CaseNumber"}
 {"text":"Causes?\\s*of\\s*action","type":"NP","list":"cause causes","entity":"LegalCauseOfAction"}
+{"text":"Cause","type":"NP","entity":"LegalCause"}
 {"text":"certain","type":"ADJP", "entity":"StatusCertain"}
 {"text":"Certificate","type":"NP","entity":"Certificate"}
 {"text":"Certification","type":"NP","entity":"Certificate"}
@@ -135,6 +136,7 @@
 {"text":"Communications\\s*Report","type":"NP", "list":"Communications", "entity":"CommunicationReport"}
 {"text":"compel","type":"VP","tense":"present","entity":"ProcCompel"}
 {"text":"complaint","type":"NP", "entity":"DocLegalComplaint"}
+{"text":"compliant","type":"NP", "entity":"DocLegalComplaint", "comment":"misspelling"}
 {"text":"Complete","type":"ADJP", "entity":"StatusComplete"}
 {"text":"Complete","type":"VP", "tense":"present","entity":"ProcComplete"}
 {"text":"Completed","type":"VP", "tense":"past","entity":"ProcComplete"}
@@ -300,6 +302,7 @@
 {"text":"full","type":"ADJP", "entity":"StatusFull"}
 {"text":"further","type":"ADJP", "entity":"StatusFurther"}
 {"text":"General\\s*Electric(\\s*Company)?","type":"NP","list":"General","entity":"OrgCoGeneralElectric"}
+{"text":"good","type":"ADJP","entity":"StatusGood"}
 {"text":"Governing","type":"VP", "tense":"ing", "entity":"ProcGovern"}
 {"text":"granted","type":"VP", "tense":"past", "entity":"ProcGrant"}
 {"text":"granting","type":"VP", "tense":"ing", "entity":"ProcGrant"}
@@ -364,6 +367,7 @@
 {"text":"jury\\s*trial","type":"NP","list":"jury","entity":"JuryTrial"}
 {"text":"lack","type":"NP","entity":"StatusLack"}
 {"text":"lack","type":"ADJP","entity":"StatusLack"}
+{"text":"late","type":"ADJP","entity":"StatusLate"}
 {"text":"law\\s*and\\s*motion\\,?\\s*\\d+","type":"NP", "list":"law", "entity":"MotionHearing"}
 {"text":"law\\s*firm","type":"NP", "list":"law", "entity":"Lawfirm"}
 {"text":"lead","type":"ADJP","entity":"StatusLead"}
@@ -433,8 +437,10 @@
 {"text":"not","type":"ADVP", "entity":"StatusNegative"}
 {"text":"Notice\\,?\\s*Consent\\s*and\\s*Referral\\s*forms?","type":"NP", "list":"notice", "entity":"DocLegalNoticeConsentReferralForm"}
 {"text":"notice","type":"NP", "entity":"DocLegalNotice"}
+{"text":"notice\\s*of\\s*appeal","type":"NP", "list":"notice", "entity":"NoticeOfAppeal"}
+{"text":"NOTICE\\s*OF\\s*ENTRY\\s*OF\\s*ORDER","type":"NP", "list":"notice", "entity":"NoticeOfEntryOfOrder"}
 {"text":"notice\\s*of\\s*motion","type":"NP", "list":"notice", "entity":"NoticeOfMotion"}
-//{"text":"notice\\s*of\\s*appeal","type":"NP", "list":"notice", "entity":"NoticeOfAppeal"}
+{"text":"notice\\s*of\\s*ruling","type":"NP", "list":"notice", "entity":"NoticeOfRuling"}
 {"text":"Notification","type":"NP", "entity":"DocLegalNotice"}
 {"text":"November","type":"TIMEP","entity":"Month_11"}
 {"text":"Number","type":"NP","entity":"NumberClass"}
@@ -451,6 +457,7 @@
 {"text":"OPENING","type":"ADJP", "entity":"StatusOpening"}
 {"text":"OPENING\\s*brief","type":"NP", "list":"OPENING", "entity":"DocLegalOpeningBrief"}
 {"text":"Opinion","type":"NP", "entity":"Opinion"}
+{"text":"Opposition","type":"NP", "entity":"DocLegalOpposition"}
 {"text":"Opposition","type":"NP", "entity":"ProcOpposition"}
 {"text":"Opposition","type":"NP", "entity":"RelationOpposition"}
 {"text":"Oppo\\.?","type":"NP", "list":"oppo","entity":"ProcOpposition"}
@@ -480,6 +487,7 @@
 {"text":"per","type":"PRP","entity":"per"}
 {"text":"Permanent\\s*Injunction","type":"NP", "list":"Permanent", "entity":"PermanentInjunction"}
 {"text":"permanently","type":"ADVP", "entity":"StatusPermanent"}
+{"text":"permit","type":"VP","tense":"present","entity":"ProcPermit"}
 {"text":"phone","type":"NP","entity":"DevicePhone"}
 {"text":"place","type":"NP","entity":"PlaceRef"}
 {"text":"plaintiff","type":"NP","entity":"RoleLegalPlaintiff"}
@@ -606,6 +614,7 @@
 {"text":"Sever","type":"VP", "tense":"present", "entity":"ProcSever"}
 {"text":"shall","type":"ADVP", "entity":"StatusShall"}
 {"text":"sheet","type":"NP", "entity":"Sheet"}
+{"text":"shown","type":"VP", "tense":"past", "entity":"ProcShow"}
 {"text":"sign","type":"VP", "tense":"present", "entity":"ProcSignDoc"}
 {"text":"signed","type":"VP", "tense":"past", "entity":"ProcSignDoc"}
 {"text":"sixth","type":"ADJP","entity":"Sixth"}
@@ -645,6 +654,7 @@
 {"text":"summons","type":"NP", "entity":"DocLegalSummons"}
 {"text":"Sunday","type":"TIMEP", "entity":"Sunday"}
 {"text":"Supplemental","type":"ADJP", "entity":"StatusSupplemental"}
+{"text":"SUPPORTING\\s*PAPERS","type":"NP", "list":"supporting", "entity":"DocSupportingPapers"}
 {"text":"support","type":"NP", "entity":"ProcSupport"}
 {"text":"Surreply","type":"NP", "entity":"DocLegalSurreply"}
 {"text":"sur-reply","type":"NP", "entity":"DocLegalSurreply"}
@@ -700,6 +710,8 @@
 {"text":"Vacated","type":"VP", "tense":"past", "entity":"ProcVacate"}
 {"text":"VERDICT","type":"NP","entity":"DocVerdict"}
 {"text":"VERDICT\\s*sheet","type":"NP","list":"verdict", "entity":"DocVerdictSheet"}
+{"text":"Verified","type":"VP", "tense":"past", "entity":"ProcVerify"}
+{"text":"Verified","type":"ADJP", "entity":"StatusVerified"}
 {"text":"Voir\\s*Dire","type":"NP","list":"Voir", "entity":"DocVoirDire"}
 {"text":"VERSION","type":"NP","entity":"VersionRef"}
 {"text":"viewed","type":"VP", "tense":"past", "entity":"ProcView"}
