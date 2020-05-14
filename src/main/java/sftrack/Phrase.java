@@ -36,6 +36,8 @@ public class Phrase implements Cloneable {
 		// if (graph.members != null && graph.members.size() > 1) {
 		// return this;
 		// }
+		if (subphrases.size() == 1)
+			return this;
 		return subphrases.get(subphrases.size() - 1).getLastPhrase();
 	}
 
@@ -56,9 +58,6 @@ public class Phrase implements Cloneable {
 	}
 
 	public boolean headLast() {
-		if (this.text.equalsIgnoreCase("stipulation and order REGARDING filing")) {
-			System.out.println();
-		}
 		if (graph.isSet()) {
 			Phrase last = subphrases.get(subphrases.size() - 1);
 			return last.headLast();
@@ -279,6 +278,26 @@ public class Phrase implements Cloneable {
 		}
 		begToken = p1.getBegToken();
 		endToken = p2.getEndToken();
+	}
+
+	/**
+	 * This is just add a layer to indicate this phrase is one entity
+	 * to make Phrase.headLast() behave correctly when "5 days" become a combined object.
+	 * In general, objects combine to form one object, this is needed. 
+	 * rule "NumberValue_TimeRef" use this constructor.
+	 * @param ph
+	 */
+	public Phrase(Phrase ph) {
+		sentence = ph.sentence;
+		subphrases = new ArrayList<Phrase>();
+		subphrases.add(ph);
+		graph = ph.getGraph();
+		text = ph.getText();
+		synType = ph.getSynType();
+		tense = ph.getTense();
+		subject = ph.getSubject();
+		begToken = ph.getBegToken();
+		endToken = ph.getEndToken();
 	}
 
 	/**
@@ -1033,22 +1052,6 @@ public class Phrase implements Cloneable {
 		if (cls == null) {
 			cls = hd.theClass;
 		}
-		/*		if (this.isSet() && cls != null && hd.isInstanceOf(cls)) {
-					// use duplicate() instead of clone() is very important. It makes
-					// sure different combinations of same phrase
-					// result in maximally similar Graph. This minimizes effort in
-					// ERGraph.equivalent() calculations. This can
-					// make a difference between complete in milliseconds or never
-					// complete, as I experienced. 2013.11.15.
-					gn = gt.duplicate();
-					gn.mergeSet(gp);
-				} else if (gp.isSet() && cls != null && gp.getHead().isInstanceOf(cls)) {
-					gn = gt.duplicate();
-					gn.mergeSet(gp);
-					//			gn = gp.duplicate();
-					//			gn.mergeSet(gt);
-				} 
-		*/
 		if (this.isSet() || gp.isSet()) {
 			gn = gt.duplicate();
 			gn.mergeSet(gp);
@@ -1071,7 +1074,7 @@ public class Phrase implements Cloneable {
 			Entity cls_p = gp.getHead().getTheClass();
 			if (cls_t != null && cls_p != null) {
 				if (cls_t.isKindOf("LitigationParty") && cls_p.isKindOf("LitigationParty") && !cls_t.equals(cls_p)) {
-					en.setTheClass(onto.getEntity("GenericParty"));
+					en.setTheClass(onto.getEntity("LitigationParty"));
 				}
 			}
 			// Prevent two identical entities to combine. This happens when "LG Electronics and LG" of  "LG Electronics and LG Mobile" is seen.
@@ -1097,6 +1100,7 @@ public class Phrase implements Cloneable {
 				ph = new Phrase(p, p0, this, this.synType, gn);
 			}
 		}
+		ph.setTense(this.tense);
 		return ph;
 	}
 
@@ -1273,9 +1277,6 @@ public class Phrase implements Cloneable {
 	// }
 
 	public boolean equivalent(Phrase p) {
-		//		if (p.getText().equals(this.text) && text.equals("by")) {
-		//			System.out.println();
-		//		}
 		if (synType == null || !synType.equals(p.getSynType())) {
 			return false;
 		}

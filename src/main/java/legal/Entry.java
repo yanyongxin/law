@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import utils.Pair;
+
 public class Entry implements Comparable<Entry> {
 	static final String ANSWER = "ANSW";
 	static final String ARBITRATE = "ARBT";
@@ -60,6 +62,8 @@ public class Entry implements Comparable<Entry> {
 			Section s1 = new Section(text.substring(offset), offset);
 			sections.add(s0);
 			sections.add(s1);
+		} else {
+			sections.add(new Section(text, 0));
 		}
 	}
 

@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 
 import legal.Entry.DePhrase;
 import legal.Entry.Section;
+import utils.Pair;
 
 /**
  * Input three resource files: (1) party (2) judge (3) attorney;
@@ -33,11 +34,29 @@ import legal.Entry.Section;
  */
 public class ExtractEntities {
 	static Pattern pClerk = Pattern.compile("CLERK\\:\\s*(\\w.+?\\w\\w)(?=(\\;|\\.|\\,|\\s*\\(|\\s*$))", Pattern.CASE_INSENSITIVE);
+	//COURT REPORTER: MARIA TORREANO, CSR#8600, TORREANOM@AOL.COM, REPORTED.
+	//COURT REPORTER: ANGELA POURTABIB, CSR 13714, TEL: 415-834-1114; E-MAIL: REPORTER@SCANLANSTONE.COM (305/MEW)
+	// COURT: optional
+	// REPORTER: necessary
+	// :	optional
+	// MARIA TORREANO: necessary
+	// ,	optional
+	// CSR	necessary
+	// #	optional
+	// 8600	necessary
+	// ,	necessary
+	// TEL: 415-834-1114; optional
+	//	E-MAIL:	Optional
+	//	TORREANOM@AOL.COM,	necessary 
+	//	REPORTED.	optional
+	//	(305/MEW)	optional
+	static Pattern pReporter = Pattern.compile("(COURT\\s*)?REPORTER\\:?((\\s\\w+){2,3}?).{0,10}?\\bCSR\\b", Pattern.CASE_INSENSITIVE);
 	static Map<String, Integer> wordmap = new TreeMap<>();
 	public Map<String, CaseParties> parties;
 	public Map<String, CaseAttorneys> attorneys;
 	public List<Judge> judges;
 	public Map<String, Clerk> clerks = new TreeMap<>();
+	public Map<String, Reporter> reporters = new TreeMap<>();
 	public List<Case> cases;
 
 	static List<Judge> formJudgePatterns(List<PersonName> judgelist) {
@@ -219,6 +238,25 @@ public class ExtractEntities {
 		}
 	}
 
+	public static class Reporter {
+		String name;
+		int count;
+
+		public Reporter(String _name) {
+			name = _name;
+			count = 1;
+		}
+
+		int increment() {
+			count++;
+			return count;
+		}
+
+		public String toString() {
+			return name;
+		}
+	}
+
 	void identifyEntities_1(List<Case> cases) throws IOException {
 		for (Case c : cases) {
 			CaseParties cp = parties.get(c.id);
@@ -227,7 +265,7 @@ public class ExtractEntities {
 				if (e.text.startsWith("Payment"))
 					continue;
 
-				findEntities_1(e, cp, ca, judges, clerks);
+				findEntities_1(e, cp, ca, judges, clerks, reporters);
 			}
 		}
 	}
@@ -249,7 +287,7 @@ public class ExtractEntities {
 		plist.add(dp);
 	}
 
-	static void findEntities_1(Entry entry, CaseParties cn, CaseAttorneys ca, List<Judge> judges, Map<String, Clerk> clerks) {
+	static void findEntities_1(Entry entry, CaseParties cn, CaseAttorneys ca, List<Judge> judges, Map<String, Clerk> clerks, Map<String, Reporter> reporters) {
 		for (Section sec : entry.sections) {
 			String text = sec.text;
 			List<Pair> doneList = sec.doneList; // strings contains no entity of interest.
@@ -352,6 +390,25 @@ public class ExtractEntities {
 							}
 							clerks.put(clerkName, clk);
 							breakTwo(str, m.group(), m.start(), offset, nextList, dephrases, clk);
+							b = true;
+						}
+					}
+					if (b)
+						continue;
+					index = str.indexOf("REPORTER");
+					if (index >= 0) {
+						Matcher m = pReporter.matcher(str);
+						if (m.find()) {
+							String g0 = m.group();
+							String reporterName = m.group(2);
+							Reporter clk = reporters.get(reporterName);
+							if (clk == null) {
+								clk = new Reporter(reporterName);
+							} else {
+								clk.increment();
+							}
+							reporters.put(reporterName, clk);
+							breakTwo(str, str.substring(m.start()), m.start(), offset, nextList, dephrases, clk);
 							b = true;
 						}
 					}

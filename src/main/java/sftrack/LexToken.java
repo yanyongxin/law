@@ -14,7 +14,7 @@ public class LexToken {
 	static final Pattern ptEntitySuffix = Pattern.compile("llp|llc|pc|pllc|ltd|plc", Pattern.CASE_INSENSITIVE);
 	static final Pattern ptDate = Pattern.compile("\\d{1,2}\\/\\d{1,2}\\/(19|20)?\\d\\d", Pattern.CASE_INSENSITIVE);
 	static final Pattern ptTime = Pattern.compile("(0|1)?\\d\\:\\d\\d\\s*(a|p)\\.?m\\.?", Pattern.CASE_INSENSITIVE);
-	static final Pattern ptNumber = Pattern.compile("(\\d{1,3}(\\,\\d{3})*|\\d+)(\\.\\d+)?", Pattern.CASE_INSENSITIVE);
+	static final Pattern ptNumber = Pattern.compile("\\d+|(\\d{1,3}(\\,\\d{3})*)(\\.\\d+)?", Pattern.CASE_INSENSITIVE);
 	static final Pattern ptCaseNumber = Pattern.compile("\\d{0,2}\\:\\d\\d?-[a-z][a-z]-\\d{2,5}(-\\w{2,3})*", Pattern.CASE_INSENSITIVE);
 	public static final int LEX_EMPTY = 0;
 	public static final int LEX_WORD = 1;
@@ -211,11 +211,11 @@ public class LexToken {
 					if (m.find(i)) {// this is guaranteed to succeed.
 						if (m.start() == i) {
 							int end = m.end();
-							if (end >= ch.length || !(Character.isDigit(ch[end]) || Character.isLetter(ch[end]))) {
-								list.add(new LexToken(src, m.group(), i, end, LEX_NUMBER));
-								i = end - 1;
-								continue;
-							}
+							//							if (end >= ch.length || !(Character.isDigit(ch[end]) || Character.isLetter(ch[end]))) {
+							list.add(new LexToken(src, m.group(), i, end, LEX_NUMBER));
+							i = end - 1;
+							continue;
+							//							}
 						}
 					}
 					// this place is never reached:

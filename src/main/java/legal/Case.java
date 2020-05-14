@@ -17,6 +17,8 @@ import java.util.regex.Pattern;
 
 import javax.print.attribute.standard.MediaSize.Other;
 
+import utils.Pair;
+
 public class Case {
 	//	static final String regSep = "AS TO|FILED BY|\\(TRANSACTION.+?\\)|\\(FEE.+?\\|HEARING SET|)";
 	static final String[] ROLENAMES = { "APPELLANT", "CROSS DEFENDANT", "CROSS COMPLAINANT", "DEFENDANT", "PLAINTIFF", "CLAIMANT", "OTHER", };

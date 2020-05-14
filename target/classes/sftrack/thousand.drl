@@ -38,6 +38,7 @@ rule "number_1"
 	when
 		p: Phrase(synType==null, sentence.get(begToken).type == LexToken.LEX_NUMBER)
 	then
+		ut.print("Find number_1: " + p);
 		ERGraph g = new ERGraph(new Entity(p.getText(), onto.getEntity("NumberValue"), Entity.TYPE_INSTANCE, onto, p.getBegToken()));
 		Phrase ph = new Phrase(p, "NUMP", g);
 		insert(ph);
@@ -49,6 +50,7 @@ rule "letter_1"	// Single letters, like A, B, .... in "Exhibit A and B"
 	when
 		p: Phrase(synType==null, text.length()==1, sentence.get(begToken).type == LexToken.LEX_WORD)
 	then
+		ut.print("Find letter_1: " + p);
 		ERGraph g = new ERGraph(new Entity(p.getText(), onto.getEntity("NumberValue"), Entity.TYPE_INSTANCE, onto, p.getBegToken()));
 		Phrase ph = new Phrase(p, "LETT", g);
 		insert(ph);
@@ -351,78 +353,6 @@ rule "abbreviation with dot"
 		insert(ph);
 		ut.printPhrase(ph);
 end
-
-rule "OrgCo_Suffix"
-	salience -200
-	when
-		p1: Phrase(synType == "NP", graph.topLink==null, head.isKindOf("OrgCo"));
-		p2: Phrase(synType == "ORGSUFFIX", begToken==p1.endToken)
-		not (Phrase(synType=="NP", head.isKindOf("OrgCo"), begToken<=p1.begToken, endToken>=p2.endToken))
-	then
-		ut.print("Find OrgCo_Suffix: " + p1 + ", " + p2 );
-		Phrase ph = new Phrase(p1, p2, (Link)null, 1);
-		insert(ph);
-		ut.printPhrase(ph);
-end
-
-
-rule "OrgCo_Comma_Suffix"
-	when
-		p1: Phrase(synType=="NP", graph.topLink==null, graph.head.isKindOf("OrgCo") )
-		p12: Phrase(synType=="SYMBOL", graph.topLink==null, head.isInstanceOf("SymbolComma"), begToken==p1.endToken  )
-		p2: Phrase(synType=="ORGSUFFIX", graph.topLink==null, graph.head.isKindOf("Abbreviation"), begToken==p12.endToken )
-		not (Phrase(synType=="NP", head.isKindOf("OrgCo"), begToken<=p1.begToken, endToken>=p2.endToken))
-	then
-		ut.print("Find OrgCo_Comma_Suffix: " + p1 + ", " + p12 + ", " + p2 );
-		Phrase ph = new Phrase(p1, p12, p2, null, 1);
-		insert(ph);
-		ut.printPhrase(ph);
-end
-
-
-rule "OrgCo_infer_name"
-	salience -2000
-	when
-		p1: Phrase(synType == "NP", head.isKindOf("OrgCo"), !lastPhrase.head.isKindOf("Abbreviation"), graph.links ==null);
-//		p3: Phrase(synType != null, begToken > p1.endToken + 1,  endToken - begToken >= 2)	// there are good phrases ahead.
-		p3: Phrase(synType=="ORGSUFFIX", head.isKindOf("Abbreviation"), begToken > p1.endToken + 1)
-		not Phrase(synType=="ORGSUFFIX", head.isKindOf("Abbreviation"), begToken >= p1.begToken, endToken < p3.begToken)
-//		not Phrase(synType != null, begToken >= p1.endToken, endToken <= p3.begToken, endToken - begToken >= 2) 
-		not Phrase(synType != null, begToken < p3.begToken, endToken > p3.begToken)
-		not Phrase(synType == "PRP", begToken >= p1.endToken, endToken <= p3.begToken)
-	then
-		ut.print("Find OrgCo_infer_name: " + p1 + ", " + p3 );
-		ut.printPhrase(p1);
-		ut.printPhrase(p3);
-		List<LexToken> tks = p1.getSentence();
-		int bIndex = p1.getBegToken();
-		int eIndex = p3.getEndToken();
-//		System.err.println("bIndex:" + bIndex + ", eIndex: " + eIndex + ", tks.size: " + tks.size());
-//		System.err.println("tks: " + tks);
-		LexToken btk = tks.get(bIndex);
-		// check junk got suspected as name parts:
-		boolean hasJunk = false;
-		for(int i=bIndex;i<eIndex;i++){
-			LexToken tk = tks.get(i);
-			String txt = tk.getText().toLowerCase();
-			if(txt.equals("filed") || txt.equals("by")){
-				hasJunk = true;
-				break;
-			}
-		}
-		if(!hasJunk){
-			String sent = btk.parent;
-			String partyName;
-			if(eIndex >= tks.size()){
-				partyName = sent.substring(btk.getStart()).trim();
-			} else {
-				LexToken etk = tks.get(eIndex);
-				partyName = sent.substring(btk.getStart(), etk.getStart()).trim();
-			}
-			ut.print("(" + bIndex + ", " + eIndex + ") " +  partyName);
-			onto.createNewParty(partyName, onto, drools.getWorkingMemory(), p1.getHead());
-		}
-end
 rule "NP_AND_NP"	//no opposition filed, and, good cause shown
 	salience 100
 	when
@@ -445,6 +375,17 @@ rule "NP_AND_NP"	//no opposition filed, and, good cause shown
 		String name = p1.getHead().getName().replaceAll("\\s+", "") + "_AND_" + p3.getHead().getName().replaceAll("\\s+", "");
 		Phrase ph = p1.addToSet(p2, p3, name, true);
 		if(ph != null){
+			Entity h1 = p1.getHead().getTheClass();
+			Entity h2 = p3.getHead().getTheClass();
+			Entity h3 = h1;
+			if(h1.isKindOf(h2)){
+				h3 = h2;
+			} else if(h2.isKindOf(h1)){
+				h3 = h1;
+			} else if(h1.isKindOf("Document") && h2.isKindOf("Document")){
+				h3 = onto.getEntity("Document");
+			}  
+			ph.getHead().setTheClass(h3);
 			insert(ph);
 			ut.printPhrase(ph);
 		}
@@ -459,7 +400,7 @@ rule "NP_VP_Passive"
 	then
 		ut.print("Find NP_VP_Passive: " + p1 + ", " + p2 );
 		Link r = new Link("ugoerOfProc", p1.getHead(), p2.getHead());
-		Phrase ph = new Phrase(p1, p2, r, 2);
+		Phrase ph = new Phrase(p1, p2, r, 1);
 		ph.setSubject(p1);
 		insert(ph);
 		ut.printPhrase(ph);
@@ -607,9 +548,9 @@ rule "TO_VP"
 		ut.printPhrase(ph);
 end
 
-rule "NP_TOVP" // "time to respond", "motion to strike", NOT "'Notice of motion and motion' to strike"
+rule "NP_TOVP" // "time to respond", "motion to strike", NOT "'Notice of motion and motion' to strike", "5 days to answer"
 	when
-		p1: Phrase(synType=="NP", headLast(), graph.containLink("hasOwner", head, null)==null
+		p1: Phrase(synType=="NP"||synType=="TIMEP", !lastPhrase.getSynType().equals("NP"), graph.containLink("hasOwner", head, null)==null
 			, graph.containLink("hasDET", head, null)==null, !isSet())
 		p2: Phrase(synType=="PARTICLE", head.isKindOf("ToInfinitive"), g : graph, lk2: graph.topLink,  begToken==p1.endToken)
 		eval(lk2 != null && lk2.getType()=="ToInfinitive")
@@ -618,8 +559,8 @@ rule "NP_TOVP" // "time to respond", "motion to strike", NOT "'Notice of motion 
 		ut.print("Find NP_TOVP: " + p1 + ", " + p2 );
 		Link r = new Link(lk2.getArg1().getName(), p1.getHead(), lk2.getArg2());
 		Phrase ph = new Phrase(p1, p2, r, 1);
-		ph.getGraph().remove(p2.getHead());
-			insert(ph);
+//		ph.getGraph().remove(p2.getHead());
+		insert(ph);
 		ut.printPhrase(ph);
 end
 
@@ -716,7 +657,6 @@ rule "VP_NP"
 	when
 		p1: Phrase(synType=="VP", lk : graph.topLink, graph.containLink("ugoerOfProc", null, head)==null)
 		p2: Phrase(synType=="NP", graph.containLink("agentOfProc", null, head)==null, 
-//		graph.containLink("ugoerOfProc", head, null)==null, 
 					graph.containLink("re", head, null)==null, begToken==p1.endToken)
 		not (
 				eval(p1.getEndToken() - p1.getBegToken() > 3) and
@@ -729,14 +669,36 @@ rule "VP_NP"
 		Phrase ph = new Phrase(p1, p2, r, 1);	// VP
 		insert(ph);
 		ut.printPhrase(ph);
-//		if(p1.getTense().equals("past")){
-		// "revised order"=> (1) Judge revised order; (2) Judge gave us the revised order.
-		// should have no "the", "their", etc in p2. I'll add these restrictions later.
-//			ph = new Phrase(p1, p2, r, 2);	// NP
-//			insert(ph);
-//			ut.printPhrase(ph);
-//		}
+
 end
+rule "VP_AND_VP"	//COMPLY WITH SFLR 2.7B AND PROVIDE COURTESY COPIES OF THE MOTION
+	salience 100
+	when
+		p1: Phrase(synType=="VP")
+		p2: Phrase(text.equalsIgnoreCase("and")||text.equalsIgnoreCase(", and"), synType=="CONJ", begToken==p1.endToken)
+		p3: Phrase(synType=="VP", begToken==p2.endToken)
+//		eval(p1.similar(p3))
+	then
+		ut.print("Find VP_AND_VP for:  " + p1 +", "+ p2 +", "+p3 );
+		String name = p1.getHead().getName().replaceAll("\\s+", "") + "_AND_" + p3.getHead().getName().replaceAll("\\s+", "");
+		Phrase ph = p1.addToSet(p2, p3, name, true);
+		if(ph != null){
+			Entity h1 = p1.getHead().getTheClass();
+			Entity h2 = p3.getHead().getTheClass();
+			Entity h3 = h1;
+			if(h1.isKindOf(h2)){
+				h3 = h2;
+			} else if(h2.isKindOf(h1)){
+				h3 = h1;
+			} else {
+				h3 = onto.getEntity("Process");
+			}  
+			ph.getHead().setTheClass(h3);
+			insert(ph);
+			ut.printPhrase(ph);
+		}
+end
+
 
 rule "VP_TIMEP"	// summons served JUN-17-2012, conference held MAY-06-2016
 	when
@@ -852,6 +814,48 @@ rule "Party_,_Party"	// John D. Smith, Kevin H. Spooner
 		ut.print("Party_,_Party: " + p1 + ", " + p2 +", "+p3 );
 		String name = p1.getHead().getName().replaceAll("\\s+", "")  + "_,_" + p3.getHead().getName().replaceAll("\\s+", "");
 		Phrase ph = p1.addToSet(p2, p3, name, true);
+		if(ph != null){
+			insert(ph);
+			ut.printPhrase(ph);
+		}
+end
+
+rule "Document_,_Document"	// COPIES OF THE MOTION, OPERATIVE COMPLAINT, OPPOSITION AND REPLY
+	when
+		p1: Phrase(synType=="NP", head.isKindOf("Document")
+				,graph.containLink("define", null, head) ==null)
+//				, graph.topLink == null )
+		p2: Phrase(synType!=null, text==","||text=="AND"||text.equalsIgnoreCase(", and"), begToken==p1.endToken);
+		p3: Phrase(synType=="NP", head.isKindOf("Document"), begToken==p2.endToken)
+	then
+		ut.print("Document_,_Document: " + p1 + ", " + p2 +", "+p3 );
+		String name = p1.getHead().getName().replaceAll("\\s+", "")  + "_,_" + p3.getHead().getName().replaceAll("\\s+", "");
+		Phrase ph = p1.addToSet(p2, p3, name, true);
+		if(ph != null){
+			insert(ph);
+			ut.printPhrase(ph);
+		}
+end
+
+
+rule "NP_,_IfAny_,"	// "provide copies of motions, opposition and reply, if any, to department 501 no later than ... "
+				// this should not change HEAD, or anything 
+	when
+		p1: Phrase(synType=="NP", g1:graph, !isSet())
+		p2: Phrase(synType!=null, text==",", begToken==p1.endToken);
+		p3: Phrase(synType=="ADJP", head.isKindOf("StatusIfAny"), begToken==p2.endToken)
+		p4: Phrase(synType!=null, text==",", begToken==p3.endToken);
+	then
+		ut.print("NP_,_IfAny_,: " + p1 + ", " + p2 +", "+p3 +", "+p4 );
+		List<Phrase> pl = new ArrayList<>();
+		pl.add(p1);
+		pl.add(p2);
+		pl.add(p3);
+		pl.add(p4);
+		ERGraph g = g1.duplicate();
+		Link r = new Link("hasAttribute", p1.getHead(), p3.getHead());
+		g.addLink(r);
+		Phrase ph = new Phrase(pl, "NP", g);
 		if(ph != null){
 			insert(ph);
 			ut.printPhrase(ph);
@@ -1042,18 +1046,19 @@ rule "NP_PRP"
 		not(
 			eval(!hd2.isKindOf("for") && g1.containLink(lk2.getArg1().getName(), p1.getHead(), null)!=null)
 		)
-		(or
-			(
-				eval(lk1 == null) and
-				exists Link(type==p2.getHead().getTheClass().getName(), p1.getHead().isKindOf(arg1), lk2.arg2.isKindOf(arg2))
-			)
-			(
-				eval(lk1 != null) and
-				exists Link(type==p2.getHead().getTheClass().getName(), lk1.arg2.isKindOf(arg1), lk2.arg2.isKindOf(arg2))
-			)
-		)
+//		(or
+//			(
+//				eval(lk1 == null) and
+				lkx : Link(type==p2.getHead().getTheClass().getName(), p1.getHead().isKindOf(arg1), lk2.arg2.isKindOf(arg2))
+//			)
+//			(
+//				eval(lk1 != null) and
+//				lky: Link(type==p2.getHead().getTheClass().getName(), lk1.arg2.isKindOf(arg1), lk2.arg2.isKindOf(arg2))
+//			)
+//		)
 	then
 		ut.print("Find NP_PRP: " + p1 + ", " + p2 );
+		ut.print("lkx: " + lkx);
 		Link r = new Link(lk2.getArg1().getTheClass().getName(), p1.getHead(), lk2.getArg2());
 		Phrase ph = new Phrase(p1, p2, r, 1);
 		ph.getGraph().remove(p2.getHead());
@@ -1160,12 +1165,13 @@ end
 
 rule "NP_PRP_of"	// day 9 of trial (graph.containLink("hasValue", head, null))
 	when
-	   p1: Phrase(synType=="NP", lk : graph.topLink, headLast()||graph.containLink("hasValue", head, null) != null, graph.containLink("hasDET", head, null)==null, graph.containLink("hasOwner", head, null)==null)
+	   p1: Phrase(synType=="NP", lk : graph.topLink, headLast()||graph.containLink("hasValue", head, null) != null, graph.containLink("hasDET", head, null)==null
+	   		, graph.containLink("hasOwner", head, null)==null, !isSet())
 		(or 
 			eval(lk==null) 
 			eval(lk !=null && (!(onto.isKindOf(lk.getType(), "ugoerOfProc") && lk.getArg1().equals(p1.getHead()))))
 		)
-		p2: Phrase(synType=="PRP", head.isKindOf("of"), lk2: graph.topLink, begToken==p1.endToken)
+		p2: Phrase(synType=="PRP", head.isKindOf("of"), lk2: graph.topLink, begToken==p1.endToken, lk2!=null, graph.containLink("hasMember", lk2.getArg2(), null)==null)
 		eval(lk2 != null && lk2.getType()=="PRPRelation")
 		not (
 				eval(p1.getHead().isKindOf("Process")) and
@@ -1270,7 +1276,8 @@ rule "VP_PRP_to_V"	// "filed, by defendant", "set, for SEP-20-2017"
 		p1: Phrase(synType=="VP", g1 : graph, lk1 : graph.containLink("ugoerOfProc", null, head))
 		p2: Phrase(synType=="PRP", head.isKindOf("PRPRelation"), lk2: graph.topLink, begToken==p1.endToken)
 		eval(lk2 != null && lk2.getType()=="PRPRelation")
-		exists Link(type==p2.head.getTheClass().getName(), p1.head.isKindOf(arg1), lk2.arg2.isKindOf(arg2))
+		Link(p2.head.isKindOf(type), p1.head.isKindOf(arg1), lk2.arg2.isKindOf(arg2))
+//		exists Link(type==p2.head.getTheClass().getName(), p1.head.isKindOf(arg1), lk2.arg2.isKindOf(arg2))
 		not (
 			eval(g1.containLink("agentOfProc", null, p1.getHead())!=null) and
 			eval(p2.getHead().getTheClass().getName().equals("byAgent"))
@@ -1293,7 +1300,7 @@ rule "VP_PRP_to_UGOER" //Complaint filed with Jury Demand against Amazon.com Inc
 		p1: Phrase(synType=="VP", g1 : graph, lk1 : graph.containLink("ugoerOfProc", null, head), lk1 != null)
 		p2: Phrase(synType=="PRP", head.isKindOf("PRPRelation"), !head.isInstanceOf("re"), lk2: graph.topLink, begToken==p1.endToken)
 		eval(lk2 != null && lk2.getType()=="PRPRelation")
-		exists Link(type==p2.head.name, lk1.arg1.isKindOf(arg1), lk2.arg2.isKindOf(arg2))
+		Link(type==p2.head.name, lk1.arg1.isKindOf(arg1), lk2.arg2.isKindOf(arg2))
 	then
 		ut.print("Find VP_PRP_to_UGOER: " + p1 + ", " + p2 );
 		Link r = new Link(lk2.getArg1().getName(), lk1.getArg1(), lk2.getArg2());
@@ -1774,6 +1781,35 @@ rule "NumberClass_NumberValue"	// Number 788,200
 		ut.printPhrase(ph);	
 end
 
+rule "NumberValue_SerialValue"	// 2031.285
+	when
+		p1: Phrase(synType == "NUMP", head.isKindOf("NumberValue")||head.isKindOf("SerialValue"));
+		p2: Phrase(synType == "NUMP", head.isKindOf("NumberValue")||head.isKindOf("SerialValue"), begToken==p1.endToken);
+	then
+		ut.print("Find NumberValue_SerialValue: " + p1 + ", " + p2);
+		Entity e = new Entity(p1.getText()+p2.getText(), onto.getEntity("SerialValue")
+			, Entity.TYPE_INSTANCE, onto, p1.getBegToken());
+		ERGraph g = new ERGraph(e);
+		Phrase ph = new Phrase(p1, p2, "NUMP", g);
+		insert(ph);
+		ut.printPhrase(ph);	
+end
+
+rule "NumberValue_._NumberValue"	// 2031.285
+	when
+		p1: Phrase(synType == "NUMP", head.isKindOf("NumberValue"));
+		p2: Phrase(synType == "SYMBOL", text==".", begToken==p1.endToken)
+		p3: Phrase(synType == "NUMP", head.isKindOf("NumberValue"), begToken==p2.endToken);
+	then
+		ut.print("Find NumberValue_._NumberValue: " + p1 + ", " + p2 + ", " + p3);
+		Entity e = new Entity(p1.getText().trim()+p2.getText()+p3.getText().trim(), onto.getEntity("NumberValue")
+			, Entity.TYPE_INSTANCE, onto, p1.getBegToken());
+		ERGraph g = new ERGraph(e);
+		Phrase ph = new Phrase(p1, p2, p3, "NUMP", g);
+		insert(ph);
+		ut.printPhrase(ph);	
+end
+
 rule "MoneySymbol_MoneyValue"	// $ 455.00
 	when
 		p1: Phrase(synType == "SYMBOL", head.isInstanceOf("SymbolDollar"));
@@ -1795,6 +1831,18 @@ rule "MoneySymbol_MoneyValue"	// $ 455.00
 		ut.printPhrase(ph);	
 end
 
+rule "Bracket_Lett"	// (D)
+	when
+		p1: Phrase(synType == "SYMBOL", text=="(");
+		p2: Phrase(synType == "LETT", begToken==p1.endToken)
+		p3: Phrase(synType == "SYMBOL", text==")", begToken==p2.endToken);
+	then
+		ut.print("Find Bracket_Lett: " + p1 + ", " + p2 + ", " + p3 );
+		Phrase ph = new Phrase(p1, p2, p3, "LETT", p2.getGraph());
+		insert(ph);
+		ut.printPhrase(ph);	
+end
+
 rule "SerialClass_NumberValue"	// Number 788,200, Rule 16.2b Scheduling Teleconference
 	when
 		p1: Phrase(synType == "NP", head.isKindOf("SerialClass"), graph.links==null);
@@ -1805,11 +1853,53 @@ rule "SerialClass_NumberValue"	// Number 788,200, Rule 16.2b Scheduling Teleconf
 		Phrase ph = new Phrase(p1, p2, r, 1);
 		insert(ph);
 		ut.printPhrase(ph);	
+/**
 		r = new Link("define", p1.getHead(), p2.getHead());
 		ph = new Phrase(p1, p2, r, 2);
 		ph.setSynType("NUMREF");
 		insert(ph);
 		ut.printPhrase(ph);	
+*/
+end
+
+rule "SerialClass_SerialClass_NumberValue"	// CODE OF CIVIL PROCEDURE, SECTION 2031.285(D)(1).
+	when
+		p1: Phrase(synType == "NP", head.isKindOf("SerialClass"), graph.links==null);
+		p2: Phrase(synType == "NP", head.isKindOf("Section"), begToken==p1.endToken, lk:graph.topLink);
+			eval(lk!=null && lk.getType().equals("hasValue"))
+	then
+		ut.print("Find SerialClass_SerialClass_NumberValue: " + p1 + ", " + p2 );
+		Link r = new Link("hasValue", p1.getHead(), p2.getHead());
+		Phrase ph = new Phrase(p1, p2, r, 1);
+		insert(ph);
+		ut.printPhrase(ph);
+end
+
+rule "SerialClass_,_SerialClass_NumberValue"	// CODE OF CIVIL PROCEDURE, SECTION 2031.285(D)(1).
+	when
+		p1: Phrase(synType == "NP", head.isKindOf("SerialClass"), graph.links==null);
+		p0: Phrase(synType == "SYMBOL", text==".");
+		p2: Phrase(synType == "NP", head.isKindOf("Section"), begToken==p1.endToken, lk:graph.topLink);
+			eval(lk!=null && lk.getType().equals("hasValue"))
+	then
+		ut.print("Find SerialClass_,_SerialClass_NumberValue: " + p1 + ", " + p2 );
+		Link r = new Link("hasValue", p1.getHead(), p2.getHead());
+		Phrase ph = new Phrase(p1, p2, r, 1);
+		insert(ph);
+		ut.printPhrase(ph);
+end
+
+rule "NumberValue_Lett"	// Number 788,200, Rule 16.2b Scheduling Teleconference
+	when
+		p1: Phrase(synType == "NUMP")
+		p2: Phrase(synType == "LETT", begToken==p1.endToken)
+	then
+		ut.print("Find NumberValue_Lett: " + p1 + ", " + p2 );
+		Entity en = new Entity(p1.getText() + p2.getText(), onto.getEntity("SerialValue"), Entity.TYPE_INSTANCE, onto, p1.getBegToken());
+		ERGraph g = new ERGraph(en);
+		Phrase ph = new Phrase(p1, p2, "NUMP", g);
+		insert(ph);
+		ut.printPhrase(ph);
 end
 
 rule "NumberValue_TimeRef"	// 2.0 Days
@@ -1826,7 +1916,8 @@ rule "NumberValue_TimeRef"	// 2.0 Days
 		Link r2 = new Link("unitOf", p2.getHead(), en);
 		g.addLink(r1);
 		g.addLink(r2);
-		Phrase ph = new Phrase(p1, p2, "TIMEP", g);
+		Phrase pp = new Phrase(p1, p2, "TIMEP", g);
+		Phrase ph = new Phrase(pp);
 		insert(ph);
 		ut.printPhrase(ph);
 end
@@ -2169,4 +2260,78 @@ end
 
 query "all phrases"
 	ph : Phrase(synType != null, synType != "SYMBOL", synType != "EMPTY")
+end
+
+
+
+rule "OrgCo_Suffix"
+	salience -200
+	when
+		p1: Phrase(synType == "NP", graph.topLink==null, head.isKindOf("OrgCo"))
+		p2: Phrase(synType == "ORGSUFFIX", begToken==p1.endToken)
+		not (Phrase(synType=="NP", head.isKindOf("OrgCo"), begToken<=p1.begToken, endToken>=p2.endToken))
+	then
+		ut.print("Find OrgCo_Suffix: " + p1 + ", " + p2 );
+		Phrase ph = new Phrase(p1, p2, (Link)null, 1);
+		insert(ph);
+		ut.printPhrase(ph);
+end
+
+
+rule "OrgCo_Comma_Suffix"
+	when
+		p1: Phrase(synType=="NP", graph.topLink==null, graph.head.isKindOf("OrgCo") )
+		p12: Phrase(synType=="SYMBOL", graph.topLink==null, head.isInstanceOf("SymbolComma"), begToken==p1.endToken  )
+		p2: Phrase(synType=="ORGSUFFIX", graph.topLink==null, graph.head.isKindOf("Abbreviation"), begToken==p12.endToken )
+		not (Phrase(synType=="NP", head.isKindOf("OrgCo"), begToken<=p1.begToken, endToken>=p2.endToken))
+	then
+		ut.print("Find OrgCo_Comma_Suffix: " + p1 + ", " + p12 + ", " + p2 );
+		Phrase ph = new Phrase(p1, p12, p2, null, 1);
+		insert(ph);
+		ut.printPhrase(ph);
+end
+
+
+rule "OrgCo_infer_name"
+	salience -2000
+	when
+		p1: Phrase(synType == "NP", head.isKindOf("OrgCo"), !lastPhrase.head.isKindOf("Abbreviation"), graph.links ==null);
+//		p3: Phrase(synType != null, begToken > p1.endToken + 1,  endToken - begToken >= 2)	// there are good phrases ahead.
+		p3: Phrase(synType=="ORGSUFFIX", head.isKindOf("Abbreviation"), begToken > p1.endToken + 1)
+		not Phrase(synType=="ORGSUFFIX", head.isKindOf("Abbreviation"), begToken >= p1.begToken, endToken < p3.begToken)
+//		not Phrase(synType != null, begToken >= p1.endToken, endToken <= p3.begToken, endToken - begToken >= 2) 
+		not Phrase(synType != null, begToken < p3.begToken, endToken > p3.begToken)
+		not Phrase(synType == "PRP", begToken >= p1.endToken, endToken <= p3.begToken)
+	then
+		ut.print("Find OrgCo_infer_name: " + p1 + ", " + p3 );
+		ut.printPhrase(p1);
+		ut.printPhrase(p3);
+		List<LexToken> tks = p1.getSentence();
+		int bIndex = p1.getBegToken();
+		int eIndex = p3.getEndToken();
+//		System.err.println("bIndex:" + bIndex + ", eIndex: " + eIndex + ", tks.size: " + tks.size());
+//		System.err.println("tks: " + tks);
+		LexToken btk = tks.get(bIndex);
+		// check junk got suspected as name parts:
+		boolean hasJunk = false;
+		for(int i=bIndex;i<eIndex;i++){
+			LexToken tk = tks.get(i);
+			String txt = tk.getText().toLowerCase();
+			if(txt.equals("filed") || txt.equals("by")){
+				hasJunk = true;
+				break;
+			}
+		}
+		if(!hasJunk){
+			String sent = btk.parent;
+			String partyName;
+			if(eIndex >= tks.size()){
+				partyName = sent.substring(btk.getStart()).trim();
+			} else {
+				LexToken etk = tks.get(eIndex);
+				partyName = sent.substring(btk.getStart(), etk.getStart()).trim();
+			}
+			ut.print("(" + bIndex + ", " + eIndex + ") " +  partyName);
+			onto.createNewParty(partyName, onto, drools.getWorkingMemory(), p1.getHead());
+		}
 end

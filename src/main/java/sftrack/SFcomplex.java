@@ -29,10 +29,8 @@ import legal.Entry;
 import legal.Entry.DePhrase;
 import legal.Entry.Section;
 import legal.ExtractEntities;
-import legal.ExtractEntities.CaseParties;
-import legal.Pair;
-import legal.Party;
 import sftrack.Ontology.Srunner;
+import utils.Pair;
 
 public class SFcomplex {
 	static Ontology onto;
@@ -43,10 +41,6 @@ public class SFcomplex {
 			"C:\\data\\191023\\dockets/testline.txt" };
 
 	public static void main(String[] args) throws IOException {
-		//		if (args.length != 2) {
-		//			System.out.println("args: infile outfile");
-		//			System.exit(1);
-		//		}
 		System.out.println("Initialization ...");
 		try {
 			System.out.println("Loading KieServices: ");
@@ -78,16 +72,16 @@ public class SFcomplex {
 			//			if (caseCount < 2)
 			//				continue;
 			System.out.println("\n================ " + cs.getID() + " ==================\n");
-			CaseParties cp = exE.parties.get(cs.getID());
-			List<Party> parties = cp.getParties();
-			for (Party pt : parties) {
-				System.out.println(pt);
-			}
+			//			CaseParties cp = exE.parties.get(cs.getID());
+			//			List<Party> parties = cp.getParties();
+			//			for (Party pt : parties) {
+			//				System.out.println(pt);
+			//			}
 			for (Entry e : cs.entries) {
+				System.out.println(e.text);
 				for (Section sec : e.sections) {
 					if (sec.dephrases.size() == 0 && sec.doneList.size() == 0)
 						continue;
-					System.out.println(e.text);
 					try {
 						//					Entity.resetSerial();
 						Srunner srun = onto.createSrunner(true);
@@ -95,25 +89,29 @@ public class SFcomplex {
 						srun.insertList(phlist);
 						srun.execute();
 						Map<Integer, List<Phrase>> rpmap = srun.findAllPhrases();
-						List<Integer> keylist = Analysis.buildKeyList(rpmap);
-						//			assertTrue(keylist.size() > 0);
-						//					keylist.add(tokens.size());
-						keylist.add(phlist.get(phlist.size() - 1).endToken);
-						ArrayList<Integer> segments = new ArrayList<Integer>();
-						List<List<Analysis>> lla = Analysis.findBestNew(rpmap, keylist, TOP_N, segments);
-						List<Phrase> plist = DocketEntry.getPhraseList(lla);
-						System.out.println(e.text);
-						for (Phrase ph : plist) {
-							System.out.println(ph.pprint("", false));
+						if (rpmap.size() > 0) {
+							List<Integer> keylist = Analysis.buildKeyList(rpmap);
+							//			assertTrue(keylist.size() > 0);
+							//					keylist.add(tokens.size());
+							keylist.add(phlist.get(phlist.size() - 1).endToken);
+							ArrayList<Integer> segments = new ArrayList<Integer>();
+							List<List<Analysis>> lla = Analysis.findBestNew(rpmap, keylist, TOP_N, segments);
+							List<Phrase> plist = DocketEntry.getPhraseList(lla);
+							//						System.out.println(e.text);
+							for (Phrase ph : plist) {
+								System.out.println(ph.pprint("", false));
+							}
+							//							ERGraph g = plist.get(0).getGraph();
+						} else {
+							System.out.println("No phrase found!");
 						}
-						ERGraph g = plist.get(0).getGraph();
 						srun.dispose();
 					} catch (Exception ex) {
 						fail(ex.getMessage());
 					}
 				}
 			}
-			break;
+			//			break;
 		}
 	}
 
@@ -157,6 +155,9 @@ public class SFcomplex {
 					ph.setGraph(e3);
 				} else if (dp.entity instanceof legal.ExtractEntities.Clerk) {
 					Entity e3 = new Entity(ph.getText(), onto.getEntity("Clerk"), Entity.TYPE_INSTANCE, onto, ph.getBegToken());
+					ph.setGraph(e3);
+				} else if (dp.entity instanceof legal.ExtractEntities.Reporter) {
+					Entity e3 = new Entity(ph.getText(), onto.getEntity("Reporter"), Entity.TYPE_INSTANCE, onto, ph.getBegToken());
 					ph.setGraph(e3);
 				}
 			} else {

@@ -490,9 +490,14 @@ public class DocketEntry {
 			if (la.size() == 0) {
 				continue;
 			}
-			Analysis a = la.get(0);
-			List<Phrase> pl = a.getPhraseList();
-			plist.addAll(pl);
+			int maxScore = la.get(0).score;
+			for (int i = 0; i < la.size(); i++) {
+				Analysis a = la.get(i);
+				if (a.score == maxScore) {
+					List<Phrase> pl = a.getPhraseList();
+					plist.addAll(pl);
+				}
+			}
 		}
 		return plist;
 	}
