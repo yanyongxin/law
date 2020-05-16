@@ -485,7 +485,7 @@ public class PersonName implements Comparable<PersonName> {
 			pn.givname = items[0].replace('.', ' ').trim();
 			int length = items.length;
 			for (; length > 1; length--) {
-				String last = items[length - 1];
+				String last = items[length - 1].replaceAll("\\p{Punct}", "");
 				if (suffixNames.contains(last)) {
 					pn.addSuffix(last);
 				} else {
@@ -493,15 +493,15 @@ public class PersonName implements Comparable<PersonName> {
 				}
 			}
 			if (length == 3) {
-				pn.midname = items[1].replace('.', ' ').trim();
-				pn.surname = items[2].trim();
+				pn.midname = items[1].replaceAll("\\p{Punct}", "").trim();
+				pn.surname = items[2].replaceAll("\\p{Punct}", "").trim();
 			} else if (items.length == 2) {
-				pn.surname = items[1].trim();
+				pn.surname = items[1].replaceAll("\\p{Punct}", "").trim();
 			} else if (length > 3) {
 				pn.surname = items[length - 1];
 				List<String> mlist = new ArrayList<>();
 				for (int i = 1; i < length - 1; i++) {
-					String mid = items[i].replace('.', ' ').trim();
+					String mid = items[i].replaceAll("\\p{Punct}", "").trim();
 					mlist.add(mid);
 				}
 				pn.midname = mlist;

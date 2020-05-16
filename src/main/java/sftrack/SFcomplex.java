@@ -78,7 +78,10 @@ public class SFcomplex {
 			//				System.out.println(pt);
 			//			}
 			for (Entry e : cs.entries) {
-				System.out.println(e.text);
+				if (e.text.startsWith("Payment")) {
+					continue;
+				}
+				System.out.println(cs.getID() + "\t" + e.getDate() + "\t" + e.text);
 				for (Section sec : e.sections) {
 					if (sec.dephrases.size() == 0 && sec.doneList.size() == 0)
 						continue;

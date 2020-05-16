@@ -57,6 +57,7 @@ public class Party {
 	static final int ROLE_INTERESTED_PARTY = 16;
 	static final int ROLE_ASSIGNEE = 17;
 	static final int ROLE_INTERVENOR = 18;
+	static final int ROLE_SUPPORTER = 19;
 	static final int ROLE_OTHER = 20;
 
 	static {
@@ -78,6 +79,7 @@ public class Party {
 		mapRole.put("INTERESTED PARTY", ROLE_INTERESTED_PARTY);
 		mapRole.put("ASSIGNEE", ROLE_ASSIGNEE);
 		mapRole.put("INTERVENOR", ROLE_INTERVENOR);
+		mapRole.put("SUPPORTER", ROLE_SUPPORTER);
 		mapRole.put("OTHER", ROLE_OTHER);
 
 		mapRoleReverse.put(ROLE_PLAINTIFF, "PLAINTIFF");
@@ -98,6 +100,7 @@ public class Party {
 		mapRoleReverse.put(ROLE_INTERESTED_PARTY, "INTERESTED PARTY");
 		mapRoleReverse.put(ROLE_ASSIGNEE, "ASSIGNEE");
 		mapRoleReverse.put(ROLE_INTERVENOR, "INTERVENOR");
+		mapRoleReverse.put(ROLE_SUPPORTER, "SUPPORTER");
 		mapRoleReverse.put(ROLE_OTHER, "OTHER");
 
 	}

@@ -353,6 +353,24 @@ rule "abbreviation with dot"
 		insert(ph);
 		ut.printPhrase(ph);
 end
+/*
+rule "Document_,_Document"	// COPIES OF THE MOTION, OPERATIVE COMPLAINT, OPPOSITION AND REPLY
+	when
+		p1: Phrase(synType=="NP", head.isKindOf("Document")
+				,graph.containLink("define", null, head) ==null)
+//				, graph.topLink == null )
+		p2: Phrase(synType!=null, text==","||text=="AND"||text.equalsIgnoreCase(", and"), begToken==p1.endToken);
+		p3: Phrase(synType=="NP", head.isKindOf("Document"), begToken==p2.endToken)
+	then
+		ut.print("Document_,_Document: " + p1 + ", " + p2 +", "+p3 );
+		String name = p1.getHead().getName().replaceAll("\\s+", "")  + "_,_" + p3.getHead().getName().replaceAll("\\s+", "");
+		Phrase ph = p1.addToSet(p2, p3, name, true);
+		if(ph != null){
+			insert(ph);
+			ut.printPhrase(ph);
+		}
+end
+*/
 rule "NP_AND_NP"	//no opposition filed, and, good cause shown
 	salience 100
 	when
@@ -362,7 +380,7 @@ rule "NP_AND_NP"	//no opposition filed, and, good cause shown
 			,graph.containLink("ugoerOfProc", head, null) ==null
 			,!head.isKindOf("LitigationParty")// for Party_,_party
 			)
-		p2: Phrase(text.equalsIgnoreCase("and")||text.equalsIgnoreCase(", and"), synType=="CONJ", begToken==p1.endToken)
+		p2: Phrase(text==","||text.equalsIgnoreCase("and")||text.equalsIgnoreCase(", and"), synType!=null, begToken==p1.endToken)
 		p3: Phrase(synType=="NP", begToken==p2.endToken
 			,graph.containLink("hasOwner", head, null) ==null
 			,graph.containLink("define", null, head) ==null
@@ -550,7 +568,7 @@ end
 
 rule "NP_TOVP" // "time to respond", "motion to strike", NOT "'Notice of motion and motion' to strike", "5 days to answer"
 	when
-		p1: Phrase(synType=="NP"||synType=="TIMEP", !lastPhrase.getSynType().equals("NP"), graph.containLink("hasOwner", head, null)==null
+		p1: Phrase(synType=="NP"||synType=="TIMEP", headLast(), graph.containLink("hasOwner", head, null)==null
 			, graph.containLink("hasDET", head, null)==null, !isSet())
 		p2: Phrase(synType=="PARTICLE", head.isKindOf("ToInfinitive"), g : graph, lk2: graph.topLink,  begToken==p1.endToken)
 		eval(lk2 != null && lk2.getType()=="ToInfinitive")
@@ -604,7 +622,7 @@ rule "NP_VP"
 		ut.printPhrase(ph);
 end
 
-rule "NP_VPing"	//STIPULATION Governing Post-Trial Submissions
+rule "NP_VPing"	//"STIPULATION Governing Post-Trial Submissions", "order continuing trial date"
 	when
 		p1: Phrase(synType=="NP")
 		p2: Phrase(synType=="VP", tense=="ing", graph.containLink("agentOfProc", null, head)==null, graph.containLink("byAgent", head, null)==null, begToken==p1.endToken)
@@ -618,14 +636,28 @@ rule "NP_VPing"	//STIPULATION Governing Post-Trial Submissions
 		ut.printPhrase(ph);
 end
 
-
-rule "VPing_NP"	//documents will be claimed by the FILING party/attorney 
+/*
+rule "VPing_NP_1"	//ORDER CONTINUING TRIAL DATE
+	when
+		p1: Phrase(synType=="VP", tense=="ing", graph.containLink("agentOfProc", null, head)==null, graph.containLink("ugoerOfProc", null, head)==null, graph.containLink("byAgent", head, null)==null)
+		p2: Phrase(synType=="NP", begToken==p1.endToken)
+		r : Link(type=="ugoerOfProc", p2.head.isKindOf(arg1), p1.head.isKindOf(arg2))
+	then
+		ut.print("Find VPing_NP_1: " + p1 + ", " + p2 );
+		Link lk = new Link("ugoerOfProc", p2.getHead(), p1.getHead());
+		Phrase ph = new Phrase(p1, p2, lk, 1); // result is VP, This is similar to rule 
+		ph.setSubject(p1);
+		insert(ph);
+		ut.printPhrase(ph);
+end
+*/
+rule "VPing_NP_2"	//documents will be claimed by the FILING party/attorney 
 	when
 		p1: Phrase(synType=="VP", tense=="ing", graph.containLink("agentOfProc", null, head)==null, graph.containLink("ugoerOfProc", null, head)==null, graph.containLink("byAgent", head, null)==null)
 		p2: Phrase(synType=="NP", begToken==p1.endToken)
 		r : Link(type=="agentOfProc", p2.head.isKindOf(arg1), p1.head.isKindOf(arg2))
 	then
-		ut.print("Find VPing_NP: " + p1 + ", " + p2 );
+		ut.print("Find VPing_NP_2: " + p1 + ", " + p2 );
 		Link lk = new Link("agentOfProc", p2.getHead(), p1.getHead());
 		Phrase ph = new Phrase(p1, p2, lk, 2); // result is NP, This is similar to rule NP_ModifiedBy_VP
 		ph.setSubject(p1);
@@ -662,15 +694,31 @@ rule "VP_NP"
 				eval(p1.getEndToken() - p1.getBegToken() > 3) and
 				eval(p1.getGraph().containLinkKind("PRPRelation", p1.getHead(), null))
 			)
-		exists Link(type=="ugoerOfProc", p2.head.isKindOf(arg1), p1.head.isKindOf(arg2))
+		Link(type=="ugoerOfProc", p2.head.isKindOf(arg1), p1.head.isKindOf(arg2))
 	then
 		ut.print("Find VP_NP: " + p1 + ", " + p2 );
 		Link r = new Link("ugoerOfProc", p2.getHead(), p1.getHead());
 		Phrase ph = new Phrase(p1, p2, r, 1);	// VP
 		insert(ph);
 		ut.printPhrase(ph);
-
 end
+
+rule "NP(VP)_NP"
+	when
+		p1: Phrase(synType=="NP", lk : graph.topLink, head.isKindOf("Process"), h1:head)
+		p2: Phrase(synType=="NP", h2:head, graph.containLink("agentOfProc", head, null)==null, 
+					graph.containLink("ugoerOfProc", head, null)==null, begToken==p1.endToken)
+
+		Link(type=="ugoerOfProc", h2.isKindOf(arg1), h1.isKindOf(arg2))
+	then
+		ut.print("Find NP(VP)_NP: " + p1 + ", " + p2 );
+		Link r = new Link("ugoerOfProc", p2.getHead(), p1.getHead());
+		Phrase ph = new Phrase(p1, p2, r, 1);	// NP
+		insert(ph);
+		ut.printPhrase(ph);
+end
+
+
 rule "VP_AND_VP"	//COMPLY WITH SFLR 2.7B AND PROVIDE COURTESY COPIES OF THE MOTION
 	salience 100
 	when
@@ -812,23 +860,6 @@ rule "Party_,_Party"	// John D. Smith, Kevin H. Spooner
 		p3: Phrase(synType=="NP", head.isKindOf("LitigationParty"), graph.topLink == null, begToken==p2.endToken)
 	then
 		ut.print("Party_,_Party: " + p1 + ", " + p2 +", "+p3 );
-		String name = p1.getHead().getName().replaceAll("\\s+", "")  + "_,_" + p3.getHead().getName().replaceAll("\\s+", "");
-		Phrase ph = p1.addToSet(p2, p3, name, true);
-		if(ph != null){
-			insert(ph);
-			ut.printPhrase(ph);
-		}
-end
-
-rule "Document_,_Document"	// COPIES OF THE MOTION, OPERATIVE COMPLAINT, OPPOSITION AND REPLY
-	when
-		p1: Phrase(synType=="NP", head.isKindOf("Document")
-				,graph.containLink("define", null, head) ==null)
-//				, graph.topLink == null )
-		p2: Phrase(synType!=null, text==","||text=="AND"||text.equalsIgnoreCase(", and"), begToken==p1.endToken);
-		p3: Phrase(synType=="NP", head.isKindOf("Document"), begToken==p2.endToken)
-	then
-		ut.print("Document_,_Document: " + p1 + ", " + p2 +", "+p3 );
 		String name = p1.getHead().getName().replaceAll("\\s+", "")  + "_,_" + p3.getHead().getName().replaceAll("\\s+", "");
 		Phrase ph = p1.addToSet(p2, p3, name, true);
 		if(ph != null){
@@ -1033,9 +1064,10 @@ rule "NP_NUMP"	// "DEPT. 206"
 		ut.printPhrase(ph);
 end
 	
-rule "NP_PRP"
+rule "NP_PRP_headLast"
 	when
-		p1: Phrase(synType=="NP", lk : graph.topLink, g1 : graph, lk1 : graph.containLink("hasMember", head, null)
+		//"DISMISSAL OF COMPLAINT WITH PREJUDICE" will not work because of "headLast()" 
+		p1: Phrase(synType=="NP", lk : graph.topLink, g1 : graph, headLast(), lk1 : graph.containLink("hasMember", head, null)
 		//, graph.prpCount <3
 				, graph.containLink("hasDET", head, null)==null
 //				, graph.containLink("ugoerOfProc", head, null)==null
@@ -1046,18 +1078,10 @@ rule "NP_PRP"
 		not(
 			eval(!hd2.isKindOf("for") && g1.containLink(lk2.getArg1().getName(), p1.getHead(), null)!=null)
 		)
-//		(or
-//			(
-//				eval(lk1 == null) and
-				lkx : Link(type==p2.getHead().getTheClass().getName(), p1.getHead().isKindOf(arg1), lk2.arg2.isKindOf(arg2))
-//			)
-//			(
-//				eval(lk1 != null) and
-//				lky: Link(type==p2.getHead().getTheClass().getName(), lk1.arg2.isKindOf(arg1), lk2.arg2.isKindOf(arg2))
-//			)
-//		)
+		// onto triple: head_1 PRP head_2:
+		lkx : Link(type==p2.getHead().getTheClass().getName(), p1.getHead().isKindOf(arg1), lk2.arg2.isKindOf(arg2))
 	then
-		ut.print("Find NP_PRP: " + p1 + ", " + p2 );
+		ut.print("Find NP_PRP_headLast: " + p1 + ", " + p2 );
 		ut.print("lkx: " + lkx);
 		Link r = new Link(lk2.getArg1().getTheClass().getName(), p1.getHead(), lk2.getArg2());
 		Phrase ph = new Phrase(p1, p2, r, 1);
@@ -1067,6 +1091,32 @@ rule "NP_PRP"
 end
 
 	
+rule "NP_PRP_not_headLast"
+	when
+		//"DISMISSAL OF COMPLAINT WITH PREJUDICE" will not work because of "headLast()" 
+		p1: Phrase(synType=="NP", lk : graph.topLink, g1 : graph, !headLast(), h1:head, lh: lastHead, lastPhrase.synType=="NP"
+				, graph.containLink("hasDET", head, null)==null
+				, graph.containLink("hasOwner", head, null)==null)
+		p2: Phrase(synType=="PRP", head.isKindOf("PRPRelation"), !head.isKindOf("of"), h2:head
+				, graph.topLink != null, graph.topLink.getType()=="PRPRelation", lk2: graph.topLink, begToken==p1.endToken)
+		// onto triple: head_1 PRP head_2:
+		lkx : Link(type==h2.getTheClass().getName(), h1.isKindOf(arg1), lk2.arg2.isKindOf(arg2))
+		not Link(type==h2.getTheClass().getName(), lh.isKindOf(arg1), lk2.arg2.isKindOf(arg2))
+		// cannot have same PRP twice (except "for"):
+		not(
+			eval(!h2.isKindOf("for") && g1.containLink(lk2.getArg1().getName(), h1, null)!=null)
+		)
+	then
+		ut.print("Find NP_PRP_not_headLast: " + p1 + ", " + p2 );
+		ut.print("lkx: " + lkx);
+		Link r = new Link(lk2.getArg1().getTheClass().getName(), h1, lk2.getArg2());
+		Phrase ph = new Phrase(p1, p2, r, 1);
+		ph.getGraph().remove(h2);
+		insert(ph);
+		ut.printPhrase(ph);
+end
+
+
 rule "NP_PRP_SET"
 	when
 		p1: Phrase(synType=="NP", h1: head, g1 : graph, lk1 : graph.containLink("hasMember", head, null)
@@ -1273,7 +1323,7 @@ end
 
 rule "VP_PRP_to_V"	// "filed, by defendant", "set, for SEP-20-2017"
 	when
-		p1: Phrase(synType=="VP", g1 : graph, lk1 : graph.containLink("ugoerOfProc", null, head))
+		p1: Phrase(synType=="VP", g1 : graph, lk1 : graph.containLink("ugoerOfProc", null, head), !isSet())
 		p2: Phrase(synType=="PRP", head.isKindOf("PRPRelation"), lk2: graph.topLink, begToken==p1.endToken)
 		eval(lk2 != null && lk2.getType()=="PRPRelation")
 		Link(p2.head.isKindOf(type), p1.head.isKindOf(arg1), lk2.arg2.isKindOf(arg2))
@@ -1864,7 +1914,7 @@ end
 
 rule "SerialClass_SerialClass_NumberValue"	// CODE OF CIVIL PROCEDURE, SECTION 2031.285(D)(1).
 	when
-		p1: Phrase(synType == "NP", head.isKindOf("SerialClass"), graph.links==null);
+		p1: Phrase(synType == "NP", head.isKindOf("SerialClass"), headLast());
 		p2: Phrase(synType == "NP", head.isKindOf("Section"), begToken==p1.endToken, lk:graph.topLink);
 			eval(lk!=null && lk.getType().equals("hasValue"))
 	then

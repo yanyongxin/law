@@ -167,6 +167,7 @@
 {"text":"Contention","type":"NP", "entity":"DocLegalContention"}
 {"text":"Contentions","type":"NP", "entity":"DocLegalContention"}
 {"text":"continued","type":"VP", "tense":"past","entity":"ProcContinue"}
+{"text":"continuing","type":"VP", "tense":"ing","entity":"ProcContinue"}
 {"text":"continuance","type":"NP", "entity":"ProcContinue"}
 {"text":"copies","type":"NP", "entity":"CopyRef"}
 {"text":"correct","type":"VP", "tense":"present","entity":"ProcCorrect"}
@@ -190,6 +191,8 @@
 {"text":"Cover\\s*letter","type":"NP", "list":"cover","entity":"CoverLetter"}
 {"text":"Create","type":"VP", "tense":"present","entity":"ProcCreate"}
 {"text":"Credit\\s*Card","type":"NP","list":"credit","entity":"CreditCard"}
+{"text":"Cross\\s*Complaint","type":"NP","list":"cross","entity":"DocLegalCrossComplaint"}
+{"text":"Cross\\s*Defendant","type":"NP","list":"cross","entity":"RoleLegalCrossDefendant"}
 {"text":"CT\\s*Corp\\.?","type":"NP","list":"CT","entity":"OrgCoCTCorp"}
 {"text":"current","type":"ADJP","entity":"StatusCurrent"}
 {"text":"Custodians","type":"NP","entity":"Custodian"}
@@ -247,6 +250,9 @@
 {"text":"docket\\s*sheet","type":"NP", "list":"docket","entity":"DocketSheet"}
 {"text":"docketed","type":"VP", "tense":"past", "entity":"ProcDocket"}
 {"text":"Docketing\\s*Record\\s*on\\s*Appeal","type":"NP", "list":"Docketing","entity":"DocketingRecordOnAppeal"}
+{"text":"domestic\\s*violence","type":"NP", "list":"domestic","entity":"CrimeDomesticViolence"}
+;don't know why SF court call it "Domestic Violence A". No "Domestic Violence B" been seen
+{"text":"domestic\\s*violence\\s*A","type":"NP", "list":"domestic","entity":"CrimeDomesticViolenceHearing"}
 {"text":"document","type":"NP", "entity":"Document"}
 {"text":"documents","type":"NP", "entity":"Document"}
 {"text":"due","type":"ADJP","entity":"ExpectedDue"}
@@ -267,12 +273,14 @@
 {"text":"Entire","type":"ADJP", "entity":"StatusEntire"}
 {"text":"Errata","type":"NP", "entity":"Errata"}
 {"text":"Errata\\s*Sheet","type":"NP", "list":"errata", "entity":"ErrataSheet"}
+{"text":"Erroneously","type":"ADVP", "entity":"StatusErroneous"}
 {"text":"Establishing","type":"VP", "tense":"ing", "entity":"ProcEstablish"}
 {"text":"Establish","type":"VP", "tense":"present", "entity":"ProcEstablish"}
 {"text":"Established","type":"VP", "tense":"past", "entity":"ProcEstablish"}
 {"text":"Estimated","type":"ADJP", "entity":"StatusEstimated"}
 {"text":"\\,?\\s*esq(\\.|uire)?","type":"PERSONSUFFIX","list":", llc","entity":"PersonSuffix"}
 {"text":"EVID(ENCE|\\.)\\s*CODE","type":"NP","list":"evidence evid","entity":"EvidenceCode"}
+{"text":"EX\\s*PARTE","type":"ADJP","list":"ex exparte","entity":"StatusExParte"}
 {"text":"EX\\s*PARTE\\s*APPLICATION","type":"NP","list":"ex","entity":"DocApplication"}
 {"text":"Exclude","type":"VP", "tense":"present", "entity":"ProcExclude"}
 {"text":"Executed","type":"VP", "tense":"past", "entity":"ProcExecute"}
@@ -290,6 +298,7 @@
 {"text":"extension","type":"NP", "entity":"ProcExtend"}
 {"text":"d/?b/?a","type":"PRP", "list":"d dba", "entity":"doBusinessAs"}
 {"text":"f/?k/?a","type":"PRP", "list":"f fka", "entity":"formerlyKnownAs"}
+{"text":"facts","type":"NP", "entity":"LegalFacts"}
 {"text":"Failure","type":"NP", "entity":"StatusFail"}
 {"text":"Fam(ily|\\.)\\s*Code","type":"NP", "list":"Family Fam","entity":"FamilyCode"}
 {"text":"Federal","type":"ADJP", "entity":"StatusFederal"}
@@ -363,6 +372,8 @@
 {"text":"Instructions","type":"NP", "entity":"Instruction"}
 {"text":"Intent","type":"NP", "entity":"Intent"}
 {"text":"Interrogatory","type":"NP", "entity":"DocLegalInterrogatory"}
+{"text":"intervene","type":"VP", "tense":"present", "entity":"ProcIntervene"}
+{"text":"intervenor","type":"NP", "entity":"RoleLegalIntervenor"}
 {"text":"Interrogatories","type":"NP", "entity":"DocLegalInterrogatory"}
 {"text":"Invalidity","type":"NP", "entity":"Invalidity"}
 {"text":"is","type":"VP","tense":"present", "entity":"ProcBe"}
@@ -469,6 +480,7 @@
 {"text":"notice","type":"NP", "entity":"DocLegalNotice"}
 {"text":"notice\\s*of\\s*appeal","type":"NP", "list":"notice", "entity":"NoticeOfAppeal"}
 {"text":"NOTICE\\s*OF\\s*ENTRY\\s*OF\\s*ORDER","type":"NP", "list":"notice", "entity":"NoticeOfEntryOfOrder"}
+{"text":"NOTICE\\s*(OF\\s*)?ERRATA","type":"NP", "list":"notice", "entity":"NoticeOfErrata"}
 {"text":"notice\\s*of\\s*motion","type":"NP", "list":"notice", "entity":"NoticeOfMotion"}
 {"text":"notice\\s*of\\s*ruling","type":"NP", "list":"notice", "entity":"NoticeOfRuling"}
 {"text":"Notification","type":"NP", "entity":"DocLegalNotice"}
@@ -522,6 +534,7 @@
 {"text":"permanently","type":"ADVP", "entity":"StatusPermanent"}
 {"text":"permit","type":"VP","tense":"present","entity":"ProcPermit"}
 {"text":"personal\\s*service","type":"NP", "list":"personal", "entity":"ProcPersonalServe"}
+{"text":"petitioner","type":"NP","entity":"RoleLegalPetitioner"}
 {"text":"phone","type":"NP","entity":"DevicePhone"}
 {"text":"place","type":"NP","entity":"PlaceRef"}
 {"text":"plaintiff","type":"NP","entity":"RoleLegalPlaintiff"}
@@ -606,6 +619,7 @@
 {"text":"respective","type":"ADJP", "entity":"StatusRespective"}
 //{"text":"respond","type":"VP", "tense":"present", "entity":"ProcRespond"}
 {"text":"respond\\s*to","type":"VP", "tense":"present", "list":"respond", "entity":"ProcRespond"}
+{"text":"respondent","type":"NP", "entity":"RoleLegalRespondent"}
 {"text":"response","type":"NP", "entity":"DocLegalResponse"}
 {"text":"responses","type":"NP", "entity":"DocLegalResponse"}
 {"text":"responsibility","type":"NP", "entity":"Responsibility"}
@@ -692,7 +706,9 @@
 {"text":"SUBSTITUTION","type":"NP", "entity":"ProcSubstitute"}
 {"text":"success","type":"NP", "entity":"Success"}
 //{"text":"Sue\\s*L\\.?\\s*Robinson","type":"NP","list":"sue","entity":"JudgeSueLRobinson"}
+{"text":"Sued","type":"VP", "tense":"past","entity":"ProcSue"}
 {"text":"SUGGESTION","type":"NP","entity":"ProcSuggestion"}
+{"text":"Summary\\s*Adjudication","type":"NP","list":"summary", "entity":"SummaryAdjudication"}
 {"text":"Summary\\s*Judgment","type":"NP","list":"summary", "entity":"SummaryJudgment"}
 {"text":"summons","type":"NP", "entity":"DocLegalSummons"}
 {"text":"Sunday","type":"TIMEP", "entity":"Sunday"}
@@ -727,6 +743,7 @@
 {"text":"through\\s*and\\s*including","type":"PRP", "list":"through", "entity":"throughAndIncluding"}
 {"text":"Thursday","type":"TIMEP", "entity":"Thursday"}
 {"text":"time","type":"NP","entity":"TimeRef"}
+{"text":"time\\s*and\\s*place","type":"NP","list":"time","entity":"TimeAndPlaceRef"}
 {"text":"to","type":"PARTICLE","entity":"ToInfinitive"}
 {"text":"to","type":"PRP","entity":"toPreposition"}
 {"text":"Trademark","type":"NP","entity":"Trademark"}
@@ -742,6 +759,7 @@
 {"text":"Tuesday","type":"TIMEP", "entity":"Tuesday"}
 {"text":"UTAH","type":"NP","entity":"StateUtah"}
 {"text":"under","type":"PRP","entity":"under"}
+{"text":"undisputed","type":"ADJP","entity":"StatusUndisputed"}
 {"text":"unopposed","type":"ADJP","entity":"StatusUnopposed"}
 {"text":"upon","type":"PRP","entity":"upon"}
 {"text":"(U\\.?\\s*S\\.?)?\\s*Magistrate\\s*Judge","list":"u us magistrate", "type":"NP","entity":"MagistrateJudge"}

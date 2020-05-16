@@ -41,6 +41,10 @@ public class Phrase implements Cloneable {
 		return subphrases.get(subphrases.size() - 1).getLastPhrase();
 	}
 
+	public Entity getLastHead() {
+		return getLastPhrase().getHead();
+	}
+
 	// public Phrase defineSet(Phrase ph) {
 	// List<Phrase> subs = ph.getSubphrases();
 	// Phrase ph0 = subs.get(0);

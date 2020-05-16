@@ -144,6 +144,7 @@ DocLegalOpeningBrief	subclassOf	DocLegalBrief
 DocLegalReplyBrief	subclassOf	DocLegalBrief
 DocLegalSurreplyBrief	subclassOf	DocLegalBrief
 DocLegalComplaint	subclassOf	DocLegalClaimCounterclaim
+DocLegalCrossComplaint	subclassOf	DocLegalComplaint
 DocLegalClaim	subclassOf	DocLegalClaimCounterclaim
 DocLegalCounterclaim	subclassOf	DocLegalClaimCounterclaim
 DocLegalClaimCounterclaim	subclassOf	Document
@@ -238,6 +239,7 @@ DocLegalOrder	agentOfProc	ProcRefer
 DocLegalOrder	agentOfProc	ProcAppoint
 DocLegalOrder	agentOfProc	ProcLift
 DocLegalOrder	agentOfProc	ProcDisposition
+LegalDecision	agentOfProc	Process
 Injunction	subclassOf	Document
 IntelAgent	agentOfProc	Process
 DocCaseManagementStatement	subclassOf	DocLegalStatement
@@ -339,9 +341,11 @@ SymbolDollar	instanceOf	Symbol
 RoleLegalAppellant subclassOf RoleLegal
 RoleLegalArbitrator subclassOf RoleLegal
 RoleLegalClaimant subclassOf RoleLegal
+RoleLegalCrossDefendant subclassOf RoleLegal
 RoleLegalDefendant subclassOf RoleLegal
 RoleLegalPlaintiff subclassOf RoleLegal
 RoleLegalFiler subclassOf RoleLegal
+RoleLegalIntervenor subclassOf RoleLegal
 RoleCounterclaimant subclassOf RoleLegal
 StatusAboveCaptioned	instanceOf	StatusProc
 StatusOffCalendar	instanceOf	StatusProc
@@ -549,7 +553,10 @@ ProcDismiss	for	StatusFail
 ProcFileDoc	in	ProcSupport
 Document	in	ProcSupport
 Document	in	RelationOpposition
-Date	per	LegalRule
+Process	per	LegalRule
+Process	per	LegalDecision		
+Process	pursuant_to	LegalRule
+Process	pursuant_to	LegalDecision
 They	subclassOf	IntelAgent
 It	subclassOf	IntelAgent
 ProcHoldMeeting	at	Meeting
@@ -686,6 +693,7 @@ DeclaratoryJudgment	subclassOf	Judgment
 DefaultJudgment	subclassOf	Judgment
 DefaultDecision	subclassOf	LegalDecision
 Judgment	subclassOf	LegalDecision
+Adjudication	subclassOf	LegalDecision
 DocLegalOrder	subclassOf	LegalDecision
 DocLegalClaimCounterclaim	for	LegalDecision
 ProcIssueDoc	on	IntelAgent
@@ -917,6 +925,7 @@ Testimony	subclassOf	Document
 Document	ugoerOfProc	ProcExclude
 Document	ugoerOfProc	ProcPreclude
 SummaryJudgment	subclassOf	Judgment
+SummaryAdjudication	subclassOf	Adjudication
 UnitedStatesCode	subclassOf	LegalRule
 CivilCode	subclassOf	LegalRule
 FamilyCode	subclassOf	LegalRule
@@ -981,6 +990,7 @@ Document	ugoerOfProc	Process
 DocLegalMandate	subclassOf	Document
 NoticeOfAppeal	subclassOf	DocLegalNotice
 NoticeOfEntryOfOrder	subclassOf	DocLegalNotice
+NoticeOfErrata	subclassOf	DocLegalNotice
 NoticeOfMotion	subclassOf	DocLegalNotice
 NoticeOfRuling	subclassOf	DocLegalNotice
 JointClaimConstructionAndPrehearingStatement	subclassOf	DocLegalStatement
@@ -1033,6 +1043,7 @@ HumanSetJury	define	Calendar
 Calendar	ugoerOfProc	ProcContinue
 Calendar	ugoerOfProc	ProcSet
 Calendar	ugoerOfProc	ProcVacate
+TimeRef	ugoerOfProc	ProcContinue
 DocMedicalReimbursementLien	subclassOf	Document
 ;don't know where to put LegalCauseOfAction
 LegalCauseOfAction	subclassOf	Thing
@@ -1106,3 +1117,21 @@ TimeRef	ugoerOfProc	ProcReflect
 Document	agentOfProc	ProcReflect
 Process	timeOrderRelation	TimeValue
 ProcProvide	toPreposition	IntelAgent
+TimeAndPlaceRef	subclassOf	TimeRef
+TimeAndPlaceRef	subclassOf	PlaceRef
+OrgHierarchyDepartment	subclassOf	PlaceRef
+GeoPoliticalEntity	define	LegalRule
+DocProofOfService	on	Document
+DocProofOfService	on	IntelAgent
+ProcIntervene	subclassOf	Process
+StatusExParte	subclassOf	StatusProc
+RoleLegalPetitioner subclassOf RoleLegal
+RoleLegalRespondent subclassOf RoleLegal
+CrimeDomesticViolence subclassOf LegalCrime
+CrimeDomesticViolenceHearing	subclassOf	Hearing
+StatusErroneous	subclassOf	StatusProc
+ProcSue	subclassOf	Process
+ProcSue	as	IntelAgent
+DocLegalMotion	against	IntelAgent
+StatusUndisputed	subclassOf	StatusProc
+LegalFacts	subclassOf	LegalInformation

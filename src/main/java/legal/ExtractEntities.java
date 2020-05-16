@@ -287,6 +287,8 @@ public class ExtractEntities {
 		plist.add(dp);
 	}
 
+	static Pattern pDecla = Pattern.compile("(?<=DECLARATION\\sOF\\s).+?(?=IN\\s*SUPPORT)", Pattern.CASE_INSENSITIVE);
+
 	static void findEntities_1(Entry entry, CaseParties cn, CaseAttorneys ca, List<Judge> judges, Map<String, Clerk> clerks, Map<String, Reporter> reporters) {
 		for (Section sec : entry.sections) {
 			String text = sec.text;
@@ -303,6 +305,16 @@ public class ExtractEntities {
 					int offset = (Integer) (pr.o1);
 					String str = (String) (pr.o2);
 					boolean b = false;
+					Matcher mm = pDecla.matcher(str);
+					if (mm.find()) {
+						int iidx = mm.start();
+						String name = mm.group().trim();
+						PersonName pn = PersonName.parse(name, PersonName.GivMidSur);
+						Party pty = new Party(name, pn, Party.ROLE_SUPPORTER);
+						breakTwo(str, mm.group(), iidx, offset, nextList, dephrases, pty);
+						b = true;
+						break;
+					}
 					// for parties:
 					for (Party p : cn.parties) {
 						int idx;
