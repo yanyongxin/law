@@ -173,6 +173,12 @@ public class SFcomplex {
 					tk.end += start;
 					tk.parent = sec.text;
 					Phrase ph = new Phrase(tk.text.toLowerCase(), j, j + 1, tokens);
+					if (tk.type == LexToken.LEX_SERIALNUMBER) {
+						ph.setSynType("NUMP");
+						Entity cls = onto.getEntity("SerialValue");
+						Entity e = new Entity(tk.text.toLowerCase(), cls, Entity.TYPE_INSTANCE, onto, j);
+						ph.setGraph(e);
+					}
 					phlist.add(ph);
 					j++;
 				}

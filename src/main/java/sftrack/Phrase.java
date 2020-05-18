@@ -1053,9 +1053,6 @@ public class Phrase implements Cloneable {
 		}
 		ERGraph gn;
 		Entity cls = onto.getEntity(setName);
-		if (cls == null) {
-			cls = hd.theClass;
-		}
 		if (this.isSet() || gp.isSet()) {
 			gn = gt.duplicate();
 			gn.mergeSet(gp);
@@ -1084,6 +1081,9 @@ public class Phrase implements Cloneable {
 			// Prevent two identical entities to combine. This happens when "LG Electronics and LG" of  "LG Electronics and LG Mobile" is seen.
 			Link r1 = new Link("hasMember", en, gt.getHead());
 			Link r2 = new Link("hasMember", en, gp.getHead());
+			en.addClass(cls_t);
+			en.addClass(cls_p);
+			en.setEntityType(Entity.TYPE_SET);
 			gn.addLink(r1);
 			gn.addLink(r2);
 		}

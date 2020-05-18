@@ -15,6 +15,7 @@ public class LexToken {
 	static final Pattern ptDate = Pattern.compile("\\d{1,2}\\/\\d{1,2}\\/(19|20)?\\d\\d", Pattern.CASE_INSENSITIVE);
 	static final Pattern ptTime = Pattern.compile("(0|1)?\\d\\:\\d\\d\\s*(a|p)\\.?m\\.?", Pattern.CASE_INSENSITIVE);
 	static final Pattern ptNumber = Pattern.compile("\\d+|(\\d{1,3}(\\,\\d{3})*)(\\.\\d+)?", Pattern.CASE_INSENSITIVE);
+	static final Pattern ptSerialNumber = Pattern.compile("\\d*(1st|2nd|3rd)|\\d+th", Pattern.CASE_INSENSITIVE);
 	static final Pattern ptCaseNumber = Pattern.compile("\\d{0,2}\\:\\d\\d?-[a-z][a-z]-\\d{2,5}(-\\w{2,3})*", Pattern.CASE_INSENSITIVE);
 	public static final int LEX_EMPTY = 0;
 	public static final int LEX_WORD = 1;
@@ -24,9 +25,10 @@ public class LexToken {
 	public static final int LEX_UNDERSCORE = 5;
 	public static final int LEX_DATE = 6;
 	public static final int LEX_NUMBER = 7;
-	public static final int LEX_TIME = 8;
-	public static final int LEX_CASENUMBER = 9;
-	public static final int LEX_ENTITY = 10;
+	public static final int LEX_SERIALNUMBER = 8;
+	public static final int LEX_TIME = 9;
+	public static final int LEX_FED_CASENUMBER = 10;
+	public static final int LEX_ENTITY = 11;
 	public String parent; // parent string
 	char beforeChar = 0; // the character before this token. 0 = not part of
 							// sentence
@@ -179,7 +181,7 @@ public class LexToken {
 						if (m.start() == i) {
 							int end = m.end();
 							if (end >= ch.length || !(Character.isDigit(ch[end]) || Character.isLetter(ch[end]))) {
-								list.add(new LexToken(src, m.group(), i, end, LEX_CASENUMBER));
+								list.add(new LexToken(src, m.group(), i, end, LEX_FED_CASENUMBER));
 								i = end - 1;
 								continue;
 							}
@@ -205,6 +207,17 @@ public class LexToken {
 								i = end - 1;
 								continue;
 							}
+						}
+					}
+					m = ptSerialNumber.matcher(src);
+					if (m.find(i)) {// this is guaranteed to succeed.
+						if (m.start() == i) {
+							int end = m.end();
+							//							if (end >= ch.length || !(Character.isDigit(ch[end]) || Character.isLetter(ch[end]))) {
+							list.add(new LexToken(src, m.group(), i, end, LEX_SERIALNUMBER));
+							i = end - 1;
+							continue;
+							//							}
 						}
 					}
 					m = ptNumber.matcher(src);

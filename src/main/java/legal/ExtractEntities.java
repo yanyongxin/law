@@ -283,11 +283,11 @@ public class ExtractEntities {
 			list.add(new Pair(Integer.valueOf(index1), s1));
 		if (s20.length() > 0)
 			list.add(new Pair(Integer.valueOf(index2), s2));
-		DePhrase dp = new DePhrase(template, offset + idx, index2, o);
+		DePhrase dp = new DePhrase(template.trim(), offset + idx, index2, o);
 		plist.add(dp);
 	}
 
-	static Pattern pDecla = Pattern.compile("(?<=DECLARATION\\sOF\\s).+?(?=IN\\s*SUPPORT)", Pattern.CASE_INSENSITIVE);
+	static Pattern pDecla = Pattern.compile("(?<=DECLARATION\\sOF\\s).+?(?=IN\\s*SUPPORT|\\;|$)", Pattern.CASE_INSENSITIVE);
 
 	static void findEntities_1(Entry entry, CaseParties cn, CaseAttorneys ca, List<Judge> judges, Map<String, Clerk> clerks, Map<String, Reporter> reporters) {
 		for (Section sec : entry.sections) {

@@ -16,11 +16,21 @@ public class Entity implements Cloneable {
 	int position = -1; // token position on the entire sentence string. -1 means not initialized. 
 	int entityType = TYPE_INSTANCE;
 	Entity theClass; // if this is an instance, or an homogeneous set, then the
-						// class of this instance. If this is a class, then null.
+	List<Entity> classes;
+	// class of this instance. If this is a class, then null.
 	Ontology onto; // the global unique ontology, saved for convenient access
 
 	public void setPosition(int pos) {
 		position = pos;
+	}
+
+	public void addClass(Entity c) {
+		if (classes == null) {
+			classes = new ArrayList<Entity>();
+		}
+		if (classes.contains(c))
+			return;
+		classes.add(c);
 	}
 
 	public int getPosition() {
@@ -136,6 +146,12 @@ public class Entity implements Cloneable {
 		if (this.name != null && this.name.equals(cls.getName())) {
 			return true;
 		}
+		if (classes != null) {
+			for (Entity e : classes) {
+				if (e.isKindOf(cls))
+					return true;
+			}
+		}
 		if (theClass != null && theClass.equals(cls)) {
 			return true;
 		}
@@ -209,6 +225,12 @@ public class Entity implements Cloneable {
 		// Ontology onto = ontoRef.get();
 		if (onto.isKindOf(this.name, clsname)) {
 			return true;
+		}
+		if (classes != null) {
+			for (Entity e : classes) {
+				if (e.isKindOf(clsname))
+					return true;
+			}
 		}
 		if (theClass != null && !theClass.getName().equals(this.name)) {
 			if (onto.isKindOf(theClass.getName(), clsname)) {
@@ -406,7 +428,13 @@ public class Entity implements Cloneable {
 	 */
 	@Override
 	public Entity clone() {
-		return new Entity(name, this.theClass, this.entityType, onto, this.position);
+		Entity c = new Entity(name, this.theClass, this.entityType, onto, this.position);
+		if (this.classes != null) {
+			for (Entity e : classes) {
+				c.addClass(e);
+			}
+		}
+		return c;
 	}
 
 	/**

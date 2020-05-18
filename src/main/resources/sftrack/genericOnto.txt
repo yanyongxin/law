@@ -67,7 +67,7 @@ ProcIssueDoc	subclassOf	Process
 ProcLeave	subclassOf	Process
 ProcLift	subclassOf	Process
 ProcMail	subclassOf	Process
-ProcMediation	subclassOf	Process
+ProcMediation	subclassOf	Meeting
 ProcModify	subclassOf	Process
 ProcMoveAnswerPlead	subclassOf	Process
 ProcOrder	subclassOf	Process
@@ -134,7 +134,8 @@ DVD	subclassOf	InfoMedium
 Paper	subclassOf	InfoMedium
 PDF	subclassOf	InfoMedium
 Deposition	subclassOf	Document
-DocApplication	subclassOf	Document
+DocApplication	subclassOf	PartyAction
+PartyAction	subclassOf	Document
 DocLegalBrief	subclassOf	Document
 DocLegalAnsweringBrief	subclassOf	DocLegalBrief
 DocLegalContention	subclassOf	Document
@@ -253,7 +254,7 @@ DocLegalExpertReport	subclass	Document
 DocLegalForm	subclassOf	Document
 DocLegalMemorandumOpinion	subclassOf	Document
 DocLegalMinutes	subclassOf	Document
-DocLegalMotion	subclassOf	Document
+DocLegalMotion	subclassOf	PartyAction
 DocLegalMinutes	for	TimeValue
 DocLegalMinutes	for	OrgHierarchyDepartment
 DocLegalMotionForLeave	subclassOf	DocLegalMotion
@@ -479,15 +480,15 @@ UsState	subclassOf	GeoPoliticalEntity
 AddressClass		subclassOf	EntityClass
 HumanClass	subclassOf	EntityClass
 OrgCoSimonLawFirm	instanceOf	OrgCo
-First	instanceOf	NumberSerial
-Second	instanceOf	NumberSerial
-Third	instanceOf	NumberSerial
-Fourth	instanceOf	NumberSerial
-Fifth	instanceOf	NumberSerial
-Sixth	instanceOf	NumberSerial
-Seventh	instanceOf	NumberSerial
-Eighth	instanceOf	NumberSerial
-Ninth	instanceOf	NumberSerial
+First	instanceOf	SerialValue
+Second	instanceOf	SerialValue
+Third	instanceOf	SerialValue
+Fourth	instanceOf	SerialValue
+Fifth	instanceOf	SerialValue
+Sixth	instanceOf	SerialValue
+Seventh	instanceOf	SerialValue
+Eighth	instanceOf	SerialValue
+Ninth	instanceOf	SerialValue
 InPersonSchedulingConference	instanceOf	Conference
 Courtroom	subclassOf	IndoorSpace
 Office	subclassOf	IndoorSpace
@@ -763,7 +764,7 @@ DocLegalMemorandumPointsAuthorities	subclassOf	Document
 ProcGrant	subclassOf	ProcDisposition
 ProcDeny	subclassOf	ProcDisposition
 ProcDisposition	subclassOf	Process
-Document	ugoerOfProc	ProcDisposition
+PartyAction	ugoerOfProc	ProcDisposition
 Moot	subclassOf	AbstractEntity
 ProcFind	as	Moot
 ProcDeny	as	Moot
@@ -935,7 +936,6 @@ AdministrativeProcedure	subclassOf	LegalRule
 LocalRule	subclassOf	LegalRule
 SanFranciscoLocalRule	subclassOf	LocalRule
 CorporationsCode	subclassOf	LegalRule
-LegalRule	subclassOf	Document
 Section	subclassOf	Document
 Section	subclassOf	SerialClass
 StatusCommercial	subclassOf	StatusProc
@@ -986,7 +986,6 @@ SettlementCommunications	define	Document
 ProcDirect	toPreposition	IntelAgent
 ProcSubpoena	in	LegalCase
 DocLetter	define	DocLegalOrder
-Document	ugoerOfProc	Process
 DocLegalMandate	subclassOf	Document
 NoticeOfAppeal	subclassOf	DocLegalNotice
 NoticeOfEntryOfOrder	subclassOf	DocLegalNotice
@@ -1048,7 +1047,7 @@ DocMedicalReimbursementLien	subclassOf	Document
 ;don't know where to put LegalCauseOfAction
 LegalCauseOfAction	subclassOf	Thing
 LegalDecision	subclassOf	LegalAuthorityDoc
-;LegalRule	subclassOf	LegalAuthorityDoc
+LegalRule	subclassOf	LegalAuthorityDoc
 LegalAuthorityDoc	subclassOf	Document
 ProcAcknowledge	define	TimeRef
 Document	inSupportOf	Document
@@ -1058,7 +1057,7 @@ Process	inSupportOf	Process
 CourtReportingService	subclassOf	Document
 MotionHearing	subclassOf	Hearing
 hasAttribute	per	Process
-DocLegalDemurrer	subclassOf	Document
+DocLegalDemurrer	subclassOf	PartyAction
 OfOrgCoSuffix	subclassOf	Relation
 OrgCo	OfOrgCoSuffix	CoTypeSuffix
 ; identify 4 different types:
@@ -1085,7 +1084,6 @@ ProcShow	subclassOf	Process
 LegalCauseOfAction	ugoerOfProc	ProcShow
 StatusLate	subclassOf	StatusProc
 ProcPermit	subclassOf	Process
-Document	ugoerOfProc	ProcPermit
 Payment	ugoerOfProc	ProcPermit
 Document	ugoerOfProc	ProcPermit
 DocSupportingPapers	subclassOf	Document
@@ -1135,3 +1133,26 @@ ProcSue	as	IntelAgent
 DocLegalMotion	against	IntelAgent
 StatusUndisputed	subclassOf	StatusProc
 LegalFacts	subclassOf	LegalInformation
+Meeting	for	DocLegalReport
+CourtTrial	subclassOf	ProcTrial
+LegalVenue	subclassOf	PlaceRef
+Expert	define	ProcDiscovery
+Process	ugoerOfProc	ProcContinue
+StatusCutoff	subclassOf	StatusProc
+Process	define	TimeRef
+ProcShorten	subclassOf	Process
+TimeRef	ugoerOfProc	ProcShorten
+ProcBring	subclassOf	Process
+Document	ugoerOfProc	ProcBring
+LegalAuthorityDoc	agentOfProc	ProcDisposition
+NoticeOfEntryOfOrder	subclassOf	LegalAuthorityDoc
+NoticeOfRuling	subclassOf	LegalAuthorityDoc
+StatusAlternative	subclassOf	StatusProc
+ProcResolve	subclassOf	Process
+ProcDispute	define	ProcResolve
+DocLegalStipulation	toPreposition	ProcResolve
+StatusJudicial	subclassOf	StatusProc
+ProcAssign	toPreposition	ProcMediation
+LegalCase	before	Judge
+LetterCode	subclassOf	SerialValue
+ProcSettle	subclassOf	Process

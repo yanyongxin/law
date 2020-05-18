@@ -71,7 +71,7 @@ end
 
 rule "casenumber_1"
 	when
-		p: Phrase(synType==null, sentence.get(begToken).type == LexToken.LEX_CASENUMBER)
+		p: Phrase(synType==null, sentence.get(begToken).type == LexToken.LEX_FED_CASENUMBER)
 	then
 		ERGraph g = new ERGraph(new Entity(p.getText(), onto.getEntity("CaseNumber"), Entity.TYPE_INSTANCE, onto, p.getBegToken()));
 		Phrase ph = new Phrase(p, "NP", g);
@@ -393,6 +393,7 @@ rule "NP_AND_NP"	//no opposition filed, and, good cause shown
 		String name = p1.getHead().getName().replaceAll("\\s+", "") + "_AND_" + p3.getHead().getName().replaceAll("\\s+", "");
 		Phrase ph = p1.addToSet(p2, p3, name, true);
 		if(ph != null){
+/*
 			Entity h1 = p1.getHead().getTheClass();
 			Entity h2 = p3.getHead().getTheClass();
 			Entity h3 = h1;
@@ -404,6 +405,7 @@ rule "NP_AND_NP"	//no opposition filed, and, good cause shown
 				h3 = onto.getEntity("Document");
 			}  
 			ph.getHead().setTheClass(h3);
+*/
 			insert(ph);
 			ut.printPhrase(ph);
 		}
@@ -731,7 +733,7 @@ rule "VP_AND_VP"	//COMPLY WITH SFLR 2.7B AND PROVIDE COURTESY COPIES OF THE MOTI
 		String name = p1.getHead().getName().replaceAll("\\s+", "") + "_AND_" + p3.getHead().getName().replaceAll("\\s+", "");
 		Phrase ph = p1.addToSet(p2, p3, name, true);
 		if(ph != null){
-			Entity h1 = p1.getHead().getTheClass();
+/*			Entity h1 = p1.getHead().getTheClass();
 			Entity h2 = p3.getHead().getTheClass();
 			Entity h3 = h1;
 			if(h1.isKindOf(h2)){
@@ -742,7 +744,7 @@ rule "VP_AND_VP"	//COMPLY WITH SFLR 2.7B AND PROVIDE COURTESY COPIES OF THE MOTI
 				h3 = onto.getEntity("Process");
 			}  
 			ph.getHead().setTheClass(h3);
-			insert(ph);
+*/			insert(ph);
 			ut.printPhrase(ph);
 		}
 end
@@ -1052,10 +1054,11 @@ rule "PRP_VP"
 		ut.printPhrase(ph);
 end
 
-rule "NP_NUMP"	// "DEPT. 206"
+rule "NP_NUMP"	// "DEPT. 206" "DEPT. A"
 	when
 		p1: Phrase(synType=="NP", head.isKindOf("OrgHierarchy"), graph.topLink == null)
-		p2: Phrase(synType=="NUMP", text.length()<=4, head.isKindOf("NumberValue"), graph.topLink == null, begToken==p1.endToken) 
+		p2: Phrase(synType=="NUMP", text.length()<=4, head.isKindOf("NumberValue")||head.isKindOf("SerialValue")
+				, graph.topLink == null, begToken==p1.endToken) 
 	then
 		ut.print("Find NP_NUMP: " + p1 + ", " + p2 );
 		Link r = new Link("numberIdentified", p1.getHead(), p2.getHead());
@@ -1530,7 +1533,7 @@ rule "Collection_OR"//"answer/response"
 		not( exists (Link(this != lk, arg2.name=="CollectionClass", type=="subclassOf", arg1.isKindOf(lk.arg1), p1.head.isKindOf(arg1), p2.head.isKindOf(arg1))))
 	then
 		ut.print("Find collection_OR for:  " + p1 +", "+ p2 +", "+p3 );
-		Phrase ph = p1.addToSet(p2, p3, lk.getArg1().getName(), true);
+		Phrase ph = p1.addToSet(p2, p3, p1+"_" + p2 +"_"+p3, true);
 		if(ph != null){
 			insert(ph);
 			ut.printPhrase(ph);

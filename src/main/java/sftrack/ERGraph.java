@@ -23,7 +23,7 @@ public class ERGraph implements Cloneable {
 	Entity headEntity;
 	Link topLink;
 	// List<ERGraph> members = null;
-	String setType = null; // AND, OR, RANGE (5 - 9, March through August)
+	String setType = null; // AND, OR, RANGE (5 - 9, March through August), MIXED
 	Ontology onto = null; // saved here for convenient access
 	static Pattern ptCaseNum = Pattern.compile("-(\\d{2,5})-", Pattern.CASE_INSENSITIVE);
 
@@ -977,6 +977,7 @@ public class ERGraph implements Cloneable {
 				eg.addLink(lk);
 			}
 		}
+		eg.setType = setType;
 		eg.setHead(headEntity);
 		eg.setTopLink(topLink);
 		return eg;
@@ -995,6 +996,14 @@ public class ERGraph implements Cloneable {
 		}
 	}
 
+	/**
+	 * Both of following are true:
+	 * 
+	 * 1. one of the heads is a set
+	 * 2. both heads merge into a set
+	 * 
+	 * @param eg
+	 */
 	public void mergeSet(ERGraph eg) {
 		Entity hdRight = eg.getHead();
 		Entity hdLeft = this.headEntity;
@@ -1005,14 +1014,19 @@ public class ERGraph implements Cloneable {
 		if (this.isSet()) {
 			Entity thisClone = hdLeft.clone();
 			this.addEntity(thisClone);
+			// this is to protect hdleft, not to get inadverdently changed, because it is used in other places.
 			replaceLinks(hdLeft, thisClone);
 			this.remove(hdLeft);
 			headEntity = thisClone;
 			if (eg.isSet()) {
 				replaceLinks(hdRight, thisClone);
+				for (Entity c : hdRight.classes) {
+					thisClone.addClass(c);
+				}
 				this.remove(hdRight);
 			} else {
 				lk = new Link("hasMember", thisClone, hdRight);
+				thisClone.addClass(hdRight.theClass);
 				this.addLink(lk);
 			}
 		} else {
@@ -1023,13 +1037,14 @@ public class ERGraph implements Cloneable {
 				this.remove(hdRight);
 				lk = new Link("hasMember", thatClone, hdLeft);
 				this.addLink(lk);
+				thatClone.addClass(hdLeft.theClass);
 				this.headEntity = thatClone;
 			}
 			// the case both are not set is not considered here.
 			// it should be considered in the calling function
 		}
 		if (clsLeft.isKindOf("LitigationParty") && clsRight.isKindOf("LitigationParty") && !clsLeft.equals(clsRight)) {
-			this.getHead().setTheClass(onto.getEntity("GenericParty"));
+			this.getHead().setTheClass(onto.getEntity("LitigationParty"));
 		}
 	}
 
