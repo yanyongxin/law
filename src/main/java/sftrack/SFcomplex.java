@@ -71,7 +71,7 @@ public class SFcomplex {
 			caseCount++;
 			//			if (caseCount < 2)
 			//				continue;
-			System.out.println("\n================ " + cs.getID() + " ==================\n");
+			//			System.out.println("\n================ " + cs.getID() + " ==================\n");
 			//			CaseParties cp = exE.parties.get(cs.getID());
 			//			List<Party> parties = cp.getParties();
 			//			for (Party pt : parties) {

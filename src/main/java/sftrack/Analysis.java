@@ -83,16 +83,27 @@ public class Analysis {
 			}
 			// need to have a link:
 			ERGraph g = p.getGraph();
-			if (g != null && g.links != null && g.links.size() > 0) {
-				d++;
+			if (g != null) {
+				// length score:
+				int nTokens = p.getEndToken() - p.getBegToken();
+				d += nTokens - 1;
+				int nEntities = 0;
+				for (Entity e : g.entities) {
+					if (!g.isSet(e)) {
+						nEntities++;
+					}
+				}
+				if (g.links != null) {
+					for (Link lk : g.links) {
+						if (g.onto.isKindOf(lk.type, "PRPRelation")) {
+							nEntities++;
+						}
+					}
+				}
+				// less entities gives higher score. This ensures "opening brief"(as one concept) wins over "opening" (modify) "brief" (as two concepts) 
+				int def = nTokens - nEntities;
+				d += def;
 			}
-			// length score:
-			int nTokens = p.getEndToken() - p.getBegToken();
-			d += nTokens - 1;
-			int nEntities = g.entities.size();
-			// less entities gives higher score. This ensures "opening brief"(as one concept) wins over "opening" (modify) "brief" (as two concepts) 
-			int def = nTokens - nEntities;
-			d += def;
 			// break penalty:
 			if (i > 0) {
 				int gap = p.getBegToken() - plist.get(i - 1).getEndToken();

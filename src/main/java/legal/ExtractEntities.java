@@ -316,51 +316,52 @@ public class ExtractEntities {
 						break;
 					}
 					// for parties:
-					for (Party p : cn.parties) {
-						int idx;
-						for (String raw : p.raw) {
-							idx = str.indexOf(raw);
+					if (cn != null)
+						for (Party p : cn.parties) {
+							int idx;
+							for (String raw : p.raw) {
+								idx = str.indexOf(raw);
+								if (idx >= 0) {
+									breakTwo(str, raw, idx, offset, nextList, dephrases, p);
+									b = true;
+									break;
+								}
+							}
+							if (b)
+								break;
+							idx = str.indexOf(p.name);
 							if (idx >= 0) {
-								breakTwo(str, raw, idx, offset, nextList, dephrases, p);
+								breakTwo(str, p.name, idx, offset, nextList, dephrases, p);
 								b = true;
 								break;
 							}
-						}
-						if (b)
-							break;
-						idx = str.indexOf(p.name);
-						if (idx >= 0) {
-							breakTwo(str, p.name, idx, offset, nextList, dephrases, p);
-							b = true;
-							break;
-						}
-						if (p.errSued != null) {
-							idx = str.indexOf(p.errSued);
-							if (idx >= 0) {
-								breakTwo(str, p.errSued, idx, offset, nextList, dephrases, p);
-								b = true;
-								break;
+							if (p.errSued != null) {
+								idx = str.indexOf(p.errSued);
+								if (idx >= 0) {
+									breakTwo(str, p.errSued, idx, offset, nextList, dephrases, p);
+									b = true;
+									break;
+								}
 							}
-						}
-						if (p.nameCorp != null) {
-							idx = str.indexOf(p.nameCorp.stem);
-							if (idx >= 0) {
-								breakTwo(str, p.nameCorp.stem, idx, offset, nextList, dephrases, p);
-								b = true;
-								break;
+							if (p.nameCorp != null) {
+								idx = str.indexOf(p.nameCorp.stem);
+								if (idx >= 0) {
+									breakTwo(str, p.nameCorp.stem, idx, offset, nextList, dephrases, p);
+									b = true;
+									break;
+								}
 							}
-						}
-						if (p.namePerson != null) {
-							Pattern ptn = p.namePerson.getPattern();
-							Matcher m = ptn.matcher(str);
-							if (m.find()) {
-								idx = m.start();
-								breakTwo(str, m.group(), idx, offset, nextList, dephrases, p);
-								b = true;
-								break;
+							if (p.namePerson != null) {
+								Pattern ptn = p.namePerson.getPattern();
+								Matcher m = ptn.matcher(str);
+								if (m.find()) {
+									idx = m.start();
+									breakTwo(str, m.group(), idx, offset, nextList, dephrases, p);
+									b = true;
+									break;
+								}
 							}
-						}
-					} //	end for parties
+						} //	end for parties
 					if (b)
 						continue;// next in the workList
 					if (ca != null) {

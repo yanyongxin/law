@@ -1150,6 +1150,10 @@ public class ERGraph implements Cloneable {
 		return containLink("hasMember", headEntity, null) != null;
 	}
 
+	public boolean isSet(Entity e) {
+		return containLink("hasMember", e, null) != null;
+	}
+
 	public String getSetType() {
 		return setType;
 	}

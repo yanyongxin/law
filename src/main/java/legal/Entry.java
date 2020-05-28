@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import utils.Pair;
@@ -37,6 +38,8 @@ public class Entry implements Comparable<Entry> {
 	static final String SUMMONS = "SMMS";
 	static final String TRIAL = "TRAL";
 
+	static final Pattern pSec = Pattern.compile("\\b(filed by|as to)\\b", Pattern.CASE_INSENSITIVE);
+
 	public String text;
 	public String raw;
 	String sdate;
@@ -57,15 +60,19 @@ public class Entry implements Comparable<Entry> {
 		//(TRANSACTION ID # 60057326)(Fee:$900.00)(SEALED DOCUMENT)
 		sdate = _d;
 		date = Date.valueOf(sdate);
-		int offset = text.toLowerCase().lastIndexOf("filed by");
-		if (offset > 0) {
-			Section s0 = new Section(text.substring(0, offset), 0);
-			Section s1 = new Section(text.substring(offset), offset);
-			sections.add(s0);
-			sections.add(s1);
-		} else {
-			sections.add(new Section(text, 0));
-		}
+		Matcher m = pSec.matcher(text);
+		int start = 0;
+		do {
+			if (m.find(start + 4)) { // 4 < "AS TO".length();
+				int offset = m.start();
+				Section s0 = new Section(text.substring(start, offset), start);
+				sections.add(s0);
+				start = offset;
+			} else {
+				sections.add(new Section(text.substring(start), start));
+				break;
+			}
+		} while (true);
 	}
 
 	public Entry(String _d, String _t, String _type) {

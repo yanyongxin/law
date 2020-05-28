@@ -319,12 +319,42 @@ end
 
 rule "Serial_NP"
 	when
-		p1: Phrase(synType=="NUMP", head.isKindOf("SerialValue"))
+		p1: Phrase(synType=="NUMP", head.isKindOf("SerialValue"), text.length()>1)
+		// length>1 to exclude letter serials, such as A,B,C.... Letter serials can only be used in NP_serial: "ROOM D", "DEPT. F" 
 		p2: Phrase(synType=="NP", begToken==p1.endToken)
 	then
 		ut.print("Find Serial_NP: " + p1 + ", " + p2);
 		Link r = new Link("hasSerial", p2.getHead(), p1.getHead());
 		Phrase ph = new Phrase(p1, p2, r, 2);
+		insert(ph);
+		ut.printPhrase(ph);
+end
+
+rule "OrgCo_,_CoTypeSuffix"
+	when
+		p1: Phrase(synType=="NP", head.isKindOf("OrgCoParty"))
+		p0: Phrase(synType!=null, text==",", begToken==p1.endToken);
+		p2: Phrase(synType=="ORGSUFFIX", head.isKindOf("CoTypeSuffix"), begToken==p0.endToken)
+	then
+		ut.print("OrgCo_,_CoTypeSuffix: " + p1 + ", " + p2);
+		Link r = new Link("hasSuffix", p1.getHead(), p2.getHead());
+		Phrase ph = new Phrase(p1, p0, p2, r, 1);
+		insert(ph);
+		ut.printPhrase(ph);
+end
+
+rule "OrgCo_,_CoType"
+	when
+		p1: Phrase(synType=="NP", head.isKindOf("OrgCoParty"))
+		p0: Phrase(synType!=null, text==",", begToken==p1.endToken);
+		p2: Phrase(synType=="NP", head.isKindOf("CoType"), begToken==p0.endToken
+			, lk1: graph.containLink("define", null, head), lk1!=null,lk1.arg1.isKindOf("UsState")
+			, lk2: graph.containLink("hasDET", head, null), lk2!=null,lk2.arg2.isKindOf("A")
+			)
+	then
+		ut.print("OrgCo_,_CoType: " + p1 + ", " + p2);
+		Link r = new Link("hasOrgType", p1.getHead(), p2.getHead());
+		Phrase ph = new Phrase(p1, p0, p2, r, 1);
 		insert(ph);
 		ut.printPhrase(ph);
 end
@@ -393,19 +423,6 @@ rule "NP_AND_NP"	//no opposition filed, and, good cause shown
 		String name = p1.getHead().getName().replaceAll("\\s+", "") + "_AND_" + p3.getHead().getName().replaceAll("\\s+", "");
 		Phrase ph = p1.addToSet(p2, p3, name, true);
 		if(ph != null){
-/*
-			Entity h1 = p1.getHead().getTheClass();
-			Entity h2 = p3.getHead().getTheClass();
-			Entity h3 = h1;
-			if(h1.isKindOf(h2)){
-				h3 = h2;
-			} else if(h2.isKindOf(h1)){
-				h3 = h1;
-			} else if(h1.isKindOf("Document") && h2.isKindOf("Document")){
-				h3 = onto.getEntity("Document");
-			}  
-			ph.getHead().setTheClass(h3);
-*/
 			insert(ph);
 			ut.printPhrase(ph);
 		}
@@ -521,6 +538,25 @@ rule "NP_ModifiedBy_VP" // NOTICE requesting Clerk to remove Tara C. Stuart as c
 		ut.printPhrase(ph);
 end
 
+rule "NP_VP_past" // "motion filed", not as "NP_Modified_VP", but as inverted order VP, To be further combine in "order judgment entered"
+	when
+		p1: Phrase(synType=="NP")
+		p2: Phrase(synType=="VP", begToken==p1.endToken, tense=="past", 
+				graph.containLink("ugoerOfProc", null, head)==null,	
+				graph.containLink("hasAttribute", head, onto.getEntity("StatusPassive"))==null	 // avoid "answer" + "be filed", that's "NP_VP_Passive"
+			)
+ 		Link(type=="ugoerOfProc", p1.head.isKindOf(arg1), p2.head.isKindOf(arg2))
+	then
+		ut.print("Find NP_VP_past: " + p1 + ", " + p2 );
+		Link r = new Link("ugoerOfProc", p1.getHead(), p2.getHead());
+		Phrase ph = new Phrase(p1, p2, r, 2);
+		Link r1 = new Link("invertedOrder", p2.getHead(), p1.getHead());
+		ph.getGraph().addLink(r1);
+		insert(ph);
+		ut.printPhrase(ph);
+end
+
+
 rule "Process_ModifiedBy_VP" // RELEASE OF MEDICAL REIMBURSEMENT LIEN FILED BY CLAIMANT CITY AND COUNTY OF SAN FRANCISCO
 	when
 		p1: Phrase(synType=="NP", begToken==0, head.isKindOf("Process"))
@@ -610,10 +646,12 @@ rule "NP_ADVP"
 end
 
 
-rule "NP_VP"
+rule "NP_VP"	// "The court ordered (the following judgment entered)", "Defendant filed ..."
 	when
 		p1: Phrase(synType=="NP")
-		p2: Phrase(synType=="VP", tense=="present", graph.containLink("agentOfProc", null, head)==null, graph.containLink("byAgent", head, null)==null, begToken==p1.endToken)
+		p2: Phrase(synType=="VP", graph.containLink("agentOfProc", null, head)==null
+		 	, graph.containLink("invertedOrder", head, null)==null
+			, graph.containLink("byAgent", head, null)==null, begToken==p1.endToken)
 		Link(type=="agentOfProc", p1.head.isKindOf(arg1), p2.head.isKindOf(arg2))
 	then
 		ut.print("Find NP_VP: " + p1 + ", " + p2 );
@@ -687,10 +725,11 @@ rule "NP_have_been_VP"	// have been is opposite of to be
 		ut.printPhrase(ph);
 end
 
-rule "VP_NP"
+rule "VP_NP"	// "strike answer", "quash subpoena", But not "strike answer and quash subpoena"
 	when
-		p1: Phrase(synType=="VP", lk : graph.topLink, graph.containLink("ugoerOfProc", null, head)==null)
+		p1: Phrase(synType=="VP", lk : graph.topLink, !isSet(), graph.containLink("ugoerOfProc", null, head)==null)
 		p2: Phrase(synType=="NP", graph.containLink("agentOfProc", null, head)==null, 
+					graph.containLink("ugoerOfProc", head, null)==null, 
 					graph.containLink("re", head, null)==null, begToken==p1.endToken)
 		not (
 				eval(p1.getEndToken() - p1.getBegToken() > 3) and
@@ -703,6 +742,12 @@ rule "VP_NP"
 		Phrase ph = new Phrase(p1, p2, r, 1);	// VP
 		insert(ph);
 		ut.printPhrase(ph);
+		if(p1.getTense().equals("past")){
+			Link r1 = new Link("hasAttribute", p2.getHead(), p1.getHead());
+			Phrase ph1 = new Phrase(p1, p2, r, 2);
+			insert(ph1);
+			ut.printPhrase(ph1);
+		}			
 end
 
 rule "NP(VP)_NP"
@@ -791,7 +836,7 @@ rule "NP_VPP"
 end
 */
 
-rule "VP_VP_attachToAgent"
+rule "VP_VP_attachToAgent"	// "John start working"
 	when
 		p1: Phrase(synType=="VP", lk : graph.topLink, subject != null)
 		p2: Phrase(synType=="VP", graph.containLink("agentOfProc", null, head)==null, tense=="ing", begToken==p1.endToken)
@@ -804,7 +849,7 @@ rule "VP_VP_attachToAgent"
 		ut.printPhrase(ph);
 end
 
-rule "VP_VP_attachToVerb"
+rule "VP_VP_attachToVerb"	// "John tasked rule making"
 // if cannot be attached to agent, then to verb
 	salience -200
 	when
@@ -818,6 +863,20 @@ rule "VP_VP_attachToVerb"
 		insert(ph);
 		ut.printPhrase(ph);
 end
+
+rule "VP_object_VPed"	// "THE COURT ORDERED THE FOLLOWING JUDGMENT ENTERED"
+	when
+		p1: Phrase(synType=="VP", graph.containLink("ugoerOfProc", null, head)==null)
+		p2: Phrase(synType=="VP", graph.containLink("ugoerOfProc", null, head)!=null, tense=="past", begToken==p1.endToken)
+		Link(type=="ugoerOfProc", p2.head.isKindOf(arg1), p1.head.isKindOf(arg2))
+	then
+		ut.print("VP_object_VPed: " + p1 + ", " + p2 );
+		Link r = new Link("ugoerOfProc", p2.getHead(), p1.getHead());
+		Phrase ph = new Phrase(p1, p2, r, 1);
+		insert(ph);
+		ut.printPhrase(ph);
+end
+
 
 
 rule "TIMEP_define_NP_not_set"	// Defendants' February 9, 2009 letter
@@ -984,7 +1043,6 @@ rule "NP_'s_as_POS"	// Counterclaim Plaintiff Motorola, Inc.'s
 		insert(ph);
 		ut.printPhrase(ph);
 end
-
 rule "NPs'_as_POS"
 	when
 		p1: Phrase(synType=="NP", text.endsWith("s")||text.endsWith("S"), headLast(), head.isKindOf("IntelAgent"), !graph.containLinkExcept(head, "define", 2, "hasAttribute", 1, "hasMember", 1) )
@@ -998,6 +1056,21 @@ rule "NPs'_as_POS"
 		insert(ph);
 		ut.printPhrase(ph);
 end
+
+rule "NP(s)"	// dependant(s)
+	when
+		p1: Phrase(synType=="NP", graph.topLink==null )
+		p2: Phrase(synType!=null, text.equalsIgnoreCase("(s)"), begToken==p1.endToken);
+	then
+		ut.print("NP(s): " + p1 + ", " + p2 );
+		List<Phrase> pl = new ArrayList<Phrase>();
+		pl.add(p1);
+		pl.add(p2);
+		Phrase ph = new Phrase(pl, "NP", p1.getGraph());
+		insert(ph);
+		ut.printPhrase(ph);
+end
+
 
 rule "NPs_as_POS"
 // this is to accommodate error. Plaintiff's motion => Plaintiffs motion
@@ -1057,8 +1130,7 @@ end
 rule "NP_NUMP"	// "DEPT. 206" "DEPT. A"
 	when
 		p1: Phrase(synType=="NP", head.isKindOf("OrgHierarchy"), graph.topLink == null)
-		p2: Phrase(synType=="NUMP", text.length()<=4, head.isKindOf("NumberValue")||head.isKindOf("SerialValue")
-				, graph.topLink == null, begToken==p1.endToken) 
+		p2: Phrase((synType=="NUMP" && head.isKindOf("NumberValue"))||synType=="LETT", graph.topLink == null, begToken==p1.endToken) 
 	then
 		ut.print("Find NP_NUMP: " + p1 + ", " + p2 );
 		Link r = new Link("numberIdentified", p1.getHead(), p2.getHead());
@@ -1528,9 +1600,10 @@ rule "Collection_OR"//"answer/response"
 	when
 		lk: Link(arg2.name=="CollectionClass", type=="subclassOf");
 		p1: Phrase(synType!=null&&synType!="VP", graph.topLink == null, head.isKindOf(lk.getArg1())); 
-		p2: Phrase(synType !=null, text=="/"||text.equalsIgnoreCase("or"), begToken==p1.endToken)
+		p2: Phrase(synType !=null, text=="/"||head.isKindOf("ConjOr"), begToken==p1.endToken)
 		p3: Phrase(synType!=null&&synType!="VP", synType==p1.getSynType(), begToken==p2.endToken, graph.topLink == null, head.isKindOf(lk.getArg1()))
 		not( exists (Link(this != lk, arg2.name=="CollectionClass", type=="subclassOf", arg1.isKindOf(lk.arg1), p1.head.isKindOf(arg1), p2.head.isKindOf(arg1))))
+		eval(p1.similar(p3))
 	then
 		ut.print("Find collection_OR for:  " + p1 +", "+ p2 +", "+p3 );
 		Phrase ph = p1.addToSet(p2, p3, p1+"_" + p2 +"_"+p3, true);
@@ -2276,19 +2349,7 @@ rule		"remove LexFlag"
 		retract(lf);
 		retract(pc);
 end
-
 /**
-The following rule can cause problems.
-	The rule, Person_Suffix, has a not condition. 
-	the first time Person_Suffix fires, it'll generate a new phrase. This new phrase inhibits Person_Suffix from
-	firing again through the NOT condition. But if the following "remove more phrase" removes the newly generated
-	phrase, Person_Suffix will keep on firing, because, every time removal of the newly created phrase validates
-	the NOT condition again, the Person_Suffix rule gets activated. It should not be that way, but it is, at least
-	for Drools version 5.5.0 final. I changed Person_Suffix rule to avoid the infinite loop for case 2000005108 serial 41.
-	WILLIAM J. O'SHAUGHNESSY, ESQ is in the Attorney field and in the Party field, which Created OrgCoWILLIAMJOSHAUGHNESSYESQ
-	with text "WILLIAM J. O'SHAUGHNESSY, ESQ" that compete successfully with "WILLIAM J. O'SHAUGHNESSY", because the
-	former is longer.
-*/
 rule "remove more phrase"
 	salience 10000
 	when
@@ -2298,7 +2359,7 @@ rule "remove more phrase"
 		ut.print("remove more phrase: " + p1 + "::" + p1.getEntityCount() + " <==> " + p2 + "::" + p2.getEntityCount());
 		retract(p1);
 end
-
+*/
 
 
 query "One Phrase longest sentence"
