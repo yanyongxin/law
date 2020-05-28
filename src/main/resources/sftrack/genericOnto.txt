@@ -1199,3 +1199,4 @@ ProcRelieve	subclassOf	Process
 ProcExam	subclassOf	Process
 ProcSanction	subclassOf	Process
 Human	ugoerOfProc	ProcAssign
+PeremptoryDisqualification	subclassOf	Process

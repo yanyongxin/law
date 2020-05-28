@@ -580,6 +580,7 @@
 {"text":"Post-Markman","type":"ADJP", "entity":"PostMarkman"}
 {"text":"Post\\s*Markman","type":"ADJP", "list":"post", "entity":"PostMarkman"}
 {"text":"Post-Trial","type":"ADJP", "entity":"StatusPosttrial"}
+{"text":"PEREMPTORY\\s*DISQUALIFICATION","type":"NP","list":"PEREMPTORY","entity":"PeremptoryDisqualification"}
 {"text":"Preclude","type":"VP","tense":"present","entity":"ProcPreclude"}
 {"text":"Preliminary","type":"ADJP", "entity":"StatusPreliminary"}
 {"text":"Preliminary(-|\\s*)Injunction","type":"NP", "list":"Preliminary Preliminary-Injunction", "entity":"PreliminaryInjunction"}
