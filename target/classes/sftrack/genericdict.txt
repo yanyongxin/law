@@ -1,5 +1,5 @@
 {"text":"a","type":"DET", "entity":"A"}
-//{"text":"A|B|C|D|E|F|G|H", "type":"NUMP", "list":"A B C D E F G H", "entity":"LetterCode", "comment":"DEPT. A"}
+{"text":"ABATE", "type":"VP", "tense":"present", "entity":"ProcAbate"}
 {"text":"above-captioned","type":"ADJP", "entity":"StatusAboveCaptioned"}
 {"text":"access","type":"NP", "entity":"ProcAccess"}
 {"text":"ACKNOWLEDGMENT","type":"NP", "entity":"ProcAcknowledge"}
@@ -204,6 +204,7 @@
 {"text":"Cover\\s*letter","type":"NP", "list":"cover","entity":"CoverLetter"}
 {"text":"Create","type":"VP", "tense":"present","entity":"ProcCreate"}
 {"text":"Credit\\s*Card","type":"NP","list":"credit","entity":"CreditCard"}
+{"text":"Cross-Complaint","type":"NP","entity":"DocLegalCrossComplaint"}
 {"text":"Cross\\s*Complaint","type":"NP","list":"cross","entity":"DocLegalCrossComplaint"}
 {"text":"Cross\\s*Defendant","type":"NP","list":"cross","entity":"RoleLegalCrossDefendant"}
 {"text":"CT\\s*Corp\\.?","type":"NP","list":"CT","entity":"OrgCoCTCorp"}
@@ -437,6 +438,7 @@
 {"text":"law\\s*and\\s*motion\\,?\\s*(DEPT\\.\\s)?\\d+","type":"NP", "list":"law", "entity":"MotionHearing"}
 {"text":"law\\s*firm","type":"NP", "list":"law", "entity":"Lawfirm"}
 {"text":"lead","type":"ADJP","entity":"StatusLead"}
+{"text":"leave","type":"NP","entity":"ProcLeave"}
 {"text":"left","type":"VP","tense":"past","entity":"ProcLeave"}
 {"text":"letter","type":"NP","entity":"DocLetter"}
 {"text":"LGE","type":"NP","entity":"OrgCoLGElectronicsUSA"}

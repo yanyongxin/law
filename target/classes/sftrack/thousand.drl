@@ -766,6 +766,29 @@ rule "VP_NP"	// "strike answer", "quash subpoena", But not "strike answer and qu
 		}			
 end
 
+
+rule "VP_set_NP"	// "dismiss or abate action"
+	when
+		p1: Phrase(synType=="VP", lk : graph.topLink, isSet()
+			, graph.containLink("ugoerOfProc", null, head)==null
+			, lks1: graph.containLinkKindList("hasMember", head, null)
+			, lks1 != null)
+		p2: Phrase(synType=="NP", graph.containLink("agentOfProc", null, head)==null, 
+					graph.containLink("ugoerOfProc", head, null)==null, 
+					graph.containLink("re", head, null)==null, begToken==p1.endToken)
+		not (
+				eval(p1.getEndToken() - p1.getBegToken() > 3) and
+				eval(p1.getGraph().containLinkKind("PRPRelation", p1.getHead(), null))
+			)
+		Link(type=="ugoerOfProc", p2.head.isKindOf(arg1), ((Link)(lks1.get(0))).getArg2().isKindOf(arg2))
+		Link(type=="ugoerOfProc", p2.head.isKindOf(arg1), ((Link)(lks1.get(1))).getArg2().isKindOf(arg2))
+	then
+		ut.print("Find VP_set_NP: " + p1 + ", " + p2 );
+		Link r = new Link("ugoerOfProc", p2.getHead(), p1.getHead());
+		Phrase ph = new Phrase(p1, p2, r, 1);	// VP
+		insert(ph);
+		ut.printPhrase(ph);
+end
 rule "NP(VP)_NP"
 	when
 		p1: Phrase(synType=="NP", lk : graph.topLink, head.isKindOf("Process"), h1:head)
@@ -1643,7 +1666,8 @@ rule "VP_collection"
 		p3: Phrase(synType=="VP", tense==p1.getTense(), graph.topLink == null, begToken==p2.endToken)
 	then
 		ut.print("Find VP_collection for:  " + p1 +", "+ p2 +", "+p3 );
-		Phrase ph = p1.addToSet(p2, p3, p1.getHead().getName(), true);
+		String name = p1.getHead().getName() + "_" + p2.getText() + "_" +p3.getHead().getName();
+		Phrase ph = p1.addToSet(p2, p3, name, true);
 		if(ph != null){
 			insert(ph);
 			ut.printPhrase(ph);

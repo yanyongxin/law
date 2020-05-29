@@ -65,6 +65,7 @@ ProcInfringement	subclassOf	Process
 ProcInspection	subclassOf	Process
 ProcIssueDoc	subclassOf	Process
 ProcLeave	subclassOf	Process
+ProcLeave	subclassOf	PartyAction
 ProcLift	subclassOf	Process
 ProcMail	subclassOf	Process
 ProcMediation	subclassOf	Meeting
@@ -1200,3 +1201,6 @@ ProcExam	subclassOf	Process
 ProcSanction	subclassOf	Process
 Human	ugoerOfProc	ProcAssign
 PeremptoryDisqualification	subclassOf	Process
+ProcAbate	subclassOf	Process
+Human	ugoerOfProc	ProcAssign
+LegalCase	ugoerOfProc	ProcAbate

@@ -340,16 +340,18 @@ public class Link implements Cloneable {
 	 */
 	public boolean matchKind(Ontology onto, String lkname, Entity d1, Entity d2) {
 		if (lkname != null) {
-			Entity cls = onto.getEntity(lkname);
-			if (cls == null) {
-				return false;
-			}
-			Entity clsthis = onto.getEntity(type);
-			if (clsthis == null) {
-				return false;
-			}
-			if (!clsthis.isKindOf(cls)) {
-				return false;
+			if (!type.equals(lkname)) {
+				Entity cls = onto.getEntity(lkname);
+				if (cls == null) {
+					return false;
+				}
+				Entity clsthis = onto.getEntity(type);
+				if (clsthis == null) {
+					return false;
+				}
+				if (!clsthis.isKindOf(cls)) {
+					return false;
+				}
 			}
 		}
 		if (d1 != null) {
