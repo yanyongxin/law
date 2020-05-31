@@ -12,6 +12,7 @@
 //{"text":"administratively","type":"ADVP", "entity":"Administratively"}
 {"text":"ADMISSION","type":"NP", "entity":"ProcAdmission"}
 {"text":"ADMISSIONS","type":"NP", "entity":"ProcAdmission"}
+{"text":"ADMONISHED","type":"VP","tense":"past",  "entity":"ProcAdmonish"}
 {"text":"ADR","type":"NP", "entity":"ProcADR"}
 {"text":"AFFIDAVIT","type":"NP", "entity":"DocLegalAffidavit"}
 {"text":"AFFIDAVITS","type":"NP", "entity":"DocLegalAffidavit"}
@@ -40,6 +41,7 @@
 {"text":"answers","type":"NP", "entity":"DocLegalAnswer"}
 {"text":"answer\\,?\\s*or\\s*otherwise\\s*respond\\s*to", "type":"VP", "tense":"present", "list":"answer", "entity":"ProcMoveAnswerRespond"}
 {"text":"answer\\,?\\s*move\\s*(against)?\\,?\\s*or\\s*otherwise\\s*respond\\s*to", "type":"VP", "tense":"present", "list":"answer", "entity":"ProcMoveAnswerRespond"}
+{"text":"answering\\s*brief","type":"NP", "list":"answering", "entity":"DocLegalAnsweringBrief"}
 {"text":"Appeal","type":"NP", "entity":"ProcAppeal"}
 {"text":"Appeal","type":"NP", "entity":"DocLegalAppeal"}
 {"text":"appellant","type":"NP", "entity":"RoleLegalAppellant"}
@@ -47,14 +49,14 @@
 {"text":"Appendices","type":"NP", "entity":"DocAppendix"}
 {"text":"Appendix","type":"NP", "entity":"DocAppendix"}
 {"text":"Application","type":"NP", "entity":"DocApplication"}
-//{"text":"answering","type":"VP", "tense":"ing", "entity":"ProcAnswer"}
+{"text":"APPROVAL","type":"NP", "entity":"ProcApprove"}
 {"text":"appointing","type":"VP", "tense":"ing", "entity":"ProcAppoint"}
-{"text":"answering\\s*brief","type":"NP", "list":"answering", "entity":"DocLegalAnsweringBrief"}
 {"text":"april","type":"TIMEP","entity":"Month_4"}
 {"text":"arbitrator","type":"NP", "entity":"RoleLegalArbitrator"}
 {"text":"are","type":"VP","tense":"present", "entity":"ProcBe"}
 {"text":"argued","type":"VP","tense":"past","entity":"ProcArgument"}
 {"text":"Argument","type":"NP","entity":"ProcArgument"}
+{"text":"as","type":"CONJ","entity":"Because"}
 {"text":"as","type":"PRP","entity":"as"}
 {"text":"as","type":"ADVP","entity":"StatusAs"}
 {"text":"as\\s*to","type":"PRP","list":"as","entity":"as_to"}
@@ -81,6 +83,7 @@
 {"text":"BANKRUPTCY","type":"NP","entity":"ProcBankruptcy"}
 {"text":"based\\s*(up)?on","type":"PRP","list":"based","entity":"based_on"}  
 {"text":"be","type":"VP", "tense":"present", "entity":"ProcBe"}
+{"text":"because","type":"CONJ","entity":"Because"}
 {"text":"before","type":"PRP","entity":"before"}
 {"text":"behalf","type":"NP", "entity":"Behalf"}
 {"text":"between","type":"PRP","entity":"between"}
@@ -134,9 +137,10 @@
 {"text":"clarification","type":"NP","entity":"ProcClarify"}
 {"text":"clarified","type":"VP","tense":"past","entity":"ProcClarify"}
 {"text":"clarify","type":"VP","tense":"present","entity":"ProcClarify"}
+{"text":"CLASS\\s*ACTION","type":"NP","list":"class","entity":"ClassAction"}
 {"text":"closed","type":"VP","tense":"past","entity":"ProcClose"}
 {"text":"c/o","type":"PRP","list":"c","entity":"through"}
-{"text":"co-counsel","type":"NP", "entity":"Counsel"}
+{"text":"co-counsel","type":"NP", "entity":"Attorney"}
 {"text":"code","type":"NP","entity":"LegalRule"}
 ;{"text":"Code\\s*Of\\s*Civil\\s*Procedure","type":"NP","list":"code", "entity":"CivilProcedure"}
 {"text":"Code\\s*(Of\\s*)?Civ(il|\\.)\\s*Proc(edure|\\.)|C\\.C\\.P\\.","type":"NP","list":"code c", "entity":"CivilProcedure"}
@@ -153,12 +157,13 @@
 {"text":"compel","type":"VP","tense":"present","entity":"ProcCompel"}
 {"text":"compelling","type":"VP","tense":"ing","entity":"ProcCompel"}
 {"text":"complaint","type":"NP", "entity":"DocLegalComplaint"}
+{"text":"compliance","type":"NP", "entity":"ProcComply"}
 {"text":"compliant","type":"NP", "entity":"DocLegalComplaint", "comment":"misspelling"}
 {"text":"Complete","type":"ADJP", "entity":"StatusComplete"}
 {"text":"Complete","type":"VP", "tense":"present","entity":"ProcComplete"}
 {"text":"Completed","type":"VP", "tense":"past","entity":"ProcComplete"}
 {"text":"Completing","type":"VP", "tense":"ing","entity":"ProcComplete"}
-{"text":"Comply\\s*with","type":"VP", "tense":"present","list":"Comply", "entity":"ProcComply"}
+{"text":"Comply","type":"VP", "tense":"present","entity":"ProcComply"}
 {"text":"Conclusions\\s*of\\s*Law","type":"NP","list":"Conclusions", "entity":"ConclusionsOfLaw"}
 {"text":"Condition","type":"NP","entity":"Condition"}
 {"text":"Conference","type":"NP","entity":"Conference"}
@@ -189,7 +194,7 @@
 {"text":"CORRECTING","type":"ADJP", "entity":"ProcCorrect"}
 {"text":"cost","type":"NP", "entity":"CostRef"}
 {"text":"costs","type":"NP", "entity":"CostRef"}
-{"text":"Counsel","type":"NP", "entity":"Counsel"}
+{"text":"Counsel","type":"NP", "entity":"Attorney"}
 {"text":"COUNTERCLAIM","type":"NP", "entity":"DocLegalCounterclaim"}
 {"text":"COUNTERCLAIMANTS","type":"NP", "entity":"RoleCounterclaimant"}
 {"text":"Counterclaim-Plaintiff","type":"NP", "entity":"RoleCounterclaimant"}
@@ -222,6 +227,7 @@
 {"text":"d/?b/?a","type":"PRP", "list":"d dba", "entity":"doBusinessAs"}
 {"text":"Deadline","type":"NP","entity":"Deadline"}
 {"text":"Deadlines","type":"NP","entity":"Deadline"}
+{"text":"DECEASED","type":"ADJP","entity":"StatusDeceased"}
 {"text":"December","type":"TIMEP","entity":"Month_12"}
 {"text":"DECLARATION","type":"NP","entity":"DocLegalDeclaration"}
 {"text":"Declaratory\\s*Judgment","type":"NP","list":"Declaratory", "entity":"DeclaratoryJudgment"}
@@ -229,6 +235,7 @@
 {"text":"Default\\s*Judgment","type":"NP","list":"Default", "entity":"DefaultJudgment"}
 {"text":"defendant","type":"NP","entity":"RoleLegalDefendant"}
 {"text":"defendants","type":"NP","entity":"RoleLegalDefendant"}
+{"text":"Defense","type":"NP","entity":"ProcDefense"}
 {"text":"Defenses","type":"NP","entity":"DocDefense"}
 {"text":"DELAWARE","type":"NP","entity":"StateDelaware"}
 {"text":"deleted","type":"VP","tense":"past","entity":"ProcDelete"}
@@ -602,6 +609,7 @@
 {"text":"Protective","type":"ADJP", "entity":"StatusProtective"}
 {"text":"Protocol","type":"NP", "entity":"Protocol"}
 {"text":"provide","type":"VP","tense":"present","entity":"ProcProvide"}
+{"text":"providing","type":"VP","tense":"ing","entity":"ProcProvide"}
 {"text":"Public","type":"ADJP", "entity":"StatusPublic"}
 {"text":"purchased","type":"VP","tense":"past","entity":"ProcPurchase"}
 {"text":"purpose","type":"NP", "entity":"Purpose"}
@@ -718,6 +726,7 @@
 {"text":"shown","type":"VP", "tense":"past", "entity":"ProcShow"}
 {"text":"sign","type":"VP", "tense":"present", "entity":"ProcSignDoc"}
 {"text":"signed","type":"VP", "tense":"past", "entity":"ProcSignDoc"}
+{"text":"since","type":"CONJ","entity":"Because"}
 {"text":"sixth","type":"ADJP","entity":"Sixth"}
 {"text":"sometime","type":"TIMEP","entity":"Sometime"}
 {"text":"SO(\\s*|-)ORDERED","type":"NP","list":"so so-ordered","entity":"DocLegalOrder"}
@@ -765,6 +774,7 @@
 {"text":"sur-?reply\\s*brief","type":"NP", "list":"surreply sur-reply", "entity":"DocLegalSurreplyBrief"}
 {"text":"sur-?sur-?reply","type":"NP", "list":"sur-surreply sur-sur-reply", "entity":"SurSurreply"}
 {"text":"take","type":"VP", "tense":"present", "entity":"ProcTake"}
+{"text":"taken","type":"VP", "tense":"past", "entity":"ProcTake", "comment":"tense is past perfect"}
 {"text":"Teleconference","type":"NP", "entity":"Teleconference"}
 {"text":"Telephone","type":"NP", "entity":"Telephone"}
 {"text":"terminal","type":"NP", "entity":"Terminal"}

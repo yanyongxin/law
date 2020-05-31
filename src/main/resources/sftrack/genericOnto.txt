@@ -443,7 +443,6 @@ Commissioner	subclassOf	HumanType
 CommissionerPatentTrademark	subclassOf	HumanType
 Judge	subclassOf	HumanType
 Attorney	subclassOf	HumanType
-Counsel	subclassOf	HumanType
 HumanType	subclassOf	Human
 LegalJurisdiction	subclassOf	Domain
 Copyright	subclassOf	IPEntity
@@ -658,7 +657,7 @@ Lawfirm	define	NameRef
 OrgCo	ugoerOfProc	ProcChange
 ProcChange	toPreposition	OrgCo
 DocExhibit	subclassOf	Document
-Deposition	ugoerOfProc	ProcTake
+Document	ugoerOfProc	ProcTake
 Deposition	ugoerOfProc	ProcBegin
 MoneyRef	ugoerOfProc	ProcDeposite
 TimeRef	for	IntelAgent
@@ -1204,3 +1203,19 @@ PeremptoryDisqualification	subclassOf	Process
 ProcAbate	subclassOf	Process
 Human	ugoerOfProc	ProcAssign
 LegalCase	ugoerOfProc	ProcAbate
+ProcDefense	subclassOf	Process
+ProcDefense	define	Attorney
+ProcAdmonish	subclassOf	Process
+IntelAgent	ugoerOfProc	ProcAdmonish
+IntelAgent	agentOfProc	ProcAdmonish
+CopyRef	ugoerOfProc	ProcProvide
+ProcAdmonish	for	Process
+Document	ugoerOfProc	ProcVacate
+StatusDeceased	subclassOf	StatusProc
+Because	subclassOf	Thing
+ProcTake	under	ProcSubmit
+ProcComply	ugoerOfProc	ProcCompel
+ProcComply	with	LegalDecision
+ClassAction	define	Settlement
+ProcApprove	subclassOf	Process
+ProcApprove	ugoerOfProc	ProcDisposition

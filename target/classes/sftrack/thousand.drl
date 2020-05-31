@@ -444,7 +444,7 @@ rule "NP_AND_NP"	//no opposition filed, and, good cause shown
 		}
 end
 
-rule "NP_VP_Passive"
+rule "NP_VP_Passive"	// judgment be vacated
 	when
 		p1: Phrase(synType=="NP")
 		p2: Phrase(synType=="VP", begToken==p1.endToken, graph.containLink("hasAttribute", head, onto.getEntity("StatusPassive")) !=null, 
@@ -453,7 +453,7 @@ rule "NP_VP_Passive"
 	then
 		ut.print("Find NP_VP_Passive: " + p1 + ", " + p2 );
 		Link r = new Link("ugoerOfProc", p1.getHead(), p2.getHead());
-		Phrase ph = new Phrase(p1, p2, r, 1);
+		Phrase ph = new Phrase(p1, p2, r, 2);
 		ph.setSubject(p1);
 		insert(ph);
 		ut.printPhrase(ph);
@@ -667,6 +667,7 @@ rule "NP_VP"	// "The court ordered (the following judgment entered)", "Defendant
 		p1: Phrase(synType=="NP")
 		p2: Phrase(synType=="VP", graph.containLink("agentOfProc", null, head)==null
 		 	, graph.containLink("invertedOrder", head, null)==null
+		 	, graph.containLink("hasAttribute", head, "StatusPassive")==null
 			, graph.containLink("byAgent", head, null)==null, begToken==p1.endToken)
 		Link(type=="agentOfProc", p1.head.isKindOf(arg1), p2.head.isKindOf(arg2))
 	then
@@ -805,6 +806,26 @@ rule "NP(VP)_NP"
 end
 
 
+rule "VP_because_VP"	//DEFENSE COUNSEL REQUEST JUDGMENT BE VACATED AS PLAINTIFF IS DECEASED. 
+	when
+		p1: Phrase(synType=="VP"
+			, graph.containLink("agentOfProc", null, head)!=null
+			, graph.containLink("ugoerOfProc", null, head)!=null
+			)
+		p2: Phrase(synType=="CONJ", head.isKindOf("Because"), begToken==p1.endToken)
+		p3: Phrase(synType=="VP"
+			, graph.containLink("agentOfProc", null, head)!=null
+			, graph.containLink("ugoerOfProc", null, head)!=null
+			, begToken==p2.endToken)
+	then
+		ut.print("VP_because_VP :  " + p1 +", "+ p2 +", "+p3 );
+		Link r = new Link("becauseOf", p1.getHead(), p3.getHead());
+		Phrase ph = new Phrase(p1, p2, p3, r, 2);
+		ph.setSynType("CAUSEP");
+		insert(ph);
+		ut.printPhrase(ph);
+end
+
 rule "VP_AND_VP"	//COMPLY WITH SFLR 2.7B AND PROVIDE COURTESY COPIES OF THE MOTION
 	salience 100
 	when
@@ -904,10 +925,11 @@ rule "VP_VP_attachToVerb"	// "John tasked rule making"
 end
 
 rule "VP_object_VPed"	// "THE COURT ORDERED THE FOLLOWING JUDGMENT ENTERED"
+//DEFENSE COUNSEL REQUEST JUDGMENT BE VACATED
 	when
 		p1: Phrase(synType=="VP", graph.containLink("ugoerOfProc", null, head)==null)
 		p2: Phrase(synType=="VP", graph.containLink("ugoerOfProc", null, head)!=null, tense=="past", begToken==p1.endToken)
-		Link(type=="ugoerOfProc", p2.head.isKindOf(arg1), p1.head.isKindOf(arg2))
+		Link(type=="ugoerOfProc", p2.head.isKindOf(arg1), p1.head.isKindOf(arg2))//Process	ugoerOfProc	ProcRequest
 	then
 		ut.print("VP_object_VPed: " + p1 + ", " + p2 );
 		Link r = new Link("ugoerOfProc", p2.getHead(), p1.getHead());
@@ -1182,7 +1204,7 @@ rule "NP_NUMP"	// "DEPT. 206" "DEPT. A"
 		ut.printPhrase(ph);
 end
 	
-rule "NP_PRP_headLast"
+rule "NP_PRP_headLast"//COMPLIANCE WITH PROTECTIVE ORDER
 	when
 		//"DISMISSAL OF COMPLAINT WITH PREJUDICE" will not work because of "headLast()" 
 		p1: Phrase(synType=="NP", lk : graph.topLink, g1 : graph, headLast(), lk1 : graph.containLink("hasMember", head, null)
