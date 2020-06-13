@@ -29,54 +29,66 @@ import legal.Entry;
 import legal.Entry.DePhrase;
 import legal.Entry.Section;
 import legal.ExtractEntities;
-import sftrack.Ontology.Srunner;
+import legal.ExtractEntities.Attorney;
+import legal.ExtractEntities.CaseAttorneys;
+import legal.ExtractEntities.CaseParties;
+import legal.Party;
+import sftrack.LegaLanguage.Srunner;
 import utils.Pair;
 
 public class SFcomplex {
-	static Ontology onto;
+	static LegaLanguage onto;
 	static final int TOP_N = 3;
+	static final String rulesFile = "sftrack/docketParse.drl";
+	static final String triplesFile = "src/main/resources/sftrack/triples.txt";
+	static final String lexiconFile = "src/main/resources/sftrack/lexicon.txt";
 	static String[] entityResources = { "C:\\data\\191023\\dockets\\judgeparty/ca_sfc_party.txt",
 			"C:\\data\\191023\\dockets\\judgeparty/ca_sfc_judge.txt",
 			"C:\\data\\191023\\dockets\\judgeparty/ca_sfc_attorney.txt",
 			"C:\\data\\191023\\dockets/testline.txt" };
 
-	public static void main(String[] args) throws IOException {
-		System.out.println("Initialization ...");
+	private static LegaLanguage initializeRuleEngine() {
 		try {
-			System.out.println("Loading KieServices: ");
+			//Loading KieServices:
 			KieServices ks = KieServices.Factory.get();
-			System.out.println("Creating KieFileSystem: ");
+			//Creating KieFileSystem:
 			KieFileSystem kfs = ks.newKieFileSystem();
-			System.out.println("Loading genome/thousand.drl: ");
-			Resource dd = ResourceFactory.newClassPathResource("sftrack/thousand.drl");
-			System.out.println("kfs.write sftrack/thousand.drl: ");
-			kfs.write("src/main/resources/sftrack/thousand.drl", dd);
+			//Loading rules file: docketParse.drl:
+			Resource dd = ResourceFactory.newClassPathResource(rulesFile);
+			kfs.write("src/main/resources/sftrack/docketParse.drl", dd);
 			KieBuilder kbuilder = ks.newKieBuilder(kfs);
 			kbuilder.buildAll();
 			KieContainer kcontainer = ks.newKieContainer(kbuilder.getKieModule().getReleaseId());
 			KieBaseConfiguration kbConfig = KieServices.Factory.get().newKieBaseConfiguration();
 			kbConfig.setOption(ConstraintJittingThresholdOption.get(-1));
 			KieBase kbase = kcontainer.newKieBase(kbConfig);
-			Ontology.LoadWorld("src/main/resources/sftrack/genericOnto.txt", "src/main/resources/sftrack/genericdict.txt");
-			onto = Ontology.createOntology(kbase);
+			onto = LegaLanguage.create(kbase, triplesFile, lexiconFile);
 		} catch (Exception ex) {
 			fail("Knowledge Base loading error!");
 		}
-		//		String testText = "Complaint against Comcast with jury demand by General Electric Company";
-		//		String test1 = "MOTION TO STRIKE COMPLAINT FILED BY DEFENDANT HYUNDAI MOTOR AMERICA HEARING SET FOR JUL-18-2017 AT 02:00 PM IN DEPT 302";
-		//		String test2 = "MEMORANDUM OF POINTS AND AUTHORITIES AND DEMURRER TO FIRST AMENDED COMPLAINT FILED BY DEFENDANT HYUNDAI MOTOR AMERICA";
+		return onto;
+	}
+
+	public static void main(String[] args) throws IOException {
+		System.out.println("Initialization ...");
+		onto = SFcomplex.initializeRuleEngine();
 		ExtractEntities exE = new ExtractEntities(entityResources);
 		int caseCount = 0;
 		for (Case cs : exE.cases) {
 			caseCount++;
 			//			if (caseCount < 2)
 			//				continue;
-			//			System.out.println("\n================ " + cs.getID() + " ==================\n");
-			//			CaseParties cp = exE.parties.get(cs.getID());
-			//			List<Party> parties = cp.getParties();
-			//			for (Party pt : parties) {
-			//				System.out.println(pt);
-			//			}
+			System.out.println("\n================ " + cs.getID() + " ==================\n");
+			CaseParties cp = exE.parties.get(cs.getID());
+			List<Party> parties = cp.getParties();
+			for (Party pt : parties) {
+				System.out.println(pt);
+			}
+			CaseAttorneys ats = exE.attorneys.get(cs.getID());
+			List<Attorney> attorneys = ats.getAttorneys();
+			for (Attorney at : attorneys) {
+				System.out.println(at.toNamePattern());
+			}
 			for (Entry e : cs.entries) {
 				if (e.text.startsWith("Payment")) {
 					continue;
@@ -161,6 +173,9 @@ public class SFcomplex {
 					ph.setGraph(e3);
 				} else if (dp.entity instanceof legal.ExtractEntities.Reporter) {
 					Entity e3 = new Entity(ph.getText(), onto.getEntity("Reporter"), Entity.TYPE_INSTANCE, onto, ph.getBegToken());
+					ph.setGraph(e3);
+				} else if (dp.entity instanceof legal.ExtractEntities.SFCaseNumber) {
+					Entity e3 = new Entity(ph.getText(), onto.getEntity("SFCaseNumber"), Entity.TYPE_INSTANCE, onto, ph.getBegToken());
 					ph.setGraph(e3);
 				}
 			} else {

@@ -43,7 +43,7 @@ public class Entry implements Comparable<Entry> {
 	public String text;
 	public String raw;
 	String sdate;
-	Date date;
+	public Date date;
 	String filer;
 	String type;
 	String transactionID;
@@ -55,7 +55,7 @@ public class Entry implements Comparable<Entry> {
 
 	public Entry(String _d, String _t) {
 		raw = _t;
-		text = _t.replaceAll("\\(TRANSA.+?\\)", "").replaceAll("\\(Fee.+?\\)", "").replaceAll("\\(SEALED.+?\\)", "");
+		text = _t.replaceAll("\\(TRANSA.+?\\)", "").replaceAll("\\(Fee.+?\\)", "").replaceAll("\\(SEALED.+?\\)", "").replaceAll("\\(SLAPP\\)", "");
 		text = text.replaceAll("\\\"", "");
 		//(TRANSACTION ID # 60057326)(Fee:$900.00)(SEALED DOCUMENT)
 		sdate = _d;

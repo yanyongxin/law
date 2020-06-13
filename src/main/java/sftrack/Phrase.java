@@ -6,7 +6,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import sftrack.Ontology.Srunner;
+import sftrack.LegaLanguage.Srunner;
 
 public class Phrase implements Cloneable {
 	private static final Logger log = LoggerFactory.getLogger(Phrase.class);
@@ -437,7 +437,7 @@ public class Phrase implements Cloneable {
 		endToken = p4.getEndToken();
 	}
 
-	public Ontology getOnto() {
+	public LegaLanguage getOnto() {
 		return graph.onto;
 	}
 
@@ -805,7 +805,7 @@ public class Phrase implements Cloneable {
 
 	public List<Phrase> joinParse(int joinPoint, List<Phrase> pl) {
 		// Krunner krun = Krunner.getRunner();
-		Ontology onto = null;
+		LegaLanguage onto = null;
 		for (Phrase p : pl) {
 			Entity eh = p.getHead();
 			if (eh.onto != null) {
@@ -863,7 +863,7 @@ public class Phrase implements Cloneable {
 	 * @return the successfully joined phrase.
 	 */
 	public List<Phrase> joinParse(Phrase p1) {
-		Ontology onto = null;
+		LegaLanguage onto = null;
 
 		Entity eh = getHead();
 		if (eh.onto != null) {
@@ -977,6 +977,10 @@ public class Phrase implements Cloneable {
 			return true;
 		if (h1.isKindOf("IntelAgent") && h2.isKindOf("IntelAgent"))
 			return true;
+		if (h1.isKindOf("SerialValue") && h2.isKindOf("SerialValue"))
+			return true;
+		if (h1.isKindOf("StatusProc") && h2.isKindOf("StatusProc"))
+			return true;
 		Entity cls1 = h1.getTheClass();
 		if (h2.isKindOf(cls1)) {
 			return true;
@@ -1040,7 +1044,7 @@ public class Phrase implements Cloneable {
 		ERGraph gp = p.getGraph();
 		ERGraph gt = this.getGraph();
 		Entity hd = gt.getHead();
-		Ontology onto = hd.onto;
+		LegaLanguage onto = hd.onto;
 		String setType = "AND";
 		if (p0 != null) {
 			if (p0.text.equals("/") || p0.text.equalsIgnoreCase("or")) {
@@ -1120,7 +1124,7 @@ public class Phrase implements Cloneable {
 		ERGraph gp = p.getGraph();
 		ERGraph gt = this.getGraph();
 		Entity hd = gt.getHead();
-		Ontology onto = hd.onto;
+		LegaLanguage onto = hd.onto;
 
 		String setType = "AND";
 		if (p0.text.equals("/") || p0.text.equalsIgnoreCase("or")) {

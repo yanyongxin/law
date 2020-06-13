@@ -426,7 +426,7 @@ rule "NP_AND_NP"	//no opposition filed, and, good cause shown
 			,graph.containLink("ugoerOfProc", head, null) ==null
 			,!head.isKindOf("LitigationParty")// for Party_,_party
 			)
-		p2: Phrase(text==","||text.equalsIgnoreCase("and")||text.equalsIgnoreCase(", and"), synType!=null, begToken==p1.endToken)
+		p2: Phrase(text==","||text.equalsIgnoreCase("and")||text=="&"||text.equalsIgnoreCase(", and"), synType!=null, begToken==p1.endToken)
 		p3: Phrase(synType=="NP", begToken==p2.endToken
 			,graph.containLink("hasOwner", head, null) ==null
 			,graph.containLink("define", null, head) ==null
@@ -436,6 +436,23 @@ rule "NP_AND_NP"	//no opposition filed, and, good cause shown
 		eval(p1.similar(p3))
 	then
 		ut.print("Find NP_AND_NP for:  " + p1 +", "+ p2 +", "+p3 );
+		String name = p1.getHead().getName().replaceAll("\\s+", "") + "_AND_" + p3.getHead().getName().replaceAll("\\s+", "");
+		Phrase ph = p1.addToSet(p2, p3, name, true);
+		if(ph != null){
+			insert(ph);
+			ut.printPhrase(ph);
+		}
+end
+
+rule "ADJP_AND_ADJP"	//THE FIRST AND SECOND CAUSES OF ACTION
+	salience 100
+	when
+		p1: Phrase(synType=="ADJP")
+		p2: Phrase(text==","||text.equalsIgnoreCase("and")||text.equalsIgnoreCase(", and"), synType!=null, begToken==p1.endToken)
+		p3: Phrase(synType=="ADJP", begToken==p2.endToken)
+		eval(p1.similar(p3))
+	then
+		ut.print("ADJP_AND_ADJP for:  " + p1 +", "+ p2 +", "+p3 );
 		String name = p1.getHead().getName().replaceAll("\\s+", "") + "_AND_" + p3.getHead().getName().replaceAll("\\s+", "");
 		Phrase ph = p1.addToSet(p2, p3, name, true);
 		if(ph != null){
@@ -652,11 +669,11 @@ end
 rule "NP_ADVP"
 	when
 		p1: Phrase(synType=="NP", !graph.containLinkNot("hasAttribute", p1.getHead(), null))
-		p2: Phrase(synType=="ADVP", text.equalsIgnoreCase("only"), begToken==p1.endToken)
+		p2: Phrase(synType=="ADVP", text.equalsIgnoreCase("only")||text.equalsIgnoreCase("duces tecum"), begToken==p1.endToken)
 	then
 		ut.print("Find NP_ADVP: " + p1 + ", " + p2 );
 		Link r = new Link("hasAttribute", p1.getHead(), p2.getHead());
-		Phrase ph = new Phrase(p1, p2, r, 2);
+		Phrase ph = new Phrase(p1, p2, r, 1);
 		insert(ph);
 		ut.printPhrase(ph);
 end
@@ -1094,11 +1111,23 @@ rule "Comma_And"
 		insert(ph);
 		ut.printPhrase(ph);
 end
+ 
+rule "Comma_PRP"
+	when
+		p1: Phrase(synType=="SYMBOL", text==";"|| text==",");
+		p2: Phrase(synType=="PRP", lk:graph.topLink, graph.topLink != null, begToken==p1.endToken);
+	then
+		ut.print("Find Comma_PRP: " + p1 + ", " + p2 );
+		Phrase ph = new Phrase(p1, p2, (Link)null, 2);
+		ph.getGraph().setTopLink(lk);	
+		insert(ph);
+		ut.printPhrase(ph);
+end
 
 rule "NP_'s_as_POS"	// Counterclaim Plaintiff Motorola, Inc.'s
 	when
 		p1: Phrase(synType=="NP", leafPhraseCount() < 8, !graph.containRelatedLinkExcept(head, "define hasAttribute hasMember", "2 1 1") )
-		p2: Phrase(synType=="POS_SYMBOL", begToken==p1.endToken);
+		p2: Phrase(synType=="POS_SYMBOL"||((synType=="LETT") && text.equalsIgnoreCase("s")), begToken==p1.endToken);
 	then
 		ut.print("Find NP_'s_as_POS: " + p1 + ", " + p2 );
 		List<Phrase> pl = new ArrayList<Phrase>();
@@ -2045,13 +2074,18 @@ rule "SerialClass_NumberValue"	// Number 788,200, Rule 16.2b Scheduling Teleconf
 		Phrase ph = new Phrase(p1, p2, r, 1);
 		insert(ph);
 		ut.printPhrase(ph);	
-/**
-		r = new Link("define", p1.getHead(), p2.getHead());
-		ph = new Phrase(p1, p2, r, 2);
-		ph.setSynType("NUMREF");
+end
+
+rule "NumberValue_SerialClass"	// 170.6 C.C.P.
+	when
+		p1: Phrase(synType == "NUMP"||synType == "LETT")
+		p2: Phrase(synType == "NP", head.isKindOf("SerialClass"), graph.links==null, begToken==p1.endToken);
+	then
+		ut.print("NumberValue_SerialClass: " + p1 + ", " + p2 );
+		Link r = new Link("hasValue", p2.getHead(), p1.getHead());
+		Phrase ph = new Phrase(p1, p2, r, 2);
 		insert(ph);
 		ut.printPhrase(ph);	
-*/
 end
 
 rule "SerialClass_SerialClass_NumberValue"	// CODE OF CIVIL PROCEDURE, SECTION 2031.285(D)(1).

@@ -94,7 +94,7 @@ public class Link implements Cloneable {
 		return type;
 	}
 
-	public static Entity getClassEntities(String s, Ontology onto) throws Exception {
+	public static Entity getClassEntities(String s, LegaLanguage onto) throws Exception {
 		Entity ent = onto.getEntity(s);
 		if (ent == null) {
 			throw new LexEntityNotFoundException(s);
@@ -104,7 +104,7 @@ public class Link implements Cloneable {
 		return ent;
 	}
 
-	public Link(String n, String s1, String s2, Ontology onto) throws Exception {
+	public Link(String n, String s1, String s2, LegaLanguage onto) throws Exception {
 		type = n;
 		e1 = getClassEntities(s1, onto);
 		e2 = getClassEntities(s2, onto);
@@ -283,7 +283,7 @@ public class Link implements Cloneable {
 	 * @return
 	 */
 	public boolean matchKind(String lkname, Entity d1, Entity d2) {
-		Ontology onto;
+		LegaLanguage onto;
 		if (d1 != null) {
 			onto = d1.onto;
 		} else if (d2 != null) {
@@ -338,7 +338,7 @@ public class Link implements Cloneable {
 	 * @param d2
 	 * @return
 	 */
-	public boolean matchKind(Ontology onto, String lkname, Entity d1, Entity d2) {
+	public boolean matchKind(LegaLanguage onto, String lkname, Entity d1, Entity d2) {
 		if (lkname != null) {
 			if (!type.equals(lkname)) {
 				Entity cls = onto.getEntity(lkname);

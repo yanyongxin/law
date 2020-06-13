@@ -269,7 +269,7 @@ public class DocketEntry {
 	List<List<Analysis>> best;
 	List<DocketEntry> dlist;
 	CaseData casedata;
-	Ontology onto;
+	LegaLanguage onto;
 
 	@SuppressWarnings("unchecked")
 	public JSONObject toJSONObject() {
@@ -390,7 +390,7 @@ public class DocketEntry {
 		casedata = cd;
 	}
 
-	public void setOnto(Ontology ot) {
+	public void setOnto(LegaLanguage ot) {
 		onto = ot;
 	}
 

@@ -23,7 +23,7 @@ import org.kie.api.runtime.KieContainer;
 import org.kie.internal.conf.ConstraintJittingThresholdOption;
 import org.kie.internal.io.ResourceFactory;
 
-import sftrack.Ontology.Srunner;
+import sftrack.LegaLanguage.Srunner;
 
 /**
  * Simplest program to invoke parser.
@@ -32,7 +32,7 @@ import sftrack.Ontology.Srunner;
  *
  */
 public class SFsimple {
-	static Ontology onto;
+	static LegaLanguage onto;
 	static final int TOP_N = 3;
 
 	public static void main(String[] args) throws IOException {
@@ -52,8 +52,8 @@ public class SFsimple {
 			KieBaseConfiguration kbConfig = KieServices.Factory.get().newKieBaseConfiguration();
 			kbConfig.setOption(ConstraintJittingThresholdOption.get(-1));
 			KieBase kbase = kcontainer.newKieBase(kbConfig);
-			Ontology.LoadWorld("src/main/resources/sftrack/genericOnto.txt", "src/main/resources/sftrack/genericdict.txt");
-			onto = Ontology.createOntology(kbase);
+			LegaLanguage.LoadWorld("src/main/resources/sftrack/genericOnto.txt", "src/main/resources/sftrack/genericdict.txt");
+			onto = LegaLanguage.create(kbase);
 		} catch (Exception ex) {
 			fail("Knowledge Base loading error!");
 		}

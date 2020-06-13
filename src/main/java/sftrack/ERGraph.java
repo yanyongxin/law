@@ -24,7 +24,7 @@ public class ERGraph implements Cloneable {
 	Link topLink;
 	// List<ERGraph> members = null;
 	String setType = null; // AND, OR, RANGE (5 - 9, March through August), MIXED
-	Ontology onto = null; // saved here for convenient access
+	LegaLanguage onto = null; // saved here for convenient access
 	static Pattern ptCaseNum = Pattern.compile("-(\\d{2,5})-", Pattern.CASE_INSENSITIVE);
 
 	@Override
@@ -443,7 +443,7 @@ public class ERGraph implements Cloneable {
 		return headEntity;
 	}
 
-	public Ontology getOnto() {
+	public LegaLanguage getOnto() {
 		return onto;
 	}
 

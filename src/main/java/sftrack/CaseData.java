@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import sftrack.DocketEntry.DockRef;
-import sftrack.Ontology.Srunner;
+import sftrack.LegaLanguage.Srunner;
 
 public class CaseData {
 	private static final Logger log = LoggerFactory.getLogger(CaseData.class);
@@ -35,7 +35,7 @@ public class CaseData {
 	//	int testDESerial = -1;
 	CaseMeta meta;
 	List<DocketEntry> delist;
-	Ontology onto;
+	LegaLanguage onto;
 	List<String> firmnamelist = new ArrayList<String>();
 	List<String> partynamelist = new ArrayList<String>();
 	List<Attorney> attorneys = new ArrayList<Attorney>();
@@ -486,7 +486,7 @@ public class CaseData {
 	}
 
 	public void createCaseOntology(KieBase kbs) throws Exception {
-		onto = Ontology.createOntology(kbs);
+		onto = LegaLanguage.create(kbs);
 
 		loadCaseData(meta.getID(), attorneys, parties, judges, lawfirms);
 		onto.setCaseData(this);

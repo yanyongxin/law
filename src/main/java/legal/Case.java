@@ -43,7 +43,7 @@ public class Case {
 	List<Link> glk = new ArrayList<>();
 	List<PartyCluster> clusters = new ArrayList<>();
 	List<PersonName> judges = new ArrayList<>();
-	Date lastDate; // date of the last entry;
+	public Date lastDate; // date of the last entry;
 
 	public String getID() {
 		return id;

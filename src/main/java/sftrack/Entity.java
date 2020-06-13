@@ -18,7 +18,7 @@ public class Entity implements Cloneable {
 	Entity theClass; // if this is an instance, or an homogeneous set, then the
 	List<Entity> classes;
 	// class of this instance. If this is a class, then null.
-	Ontology onto; // the global unique ontology, saved for convenient access
+	LegaLanguage onto; // the global unique ontology, saved for convenient access
 
 	public void setPosition(int pos) {
 		position = pos;
@@ -87,7 +87,7 @@ public class Entity implements Cloneable {
 	 * 
 	 * @param clsName
 	 */
-	public Entity(String clsName, Ontology ot) {
+	public Entity(String clsName, LegaLanguage ot) {
 		name = clsName;
 		id = globalIDSource.getAndIncrement();
 		if (!clsName.equals("EmptyClass")) {
@@ -97,7 +97,7 @@ public class Entity implements Cloneable {
 		}
 	}
 
-	public Entity(String name, Entity cls, int type, Ontology ot, int pos) {
+	public Entity(String name, Entity cls, int type, LegaLanguage ot, int pos) {
 		this.name = name;
 		id = globalIDSource.getAndIncrement();
 		theClass = cls;

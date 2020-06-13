@@ -48,7 +48,7 @@ public class DictPhrase {
 		return text;
 	}
 
-	public DictPhrase(String txt, String type, String ts, String ent, Ontology onto) throws Exception {
+	public DictPhrase(String txt, String type, String ts, String ent, LegaLanguage onto) throws Exception {
 		text = txt;
 		synType = type;
 		tense = ts;
@@ -60,7 +60,7 @@ public class DictPhrase {
 		// tklist = LexToken.tokenize(txt);
 	}
 
-	public DictPhrase(String txt, String type, String ts, String ent, String listUnder, Ontology onto) throws Exception {
+	public DictPhrase(String txt, String type, String ts, String ent, String listUnder, LegaLanguage onto) throws Exception {
 		text = txt;
 		regex = Pattern.compile(txt, Pattern.CASE_INSENSITIVE);
 		synType = type;

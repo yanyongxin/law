@@ -13,16 +13,16 @@ public class Party {
 	static final List<String> states = new ArrayList<>();
 
 	static final Pattern pCorp = Pattern.compile("\\b(INC|CORP(ORATION)?|CO|LTD|LP|FUND|LOAN|LLC|CENTER|LLP|PC|PLC|BANK|SYSTEM)\\b|\\b(N\\.A\\.|P\\.C\\.|L\\.P\\.)", Pattern.CASE_INSENSITIVE);
-	static final Pattern pCorpSuffix = Pattern.compile("\\b(INC|CORP|CO|LTD|LP|FSB|LLC|LLP|PC|PLC|NA)\\b|\\b(N\\.A\\.|P\\.C\\.|L\\.P\\.)", Pattern.CASE_INSENSITIVE);
+	static final Pattern pCorpSuffix = Pattern.compile("\\b(INC|CORP|CO|LTD|LP|FSB|LLC|LLP|PC|PLC|NA)\\b|\\b(N\\.\\s?A\\b\\.?|P\\.\\s?C\\b\\.?|L\\.\\s?P\\b\\.?)", Pattern.CASE_INSENSITIVE);
 	static final Pattern pCorpAttach = Pattern.compile("\\bA (CALIFORNIA|DELAWARE|NEW YORK|BUSINESS|TRUST|SOLE PROPRIETORSHIP)|\\bAN ENTITY", Pattern.CASE_INSENSITIVE);
 	static final Pattern pGov = Pattern.compile("\\b(CITY|COUNTY|STATE)\\b", Pattern.CASE_INSENSITIVE);
 	static final Pattern pOrg = Pattern.compile("\\b(AND|OF|THE|CALIFORNIA)\\b", Pattern.CASE_INSENSITIVE);
 	static final Pattern pDoe = Pattern.compile("^(DOE|MOE|ROE|ZOE)S?|\\d+\\s*THROUGH|\\bINCLUSIVE\\b", Pattern.CASE_INSENSITIVE);
 	static final Pattern pNum = Pattern.compile("\\s\\d+\\s");
 	static final Pattern pBrackets = Pattern.compile("\\(.+?\\)");
-	static final Pattern pErrSued = Pattern.compile("(ERRONEOUSLY\\s)?SUED\\s(\\w+ )*AS", Pattern.CASE_INSENSITIVE);
+	static final Pattern pErrSued = Pattern.compile("(ERRONEOUSLY\\s)?(NAM|SU)ED\\s(\\w+ )*AS", Pattern.CASE_INSENSITIVE);
 	static final Pattern pIndividual = Pattern.compile("(\\bAS )?AN INDIVIDUAL\\b|INDIVIDUALLY", Pattern.CASE_INSENSITIVE);
-	static final Pattern pIndividually = Pattern.compile("(\\bAS )?AN INDIVIDUAL\\b|INDIVIDUALLY", Pattern.CASE_INSENSITIVE);
+	//	static final Pattern pIndividually = Pattern.compile("(\\bAS )?AN INDIVIDUAL\\b|INDIVIDUALLY", Pattern.CASE_INSENSITIVE);
 	static final Pattern pMinor = Pattern.compile("\\bA MINOR\\b", Pattern.CASE_INSENSITIVE);
 	static final Pattern pOnBehalfOf = Pattern.compile("( AND )?ON BEHALF OF\\b", Pattern.CASE_INSENSITIVE);
 	static final Pattern pTrustee = Pattern.compile("TRUSTEE OF\\b", Pattern.CASE_INSENSITIVE);
@@ -301,8 +301,8 @@ public class Party {
 		if (_name.startsWith("$")) {//$884.00 U.S. CURRENCY
 			return null;// total 12 instances in SF party data
 		}
-		//		if (_name.startsWith("MERCY HOUSING")) {
-		//			System.out.println("MERCY HOUSING");
+		//		if (_name.startsWith("PLANT CONSTRUCTION COMPANY")) {
+		//			System.out.println("PLANT CONSTRUCTION COMPANY");
 		//		}
 		//		create a Party first, then modify its contents.
 		Party party = new Party(raw, _name, role);
@@ -342,7 +342,7 @@ public class Party {
 		if (splitCO.length > 1) {
 			_name = splitCO[0];
 		}
-		String[] splitdba = _name.split("(AND|ALSO)?\\s((A|F)?D/?B/?A/?|DOING BUSINESS AS)");
+		String[] splitdba = _name.split("(AND|ALSO|NOW)?\\s((A|F)?D(/|\\.)?B(/|\\.)?A(/|\\.)?|DOING BUSINESS AS|FORMERLY KNOWN AS|KNOWN AS)");
 		if (splitdba.length > 1) {//"TAYLOR, GEORGE DBA MASTER ROOTER PLUMBING", "WESTLAKE SERVICES, LLC DBA WESTLAKE FINANCIAL SERVICES"
 			_name = splitdba[0].trim();
 			party.setName(_name);
@@ -351,20 +351,18 @@ public class Party {
 			}
 		}
 		m = pCorp.matcher(_name);
-		if (m.find()) {
-			CorpName on = new CorpName(_name);// "COSTCO WHOLESALE CORPORATION","SEPHORA USA, INC.", "LC BUSINESS SYSTEMS CORP"
-			party.setName(_name);
-			party.setCorp(on);
-			party.setType(TYPE_CORPORATION);
-			return party;
+		if (!m.find()) {
+			m = pCorpAttach.matcher(_name);
 		}
-		m = pCorpAttach.matcher(_name);
-		if (m.find()) {
-			CorpName on = new CorpName(_name);
-			party.setName(_name);
-			party.setCorp(on);
-			party.setType(TYPE_CORPORATION);
-			return party;
+		if (m.find(0)) {
+			Matcher mm = pIndividual.matcher(_name);
+			if (!(mm.find() && mm.start() < m.start())) {
+				CorpName on = new CorpName(_name);// "COSTCO WHOLESALE CORPORATION","SEPHORA USA, INC.", "LC BUSINESS SYSTEMS CORP"
+				party.setName(_name);
+				party.setCorp(on);
+				party.setType(TYPE_CORPORATION);
+				return party;
+			}
 		}
 		m = pGov.matcher(_name);
 		if (m.find()) {//CITY AND COUNTY SAN FRANCISCO TAX COLLECTOR
@@ -394,7 +392,7 @@ public class Party {
 			}
 			//			return party;
 		}
-		m = pTrustee.matcher(_name);
+		m = pTrustee.matcher(_name);//RITTER, KARYN TRUSTEE OF THE RITTER LITTLEFIELD LIVING TRUST
 		if (m.find()) {
 			_name = _name.substring(0, m.start()).trim();
 		}
@@ -439,7 +437,7 @@ public class Party {
 			sb.append(rw + "\n");
 		}
 		if (namePerson != null) {
-			sb.append("\t==>IND:" + namePerson.completeCanonicalName());
+			sb.append("\t==>IND:" + namePerson.completeCanonicalName() + " pattern: " + namePerson.getPattern().toString());
 			if (namePerson.akas != null) {
 				for (String a : namePerson.akas) {
 					sb.append("\n\tAKA: " + a);
@@ -474,6 +472,7 @@ public class Party {
 		String stem; // Citiank
 		String name;
 		String attachment; // A MUNICIPAL CORPORATION, A NEW YORK CORPORATION, AS TRUSTEE OF THE XIAO ZHENG FAMILY LIVING TRUST, AS ASSIGNEE OF CITIBANK, N.A
+		Pattern pattern;
 
 		public CorpName(String _name) {
 			name = _name.replaceAll("^\\W+|\\W+$", "").trim();
@@ -481,9 +480,46 @@ public class Party {
 			Matcher m2 = pCorpAttach.matcher(_name);
 			if (m2.find()) {
 				stem = name.substring(0, m2.start()).trim();
-				attachment = m2.group().trim();
+				attachment = name.substring(m2.start()).trim();
 			}
 			decompose(stem);
+			buildPattern();
+		}
+
+		private void buildPattern() {
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < stem.length(); i++) {
+				char c = stem.charAt(i);
+				if (Character.isAlphabetic(c) || Character.isDigit(c)) {
+					sb.append(c);
+				} else if (Character.isSpaceChar(c)) {
+					sb.append("\\s*");
+				} else if (c == '.') {
+					sb.append("\\.?");
+				} else {
+					sb.append("\\" + c);
+				}
+			}
+			//			sb.append(stem.replaceAll("\\s+", "\\\\s*"));
+			if (types != null && types.size() > 0) {
+				sb.append("\\,?\\s{0,2}(");
+				for (int i = 0; i < types.size(); i++) {
+					String tp = types.get(i);
+					String rtp = tp.replaceAll("\\.\\s*", "\\\\.?\\\\s*");
+					if (i > 0) {
+						sb.append("|");
+					}
+					if (rtp.endsWith("\\s*")) {
+						rtp = rtp.substring(0, rtp.length() - "\\s*".length());
+					} else {
+						rtp += "\\.?";
+					}
+					sb.append(rtp);
+				}
+				sb.append(")?");
+			}
+			String reg = sb.toString();
+			pattern = Pattern.compile(reg, Pattern.CASE_INSENSITIVE);
 		}
 
 		public boolean equals(Object o) {
@@ -500,9 +536,30 @@ public class Party {
 		private void decompose(String _name) {
 			String[] split = _name.split("\\,");
 			stem = split[0].trim();
+			//			if (split.length > 2) {
+			//				System.out.println(_name);
+			//			}
 			if (split.length > 1) {
-				for (int i = 1; i < split.length; i++) {
+				for (int i = 1; i < split.length - 1; i++) {
 					types.add(split[i].trim());
+				}
+				String s = split[split.length - 1].trim();
+				Matcher m = pCorpSuffix.matcher(s);
+				if (m.find()) {
+					String sufx = m.group();
+					types.add(sufx);
+					String remain = s.substring(m.end()).trim();
+					if (remain.length() > 0 && remain.charAt(0) == '.') {
+						sufx = sufx + ".";
+						remain = remain.substring(1).trim();
+					}
+					String rr = remain.replaceAll("^\\W+|\\W+$", "").trim();
+					if (rr.length() > 1) {
+						this.attachment = remain + " " + attachment;
+						attachment = attachment.trim();
+					}
+				} else {
+					this.attachment = s;
 				}
 			} else {
 				split = _name.split("\\s+");
@@ -521,6 +578,7 @@ public class Party {
 			for (String s : types) {
 				sb.append(" " + s);
 			}
+			sb.append(" pattern: " + this.pattern.toString());
 			return sb.toString();
 		}
 	}
