@@ -1,0 +1,82 @@
+Description:
+
+1. KeepUseful.java
+
+	Eliminate columns not used. Keep only 3: case_id, docket_date, docket_entry
+
+		args: sf_docket_file simplified_file
+	
+	Example:
+		
+		C:/data/ca_sfc_docket.tsv C:/dockets/simple.tsv
+	
+	
+2. ExtractCaseDocketsWithMotion.java
+
+	Create a file with only cases having Motion, Demurrer, Ex Parte Application. That is filter away those don't have motion
+
+		args: simplified_file  motion_file  no_motion_file
+
+	Example command line arguments:
+
+		C:/dockets/simple.tsv  C:/dockets/motions_1.tsv  C:/dockets/noMotions_1.tsv
+		
+	Upon completion, the program will print to the console total number of cases and number of cases with motion
+	
+	Example:
+		Total Case Count: 6153, Motion Case Count: 468
+	
+	
+3. OrgCases.java
+
+	Top-level program process case dockets. Generates files with motion tracking and docket entry tagging.
+	
+	command line args: motion_file output_path outputfileSuffix
+	
+	Example:
+		C:/dockets/motions_1.txt C:/dockets/track/c 30
+
+		Output:
+			==========================================================================
+			2020/02/10 17:55:51
+			Track Files:
+				C:\dockets/motions_3.txt
+				C:\dockets\track/cm_30.txt
+				C:\dockets\track/ca_30.txt
+				C:\dockets\track/cd_30.txt
+				C:\dockets\track/cmu_30.txt
+				C:\dockets\track/cau_30.txt
+				C:\dockets\track/cdu_30.txt
+				C:\dockets\track/ch_30.txt
+				C:\dockets\track/cor_30.txt
+				C:\dockets\track/cop_30.txt
+				C:\dockets\track/cre_30.txt
+			CountGrouped: 0, duplicates: 0
+			Motion Tracked: 414
+			Application Tracked: 117
+			Demurrer Tracked: 86
+			Motion Not Tracked: 114
+			Application Not Tracked: 422
+			Demurrer Not Tracked: 39
+			Motion In Limine: 201
+			Hearing Not Used: 504
+			Order Not Used: 1220
+			Oppositions Not Used: 164
+			Reply Not Used: 119
+			==========================================================================
+			
+			Tag File:
+				C:\dockets\cases\track/c_tag_30.txt			Done!
+
+		The content of these files can be found from the variable names in the code.
+	
+	Program flow:
+	(1) read data from file, create "Case" objects
+	(2) parse every docket entry, tag each in the process.
+	(3) collect 5 lists: motion, hearing, order, opposition, reply
+	(4) identify transaction groups (docket entries having identical Transaction ID)
+	(5) trackMotionSequences: for every motion in the motionlist, find all the hearings, orders, oppositions, and replies:
+	(6) write out to files
+	
+
+	
