@@ -24,20 +24,20 @@ import org.kie.api.runtime.KieContainer;
 import org.kie.internal.conf.ConstraintJittingThresholdOption;
 import org.kie.internal.io.ResourceFactory;
 
-import legal.Case;
+import legal.LegalCase;
 import legal.Entry;
 import legal.Entry.DePhrase;
 import legal.Entry.Section;
-import legal.ExtractEntities;
-import legal.ExtractEntities.Attorney;
-import legal.ExtractEntities.CaseAttorneys;
-import legal.ExtractEntities.CaseParties;
+import legal.LoadEntitiesAndCaseDockets;
+import legal.LoadEntitiesAndCaseDockets.Attorney;
+import legal.LoadEntitiesAndCaseDockets.CaseAttorneys;
+import legal.LoadEntitiesAndCaseDockets.CaseParties;
 import legal.Party;
 import sftrack.LegaLanguage.Srunner;
 import utils.Pair;
 
 public class SFcomplex {
-	static LegaLanguage onto;
+	static LegaLanguage legalang;
 	static final int TOP_N = 3;
 	static final String rulesFile = "sftrack/docketParse.drl";
 	static final String triplesFile = "src/main/resources/sftrack/triples.txt";
@@ -62,19 +62,19 @@ public class SFcomplex {
 			KieBaseConfiguration kbConfig = KieServices.Factory.get().newKieBaseConfiguration();
 			kbConfig.setOption(ConstraintJittingThresholdOption.get(-1));
 			KieBase kbase = kcontainer.newKieBase(kbConfig);
-			onto = LegaLanguage.create(kbase, triplesFile, lexiconFile);
+			legalang = LegaLanguage.create(kbase, triplesFile, lexiconFile);
 		} catch (Exception ex) {
 			fail("Knowledge Base loading error!");
 		}
-		return onto;
+		return legalang;
 	}
 
 	public static void main(String[] args) throws IOException {
 		System.out.println("Initialization ...");
-		onto = SFcomplex.initializeRuleEngine();
-		ExtractEntities exE = new ExtractEntities(entityResources);
+		legalang = SFcomplex.initializeRuleEngine();
+		LoadEntitiesAndCaseDockets exE = new LoadEntitiesAndCaseDockets(entityResources);
 		int caseCount = 0;
-		for (Case cs : exE.cases) {
+		for (LegalCase cs : exE.cases) {
 			caseCount++;
 			//			if (caseCount < 2)
 			//				continue;
@@ -99,7 +99,7 @@ public class SFcomplex {
 						continue;
 					try {
 						//					Entity.resetSerial();
-						Srunner srun = onto.createSrunner(true);
+						Srunner srun = legalang.createSrunner(true);
 						List<Phrase> phlist = generatePhraseList(sec);
 						srun.insertList(phlist);
 						srun.execute();
@@ -151,31 +151,31 @@ public class SFcomplex {
 				if (dp.entity instanceof legal.Party) {
 					legal.Party party = (legal.Party) dp.entity;
 					if (party.type == legal.Party.TYPE_INDIVIDUAL || party.type == legal.Party.TYPE_MINOR) {
-						Entity e3 = new Entity(ph.getText(), onto.getEntity("IndividualParty"), Entity.TYPE_INSTANCE, onto, ph.getBegToken());
+						Entity e3 = new Entity(ph.getText(), legalang.getEntity("IndividualParty"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 						ph.setGraph(e3);
 					} else if (party.type == legal.Party.TYPE_DOESROESMOES) {
-						Entity e3 = new Entity(ph.getText(), onto.getEntity("GenericParty"), Entity.TYPE_INSTANCE, onto, ph.getBegToken());
+						Entity e3 = new Entity(ph.getText(), legalang.getEntity("GenericParty"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 						ph.setGraph(e3);
 					} else {
-						Entity e3 = new Entity(ph.getText(), onto.getEntity("OrgCoParty"), Entity.TYPE_INSTANCE, onto, ph.getBegToken());
+						Entity e3 = new Entity(ph.getText(), legalang.getEntity("OrgCoParty"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 						ph.setGraph(e3);
 					}
-				} else if (dp.entity instanceof legal.ExtractEntities.Attorney) {
+				} else if (dp.entity instanceof legal.LoadEntitiesAndCaseDockets.Attorney) {
 					//					legal.ExtractEntities.Attorney attorney = (legal.ExtractEntities.Attorney)p.entity;
-					Entity e3 = new Entity(ph.getText(), onto.getEntity("Attorney"), Entity.TYPE_INSTANCE, onto, ph.getBegToken());
+					Entity e3 = new Entity(ph.getText(), legalang.getEntity("Attorney"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 					ph.setGraph(e3);
-				} else if (dp.entity instanceof legal.ExtractEntities.Judge) {
+				} else if (dp.entity instanceof legal.LoadEntitiesAndCaseDockets.Judge) {
 					//					legal.ExtractEntities.Judge judge = (legal.ExtractEntities.Judge)p.entity;
-					Entity e3 = new Entity(ph.getText(), onto.getEntity("Judge"), Entity.TYPE_INSTANCE, onto, ph.getBegToken());
+					Entity e3 = new Entity(ph.getText(), legalang.getEntity("Judge"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 					ph.setGraph(e3);
-				} else if (dp.entity instanceof legal.ExtractEntities.Clerk) {
-					Entity e3 = new Entity(ph.getText(), onto.getEntity("Clerk"), Entity.TYPE_INSTANCE, onto, ph.getBegToken());
+				} else if (dp.entity instanceof legal.LoadEntitiesAndCaseDockets.Clerk) {
+					Entity e3 = new Entity(ph.getText(), legalang.getEntity("Clerk"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 					ph.setGraph(e3);
-				} else if (dp.entity instanceof legal.ExtractEntities.Reporter) {
-					Entity e3 = new Entity(ph.getText(), onto.getEntity("Reporter"), Entity.TYPE_INSTANCE, onto, ph.getBegToken());
+				} else if (dp.entity instanceof legal.LoadEntitiesAndCaseDockets.Reporter) {
+					Entity e3 = new Entity(ph.getText(), legalang.getEntity("Reporter"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 					ph.setGraph(e3);
-				} else if (dp.entity instanceof legal.ExtractEntities.SFCaseNumber) {
-					Entity e3 = new Entity(ph.getText(), onto.getEntity("SFCaseNumber"), Entity.TYPE_INSTANCE, onto, ph.getBegToken());
+				} else if (dp.entity instanceof legal.LoadEntitiesAndCaseDockets.SFCaseNumber) {
+					Entity e3 = new Entity(ph.getText(), legalang.getEntity("SFCaseNumber"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 					ph.setGraph(e3);
 				}
 			} else {
@@ -190,8 +190,8 @@ public class SFcomplex {
 					Phrase ph = new Phrase(tk.text.toLowerCase(), j, j + 1, tokens);
 					if (tk.type == LexToken.LEX_SERIALNUMBER) {
 						ph.setSynType("NUMP");
-						Entity cls = onto.getEntity("SerialValue");
-						Entity e = new Entity(tk.text.toLowerCase(), cls, Entity.TYPE_INSTANCE, onto, j);
+						Entity cls = legalang.getEntity("SerialValue");
+						Entity e = new Entity(tk.text.toLowerCase(), cls, Entity.TYPE_INSTANCE, legalang, j);
 						ph.setGraph(e);
 					}
 					phlist.add(ph);

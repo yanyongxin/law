@@ -4,10 +4,10 @@ package sftrack;
 import java.util.ArrayList;
 import java.util.List;
 import sftrack.CaseData.LitiParty;
-import sftrack.Ontology;
+import sftrack.LegaLanguage;
 //declare any global variables here
 global LtUtil ut;
-global Ontology onto;
+global LegaLanguage onto;
 
 rule "dicklook"
 	when
