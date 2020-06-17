@@ -15,8 +15,6 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.print.attribute.standard.MediaSize.Other;
-
 import common.Role;
 import utils.Pair;
 
@@ -27,12 +25,11 @@ public class Case {
 	static int MAX_ALLOWED_DAYS_WITH_GD = 4;
 	static int MAX_ALLOWED_DAYS_NO_GD = 14;
 
-	Map<String, List<Entry>> mdamap = new TreeMap<>();
-	Map<String, List<Entry>> transactions = new TreeMap<>();
-	public List<Entry> entries = new ArrayList<>();
-	List<List<Entry>> daily; // entries of the same day
+	Map<String, List<SFMotionEntry>> mdamap = new TreeMap<>();
+	Map<String, List<SFMotionEntry>> transactions = new TreeMap<>();
+	public List<SFMotionEntry> entries = new ArrayList<>();
+	List<List<SFMotionEntry>> daily; // entries of the same day
 	//	List<ComplaintPetition> claims; // Claims: Complaint, counter-claims, amended complaint,
-	List<Other> others; // others, that cannot organized into anything
 	List<MotionEntry> motionlist = new ArrayList<>();
 	List<HearingEntry> hrlist = new ArrayList<>();
 	List<OrderEntry> orlist = new ArrayList<>();
@@ -46,7 +43,7 @@ public class Case {
 	List<OppositionEntry> opsToMiFromDefendant; // Oppositions to plaintiff's motion in limine from defendant
 	List<OppositionEntry> opsToMiFromPlaintiff; // Oppositions to defendant's motion in limine from plaintiff
 	List<OppositionEntry> opsToMiFromUnknown; // Oppositions to motion in limine from unknown party roles
-	List<Entry> otherMilist; // declarations, proof of services, from both parties lumped together
+	List<SFMotionEntry> otherMilist; // declarations, proof of services, from both parties lumped together
 
 	String casetype; // PERSONAL INJURY/PROPERTY DAMAGE - VEHICLE RELATED
 	String caseSubtype; // VEHICLE RELATED
@@ -70,13 +67,13 @@ public class Case {
 		BufferedReader br = new BufferedReader(new FileReader(infile));
 		String line;
 		String caseID = null;
-		List<Entry> entries = new ArrayList<>();
+		List<SFMotionEntry> entries = new ArrayList<>();
 		while ((line = br.readLine()) != null) {
 			String[] items = line.split("\\t");
 			if (caseID == null) {
 				caseID = items[0];
 			}
-			Entry en = new Entry(items[1], items[2]);
+			SFMotionEntry en = new SFMotionEntry(items[1], items[2]);
 			entries.add(en);
 		}
 		br.close();
@@ -116,12 +113,12 @@ public class Case {
 		return e;
 	}
 
-	public Case(String _id, List<Entry> _es) {
+	public Case(String _id, List<SFMotionEntry> _es) {
 		id = _id;
 		entries = _es;
 	}
 
-	public void addEntry(Entry _e) {
+	public void addEntry(SFMotionEntry _e) {
 		entries.add(_e);
 	}
 
@@ -149,7 +146,7 @@ public class Case {
 	}
 
 	public void generateLists() {
-		for (Entry e : entries) {
+		for (SFMotionEntry e : entries) {
 			if (e instanceof MotionEntry) {
 				addMotion((MotionEntry) e);
 			} else if (e instanceof HearingEntry) {
@@ -179,12 +176,12 @@ public class Case {
 			MotionEntry ms = motionlist.get(i);
 			String tid = ms.transactionID;
 			if (tid != null) {
-				List<Entry> list = transactions.get(tid);
+				List<SFMotionEntry> list = transactions.get(tid);
 				if (list != null) {
-					for (Entry e : list) {
+					for (SFMotionEntry e : list) {
 						if (e.type == null) {
 							motionlist.remove(e);
-						} else if (ms != e && e.type.equals(Entry.MOTION)) {
+						} else if (ms != e && e.type.equals(SFMotionEntry.MOTION)) {
 							MotionEntry me = (MotionEntry) e;
 							if (me.subtype == ms.subtype) {
 								// need to remove one, remove the one does not have hearing date:
@@ -212,11 +209,11 @@ public class Case {
 	int removeDuplicateMotions1() {
 		int count = 0;
 		for (String tid : transactions.keySet()) {
-			List<Entry> list = transactions.get(tid);
+			List<SFMotionEntry> list = transactions.get(tid);
 			List<MotionEntry> mlist = new ArrayList<>();
-			for (Entry e : list) {
+			for (SFMotionEntry e : list) {
 				boolean be = false;
-				if (e.type != null && e.type.equals(Entry.MOTION)) {
+				if (e.type != null && e.type.equals(SFMotionEntry.MOTION)) {
 					MotionEntry me = (MotionEntry) e;
 					for (int i = 0; i < mlist.size(); i++) {
 						MotionEntry ms = mlist.get(i);
@@ -240,8 +237,8 @@ public class Case {
 					}
 				}
 			}
-			for (Entry e : list) {
-				if (e.type == null || !e.type.equals(Entry.MOTION)) {
+			for (SFMotionEntry e : list) {
+				if (e.type == null || !e.type.equals(SFMotionEntry.MOTION)) {
 					if (mlist.size() == 1) {
 						MotionEntry ms = mlist.get(0);
 						ms.addToGroup(e);
@@ -269,10 +266,10 @@ public class Case {
 			//			}
 			String tid = ms.transactionID;
 			if (tid != null) {
-				List<Entry> list = transactions.get(tid);
+				List<SFMotionEntry> list = transactions.get(tid);
 				if (list != null) {
 					count += list.size() - 1;// -1 to not including ms itself
-					for (Entry e : list) {
+					for (SFMotionEntry e : list) {
 						entries.remove(e);
 					}
 				}
@@ -281,10 +278,10 @@ public class Case {
 		for (OppositionEntry ms : oppositions) {
 			String tid = ms.transactionID;
 			if (tid != null) {
-				List<Entry> list = transactions.get(tid);
+				List<SFMotionEntry> list = transactions.get(tid);
 				if (list != null) {
 					count += list.size() - 1;// -1 to not including ms itself
-					for (Entry e : list) {
+					for (SFMotionEntry e : list) {
 						entries.remove(e);
 					}
 				}
@@ -293,10 +290,10 @@ public class Case {
 		for (OrderEntry ms : orlist) {
 			String tid = ms.transactionID;
 			if (tid != null) {
-				List<Entry> list = transactions.get(tid);
+				List<SFMotionEntry> list = transactions.get(tid);
 				if (list != null) {
 					count += list.size() - 1;// -1 to not including ms itself
-					for (Entry e : list) {
+					for (SFMotionEntry e : list) {
 						entries.remove(e);
 					}
 				}
@@ -305,10 +302,10 @@ public class Case {
 		for (HearingEntry ms : hrlist) {
 			String tid = ms.transactionID;
 			if (tid != null) {
-				List<Entry> list = transactions.get(tid);
+				List<SFMotionEntry> list = transactions.get(tid);
 				if (list != null) {
 					count += list.size() - 1;// -1 to not including ms itself
-					for (Entry e : list) {
+					for (SFMotionEntry e : list) {
 						entries.remove(e);
 					}
 				}
@@ -317,10 +314,10 @@ public class Case {
 		for (ReplyEntry ms : replies) {
 			String tid = ms.transactionID;
 			if (tid != null) {
-				List<Entry> list = transactions.get(tid);
+				List<SFMotionEntry> list = transactions.get(tid);
 				if (list != null) {
 					count += list.size() - 1;// -1 to not including ms itself
-					for (Entry e : list) {
+					for (SFMotionEntry e : list) {
 						entries.remove(e);
 					}
 				}
@@ -414,7 +411,7 @@ public class Case {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(id + "\n");
-		for (Entry e : entries) {
+		for (SFMotionEntry e : entries) {
 			sb.append(e.toPrintString("\t", 1, 2, 3, 4) + "\n");
 		}
 		return sb.toString();
@@ -436,7 +433,7 @@ public class Case {
 	}
 
 	public void analyze() throws IOException {
-		Entry e = entries.get(0);
+		SFMotionEntry e = entries.get(0);
 		//		complaint = new Complaint(id + "\t" + e.sdate + "\t" + e.text);
 
 		complaint = new ComplaintEntry(e.sdate, e.text);
@@ -490,7 +487,7 @@ public class Case {
 		}
 	}
 
-	public List<Entry> getEntries() {
+	public List<SFMotionEntry> getEntries() {
 		return entries;
 	}
 
@@ -1090,11 +1087,11 @@ public class Case {
 	}
 
 	public void findTransactions() {
-		for (Entry e : entries) {
+		for (SFMotionEntry e : entries) {
 			Matcher mm = ptransactionID.matcher(e.text);
 			if (mm.find()) {
 				String transactionID = mm.group(1);
-				List<Entry> list = transactions.get(transactionID);
+				List<SFMotionEntry> list = transactions.get(transactionID);
 				if (list == null) {
 					list = new ArrayList<>();
 					transactions.put(transactionID, list);

@@ -8,53 +8,53 @@ import java.util.regex.Pattern;
 
 import common.Role;
 
-public class Entry implements Comparable<Entry> {
-	static final String ANSWER = "ANSW";
-	static final String ARBITRATE = "ARBT";
-	static final String CASE_MANAGEMENT_CONFERENCE = "CMGC";
-	static final String CASE_MANAGEMENT_STATEMENT = "CMGS";
-	static final String COMPLAINT = "CPLT";
-	static final String COMPLAINTAC = "CPLTAC";
-	static final String NOTICEOFTRIAL = "NTRL";
-	static final String DECLARATION = "DECL";
-	static final String DEMURRER = "DMRR";
-	static final String DISMISSAL = "DMSL";
-	static final String HEARING = "HRNG";
-	static final String OBJECTION = "OBJN";
-	static final String JUDGMENT = "JGMT";
-	static final String MEMORANDUM = "MMRDM";
-	static final String MIMUTES = "MNTS";
-	static final String MOTION = "MOTN";
-	static final String NOTICE_OF_MOTION = "NMTN";
-	static final String OPPOSITION = "OPPS";
-	static final String ORDER = "ORDR";
-	static final String USELESS = "USLS";
-	static final String PROOFOFSERVICE = "POSV";
-	static final String REPLY = "RPLY";
-	static final String SETTLED = "STTL"; // settlement
-	static final String SETTLECONFERENCE = "STCF"; // settlement conference
-	static final String SUMMONS = "SMMS";
-	static final String TRIAL = "TRAL";
+public class SFMotionEntry implements Comparable<SFMotionEntry> {
+	public static final String ANSWER = "ANSW";
+	public static final String ARBITRATE = "ARBT";
+	public static final String CASE_MANAGEMENT_CONFERENCE = "CMGC";
+	public static final String CASE_MANAGEMENT_STATEMENT = "CMGS";
+	public static final String COMPLAINT = "CPLT";
+	public static final String COMPLAINTAC = "CPLTAC";
+	public static final String NOTICEOFTRIAL = "NTRL";
+	public static final String DECLARATION = "DECL";
+	public static final String DEMURRER = "DMRR";
+	public static final String DISMISSAL = "DMSL";
+	public static final String HEARING = "HRNG";
+	public static final String OBJECTION = "OBJN";
+	public static final String JUDGMENT = "JGMT";
+	public static final String MEMORANDUM = "MMRDM";
+	public static final String MIMUTES = "MNTS";
+	public static final String MOTION = "MOTN";
+	public static final String NOTICE_OF_MOTION = "NMTN";
+	public static final String OPPOSITION = "OPPS";
+	public static final String ORDER = "ORDR";
+	public static final String USELESS = "USLS";
+	public static final String PROOFOFSERVICE = "POSV";
+	public static final String REPLY = "RPLY";
+	public static final String SETTLED = "STTL"; // settlement
+	public static final String SETTLECONFERENCE = "STCF"; // settlement conference
+	public static final String SUMMONS = "SMMS";
+	public static final String TRIAL = "TRAL";
 
 	public String text;
-	String sdate;
+	public String sdate;
 	public Date date;
-	String filer;
-	Role role; // plaintiff, defendant, petitioner, respondant, cross-defendant, cross-complainant, INTERVENOR, court, other or unknown
-	String type;
-	String transactionID;
-	Map<String, Object> items;
+	public String filer;
+	public Role role; // plaintiff, defendant, petitioner, respondant, cross-defendant, cross-complainant, INTERVENOR, court, other or unknown
+	public String type;
+	public String transactionID;
+	public Map<String, Object> items;
 	// COMPLAINT:CPL; SUMMONS:SMS; MOTION:MTN; OPPOSITION:OPP;MEMORANDUM:MEM;ORDER:ORD;DECLARATION:DCL;REPLY:RPL;
 	// CASE MANAGEMENT CONFERENCE:CMC; CASE MANAGEMENT STATEMENT:CMS; DEMURRER:DMR;NOTICE OF MOTION:NMN;
 	// HEARING:HRG; ANSWER:ANS;
 
-	public Entry(String _d, String _t) {
+	public SFMotionEntry(String _d, String _t) {
 		text = _t;
 		sdate = _d;
 		date = Date.valueOf(sdate);
 	}
 
-	public Entry(String _d, String _t, String _type) {
+	public SFMotionEntry(String _d, String _t, String _type) {
 		text = _t;
 		sdate = _d;
 		date = Date.valueOf(sdate);
@@ -62,7 +62,7 @@ public class Entry implements Comparable<Entry> {
 	}
 
 	@Override
-	public int compareTo(Entry o) {
+	public int compareTo(SFMotionEntry o) {
 		if (o.date.after(this.date)) {
 			return -1;
 		} else if (o.date.before(date)) {
@@ -85,7 +85,7 @@ public class Entry implements Comparable<Entry> {
 		return items.get(key);
 	}
 
-	Date getDate() {
+	public Date getDate() {
 		return date;
 	}
 
@@ -190,8 +190,8 @@ public class Entry implements Comparable<Entry> {
 	 * 
 	 * @param entries
 	 */
-	public static Entry analyze(String _sdate, String _text) {
-		Entry e;
+	public static SFMotionEntry analyze(String _sdate, String _text) {
+		SFMotionEntry e;
 		if ((e = ProofOfServiceEntry.parse(_sdate, _text)) != null) {
 			return e;
 		}
@@ -258,7 +258,7 @@ public class Entry implements Comparable<Entry> {
 		if ((e = ArbitrateEntry.parse(_sdate, _text)) != null) {
 			return e;
 		}
-		return new Entry(_sdate, _text);
+		return new SFMotionEntry(_sdate, _text);
 		//		String[] split = entries.get(i).text.split("FILED BY");
 		//		if (split.length >= 2) {
 		//			names.add(split[1].replaceAll("^\\W+|\\W+$", ""));

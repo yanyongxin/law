@@ -19,13 +19,13 @@ import com.google.common.collect.Multiset;
 
 import utils.Pair;
 
-public class MotionEntry extends Entry {
+public class MotionEntry extends SFMotionEntry {
 	// For subtypes:
-	static final int TYPE_UNKNOWN = 0;
-	static final int TYPE_MOTION = 1;
+	public static final int TYPE_UNKNOWN = 0;
+	public static final int TYPE_MOTION = 1;
 	public static final int TYPE_DEMURR = 2;
 	public static final int TYPE_APPLIC = 3;
-	static final int CONSECUTIVE_WORD_MATCH = 4; // 
+	public static final int CONSECUTIVE_WORD_MATCH = 4; // 
 	// Patterns:
 	static final String head = "^";
 	static final String motionSlash = "(MOTION (/|-) )?";
@@ -75,7 +75,7 @@ public class MotionEntry extends Entry {
 	Object motionString;// "MOTION TO COMPEL ...", "MOTION IN LIMINE NO.3: TO EXCLUDE ..."
 	int motionOffset;
 	public Date hearingDate;
-	Date finalHearingDate;
+	public Date finalHearingDate;
 	// often motion in limine appear in series, "MOTION IN LIMINE NO.3: TO EXCLUDE ..."
 	// But this cannot handle "MOTIONS IN LIMINE I - XXIV"
 	// There are other dates set at the same entry for various 
@@ -83,10 +83,10 @@ public class MotionEntry extends Entry {
 	// We'll add them later.		
 	List<HearingEntry> hearingEntries = new ArrayList<>();// Should change to Hearings. in SF court, it's called Law and Motion.
 	List<OrderEntry> orders = new ArrayList<>();
-	List<OppositionEntry> oppositions = new ArrayList<>();
-	List<ReplyEntry> replies = new ArrayList<>();
-	List<Entry> group = new ArrayList<>();
-	List<Entry> sequence;
+	public List<OppositionEntry> oppositions = new ArrayList<>();
+	public List<ReplyEntry> replies = new ArrayList<>();
+	List<SFMotionEntry> group = new ArrayList<>();
+	List<SFMotionEntry> sequence;
 	// It can be more complicated than this, such as moot, partial grant partial deny. grant cause 1 and 3, deny cause 2 and 4.
 	boolean grant = false;
 	boolean deny = false;
@@ -94,7 +94,7 @@ public class MotionEntry extends Entry {
 	boolean overrule = false;
 	boolean moot = false;
 	boolean offCalendar = false;
-	boolean b_motionInLimine = false;
+	public boolean b_motionInLimine = false;
 	public int subtype = TYPE_UNKNOWN;
 
 	static void testing() {
@@ -125,8 +125,8 @@ public class MotionEntry extends Entry {
 		}
 	}
 
-	public void addToGroup(Entry e) {
-		if (e.type != null && e.type.equals(Entry.MOTION)) {
+	public void addToGroup(SFMotionEntry e) {
+		if (e.type != null && e.type.equals(SFMotionEntry.MOTION)) {
 			MotionEntry me = (MotionEntry) e;
 			if (!me.group.isEmpty()) {
 				boolean b = me.group.remove(this);
@@ -320,7 +320,7 @@ public class MotionEntry extends Entry {
 		return motionString;
 	}
 
-	int fuzzyMatchMotion(String s) {
+	public int fuzzyMatchMotion(String s) {
 		if (motionString instanceof String) {
 			String mts = (String) motionString;
 			String[] myList = mts.split("\\s+");
@@ -351,7 +351,7 @@ public class MotionEntry extends Entry {
 		return countMax;
 	}
 
-	boolean matchMotion(String s) {
+	public boolean matchMotion(String s) {
 		if (motionString instanceof String) {
 			String mtn = (String) motionString;
 			//			if (this.subtype == MotionEntry.TYPE_APPLIC) {
@@ -389,7 +389,7 @@ public class MotionEntry extends Entry {
 	 * @param mtn
 	 * @return
 	 */
-	boolean matchMotion(String s, String mtn) {
+	public boolean matchMotion(String s, String mtn) {
 		if (s == null)
 			return false;
 		if (mtn == null)
@@ -505,7 +505,7 @@ public class MotionEntry extends Entry {
 		return scoreMax;
 	}
 
-	public boolean isCompatible(Entry e) {
+	public boolean isCompatible(SFMotionEntry e) {
 		String s = e.text;
 		int idxMotion = s.indexOf("MOTION");
 		int idxDemurr = s.indexOf("DEMURR");
@@ -523,48 +523,48 @@ public class MotionEntry extends Entry {
 		hearingDate = _d;
 	}
 
-	void addHearingEntry(HearingEntry _lm) {
+	public void addHearingEntry(HearingEntry _lm) {
 		hearingEntries.add(_lm);
 	}
 
-	void addOppositionEntry(OppositionEntry _lm) {
+	public void addOppositionEntry(OppositionEntry _lm) {
 		oppositions.add(_lm);
 	}
 
-	void addReplyEntry(ReplyEntry _lm) {
+	public void addReplyEntry(ReplyEntry _lm) {
 		replies.add(_lm);
 	}
 
-	void addOrder(OrderEntry or) {
+	public void addOrder(OrderEntry or) {
 		orders.add(or);
 	}
 
-	void setGranted() {
+	public void setGranted() {
 		grant = true;
 	}
 
-	void setDenied() {
+	public void setDenied() {
 		deny = true;
 	}
 
-	void setSustained() {
+	public void setSustained() {
 		sustain = true;
 	}
 
-	void setOverruled() {
+	public void setOverruled() {
 		overrule = true;
 	}
 
-	void setMoot() {
+	public void setMoot() {
 		moot = true;
 	}
 
-	void setOffCalendar(Date dt) {
+	public void setOffCalendar(Date dt) {
 		offCalendar = true;
 		this.finalHearingDate = dt;
 	}
 
-	void organizeSequence() {
+	public void organizeSequence() {
 		sequence = new ArrayList<>();
 		sequence.addAll(oppositions);
 		sequence.addAll(replies);
@@ -580,7 +580,7 @@ public class MotionEntry extends Entry {
 		if (hearingDate != null)
 			sb.append("\t\t\tHSet\t" + hearingDate + "\n");
 		if (sequence != null)
-			for (Entry od : sequence) {
+			for (SFMotionEntry od : sequence) {
 				sb.append(od);
 			}
 		if (grant && deny) {
@@ -604,8 +604,8 @@ public class MotionEntry extends Entry {
 		}
 		if (!group.isEmpty()) {
 			sb.append("\nGroup members:\n");
-			for (Entry e : group) {
-				if (e.type != null && e.type.equals(Entry.MOTION)) {
+			for (SFMotionEntry e : group) {
+				if (e.type != null && e.type.equals(SFMotionEntry.MOTION)) {
 					sb.append("Extra: " + e + "\n");
 				} else
 					sb.append(e + "\n");

@@ -1,6 +1,6 @@
 package sfmotion;
 
-import static sfmotion.Entry.TRIAL;
+import static sfmotion.SFMotionEntry.TRIAL;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class TrialEntry extends Entry {
+public class TrialEntry extends SFMotionEntry {
 	static final String trial = "^TRIAL\\s";
 	static final Pattern ptrial = Pattern.compile(trial, Pattern.CASE_INSENSITIVE);
 

@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 
 import utils.Pair;
 
-public class OrderEntry extends Entry {
+public class OrderEntry extends SFMotionEntry {
 	/*
 	 * Order type 1: grant/deny motion, application, demurrer:
 	 * 
@@ -53,9 +53,9 @@ public class OrderEntry extends Entry {
 	// order to show cause:
 	static final Pattern pOrderToShowCause = Pattern.compile("^ORDER TO SHOW CAUSE", Pattern.CASE_INSENSITIVE);
 	static final Pattern pOrderBackup = Pattern.compile("ORDER (?<gd>(GRANT|DENY)ING) (?<pd>PLAINTIFF|DEFENDANT)'?S (?<content>.+?MOTION)", Pattern.CASE_INSENSITIVE);
-	int subtype; // ORDER_GRANTDENY_MOTION, ORDER_OVERSUST_DEMURRER, ...
-	String content; // for subtype = ORDER_GRANTDENY_MOTION
-	List<Pair> gds = new ArrayList<>(); // grant, deny, sustain, overrule
+	public int subtype; // ORDER_GRANTDENY_MOTION, ORDER_OVERSUST_DEMURRER, ...
+	public String content; // for subtype = ORDER_GRANTDENY_MOTION
+	public List<Pair> gds = new ArrayList<>(); // grant, deny, sustain, overrule
 
 	public OrderEntry(String _sdate, String _text) {
 		super(_sdate, _text, ORDER);

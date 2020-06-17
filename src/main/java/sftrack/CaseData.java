@@ -17,7 +17,6 @@ import java.util.regex.Pattern;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.kie.api.KieBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -483,50 +482,6 @@ public class CaseData {
 	public void addFirmParty(String fm, String pt) {
 		firmnamelist.add(fm);
 		partynamelist.add(pt);
-	}
-
-	public void createCaseOntology(KieBase kbs) throws Exception {
-		onto = LegaLanguage.create(kbs);
-
-		loadCaseData(meta.getID(), attorneys, parties, judges, lawfirms);
-		onto.setCaseData(this);
-		onto.loadCaseOntology(attorneys);
-		onto.loadCaseOntology(parties);
-		onto.loadCaseOntology(judges);
-		onto.loadCaseOntology(lawfirms);
-		onto.loadCaseDictionary(attorneys);
-		onto.loadCaseDictionary(parties);
-		onto.loadCaseDictionary(judges);
-		onto.loadCaseDictionary(lawfirms);
-	}
-
-	private void loadCaseData(String cs, List<Attorney> atts, List<LitiParty> pts, List<Judge> jgs, List<Lawfirm> fms) throws Exception {
-		JSONParser parser = new JSONParser();
-		parseCaseReport(parser, meta.report, atts, pts, jgs);
-		// The lawfirm names should do the same as to party names since there are mistakes (case 79781, two firms start with Morris)
-		// Check any party name get mixed up with law firm names:
-		skipfirm: for (int i = 0; i < firmnamelist.size(); i++) {
-			String fname = firmnamelist.get(i);
-			for (LitiParty pt : pts) {
-				if (pt.matchName(fname)) {
-					continue skipfirm;
-				}
-			}
-			Lawfirm lfm = new Lawfirm(fname);
-			int idx = fms.indexOf(lfm);
-			if (idx >= 0) {
-				lfm = fms.get(idx);
-			} else {
-				fms.add(lfm);
-			}
-			List<LitiParty> ptlist = findMatchingParties(partynamelist.get(i), pts);
-			for (LitiParty p : ptlist) {
-				lfm.addParty(p);
-			}
-		}
-		createAttorneyToPartyLinks();
-		// the following should be modified in light of function findMatchingParties():
-		EntType.MergeAdditionalParties(pts, partynamelist);
 	}
 
 	public void addParty(String partyName, String role) {
@@ -1553,7 +1508,7 @@ public class CaseData {
 		}
 	}
 
-	static abstract class LitiEntity implements LitiEntityInterface {
+	public static abstract class LitiEntity implements LitiEntityInterface {
 		Pattern ptn = null;
 		List<LexToken> tklist = null;
 		List<? extends LitiEntity> children = null;

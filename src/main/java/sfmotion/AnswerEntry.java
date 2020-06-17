@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class AnswerEntry extends Entry {
+public class AnswerEntry extends SFMotionEntry {
 	//	Line 958: CA_SFC_464264	2017-12-12	ANSWER TO CROSS COMPLAINT (TRANSACTION ID # 17345056) FILED BY CROSS DEFENDANT LAMBERT/O'CONNOR DEVELOPMENT 450RI LLC (Fee:$450.00)
 	//	Line 7220: CA_SFC_466231	2017-05-10	ANSWER TO 1ST AMENDED COMPLAINT (TRANSACTION ID # 100015495) FILED BY DEFENDANT BUCKLEY, CASSANDRA (Fee:$450.00)
 	static final String answer = "^(AMENDED )?ANSWER";

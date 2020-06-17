@@ -12,7 +12,7 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class DeclarationEntry extends Entry {
+public class DeclarationEntry extends SFMotionEntry {
 	static final String left = "(?=\\(TRANSACTION\\sID\\s.{6,40}?\\)|\\(SEALED DOCUMENT\\)|FILED\\s+BY)";
 	static final String right = "(?<=\\(TRANSACTION\\sID\\s.{6,40}?\\)|\\(SEALED DOCUMENT\\))";
 	static final String breaks = left + "|" + right;
@@ -58,7 +58,7 @@ public class DeclarationEntry extends Entry {
 	Map<String, String> items = new TreeMap<>();
 	List<String> splits = new ArrayList<>();
 	List<String> useless = new ArrayList<>();
-	Entry entry;
+	SFMotionEntry entry;
 
 	public DeclarationEntry(String _sdate, String _text) {
 		super(_sdate, _text, DECLARATION);

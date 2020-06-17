@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 import common.Role;
 import utils.Pair;
 
-public class HearingEntry extends Entry {
+public class HearingEntry extends SFMotionEntry {
 	/**
 	 * SF Hearing types:
 	 * 
@@ -37,16 +37,16 @@ public class HearingEntry extends Entry {
 	static final Pattern pOffCalendar = Pattern.compile("(IS\\s)?OFF(-|\\s*)CALENDAR", Pattern.CASE_INSENSITIVE);
 	//	static final Map<String, String> monthLookup = new HashMap<>();
 
-	String motion;
+	public String motion;
 	MotionEntry ms;
-	List<Pair> gds = new ArrayList<>();
+	public List<Pair> gds = new ArrayList<>();
 	// track changes in calendar:
-	Date oldDate = null;
-	Date newDate = null;
-	boolean offCalendar = false;
-	int subtype = MotionEntry.TYPE_UNKNOWN;
-	Role authorRole = null;
-	String authors = null;
+	public Date oldDate = null;
+	public Date newDate = null;
+	public boolean offCalendar = false;
+	public int subtype = MotionEntry.TYPE_UNKNOWN;
+	public Role authorRole = null;
+	public String authors = null;
 
 	public HearingEntry(String _sdate, String _text) {
 		super(_sdate, _text, HEARING);

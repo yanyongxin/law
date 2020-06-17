@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class CaseSettledEntry extends Entry {
+public class CaseSettledEntry extends SFMotionEntry {
 	static final String settle = "CASE SETTLED|NOTICE OF SETTLEMENT(?!\\s+CONFERENCE)";
 	static final Pattern pSettle = Pattern.compile(settle, Pattern.CASE_INSENSITIVE);
 

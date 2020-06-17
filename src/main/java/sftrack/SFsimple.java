@@ -52,8 +52,7 @@ public class SFsimple {
 			KieBaseConfiguration kbConfig = KieServices.Factory.get().newKieBaseConfiguration();
 			kbConfig.setOption(ConstraintJittingThresholdOption.get(-1));
 			KieBase kbase = kcontainer.newKieBase(kbConfig);
-			LegaLanguage.LoadWorld("src/main/resources/sftrack/genericOnto.txt", "src/main/resources/sftrack/genericdict.txt");
-			onto = LegaLanguage.create(kbase);
+			onto = LegaLanguage.create(kbase, "src/main/resources/sftrack/genericOnto.txt", "src/main/resources/sftrack/genericdict.txt");
 		} catch (Exception ex) {
 			fail("Knowledge Base loading error!");
 		}

@@ -3,7 +3,7 @@ package sfmotion;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ComplaintEntry extends Entry {
+public class ComplaintEntry extends SFMotionEntry {
 	static final String regComplaint = "^(?<caseType>.+?)" + "(COMPLAINT\\s*.+?FILED\\s*BY\\s*PLAINTIFFS?)(?<plaintiffs>.+?)" + "(AS\\s*TO\\s*DEFENDANTS?(?<defendants>.+?))"
 			+ "(?<summons>SUMMONS\\s*ISSUED\\,?\\s*)" + "(?<coverSheet>JUDICIAL\\s*COUNCIL\\s*CIVIL\\s*CASE\\s*COVER\\s*SHEETS?\\s*FILED\\s*)?"
 			+ "(CASE\\s*MANAGEMENT\\s*CONFERENCE\\s*SCHEDULED\\s*FOR\\s*(?<caseManagementConferenceDate>\\w{3,10}-\\d\\d-\\d{2,4})\\s*)?"

@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class NoticeOfTrialEntry extends Entry {
+public class NoticeOfTrialEntry extends SFMotionEntry {
 	static final String noticeOfTimeAndPlaceOfTrial = "^NOTICE OF TIME";
 	static final Pattern pnoticeOfTimeAndPlaceOfTrial = Pattern.compile(noticeOfTimeAndPlaceOfTrial, Pattern.CASE_INSENSITIVE);
 

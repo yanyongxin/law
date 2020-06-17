@@ -25,13 +25,13 @@ import org.kie.internal.conf.ConstraintJittingThresholdOption;
 import org.kie.internal.io.ResourceFactory;
 
 import legal.LegalCase;
-import legal.Entry;
-import legal.Entry.DePhrase;
-import legal.Entry.Section;
-import legal.LoadEntitiesAndCaseDockets;
-import legal.LoadEntitiesAndCaseDockets.Attorney;
-import legal.LoadEntitiesAndCaseDockets.CaseAttorneys;
-import legal.LoadEntitiesAndCaseDockets.CaseParties;
+import legal.TrackEntry;
+import legal.TrackEntry.DePhrase;
+import legal.TrackEntry.Section;
+import legal.EntitiesAndCaseDockets;
+import legal.EntitiesAndCaseDockets.Attorney;
+import legal.EntitiesAndCaseDockets.CaseAttorneys;
+import legal.EntitiesAndCaseDockets.CaseParties;
 import legal.Party;
 import sftrack.LegaLanguage.Srunner;
 import utils.Pair;
@@ -72,24 +72,24 @@ public class SFcomplex {
 	public static void main(String[] args) throws IOException {
 		System.out.println("Initialization ...");
 		legalang = SFcomplex.initializeRuleEngine();
-		LoadEntitiesAndCaseDockets exE = new LoadEntitiesAndCaseDockets(entityResources);
+		EntitiesAndCaseDockets etcd = new EntitiesAndCaseDockets(entityResources);
 		int caseCount = 0;
-		for (LegalCase cs : exE.cases) {
+		for (LegalCase cs : etcd.cases) {
 			caseCount++;
 			//			if (caseCount < 2)
 			//				continue;
 			System.out.println("\n================ " + cs.getID() + " ==================\n");
-			CaseParties cp = exE.parties.get(cs.getID());
+			CaseParties cp = etcd.parties.get(cs.getID());
 			List<Party> parties = cp.getParties();
 			for (Party pt : parties) {
 				System.out.println(pt);
 			}
-			CaseAttorneys ats = exE.attorneys.get(cs.getID());
+			CaseAttorneys ats = etcd.attorneys.get(cs.getID());
 			List<Attorney> attorneys = ats.getAttorneys();
 			for (Attorney at : attorneys) {
 				System.out.println(at.toNamePattern());
 			}
-			for (Entry e : cs.entries) {
+			for (TrackEntry e : cs.entries) {
 				if (e.text.startsWith("Payment")) {
 					continue;
 				}
@@ -160,21 +160,21 @@ public class SFcomplex {
 						Entity e3 = new Entity(ph.getText(), legalang.getEntity("OrgCoParty"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 						ph.setGraph(e3);
 					}
-				} else if (dp.entity instanceof legal.LoadEntitiesAndCaseDockets.Attorney) {
+				} else if (dp.entity instanceof legal.EntitiesAndCaseDockets.Attorney) {
 					//					legal.ExtractEntities.Attorney attorney = (legal.ExtractEntities.Attorney)p.entity;
 					Entity e3 = new Entity(ph.getText(), legalang.getEntity("Attorney"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 					ph.setGraph(e3);
-				} else if (dp.entity instanceof legal.LoadEntitiesAndCaseDockets.Judge) {
+				} else if (dp.entity instanceof legal.EntitiesAndCaseDockets.Judge) {
 					//					legal.ExtractEntities.Judge judge = (legal.ExtractEntities.Judge)p.entity;
 					Entity e3 = new Entity(ph.getText(), legalang.getEntity("Judge"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 					ph.setGraph(e3);
-				} else if (dp.entity instanceof legal.LoadEntitiesAndCaseDockets.Clerk) {
+				} else if (dp.entity instanceof legal.EntitiesAndCaseDockets.Clerk) {
 					Entity e3 = new Entity(ph.getText(), legalang.getEntity("Clerk"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 					ph.setGraph(e3);
-				} else if (dp.entity instanceof legal.LoadEntitiesAndCaseDockets.Reporter) {
+				} else if (dp.entity instanceof legal.EntitiesAndCaseDockets.Reporter) {
 					Entity e3 = new Entity(ph.getText(), legalang.getEntity("Reporter"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 					ph.setGraph(e3);
-				} else if (dp.entity instanceof legal.LoadEntitiesAndCaseDockets.SFCaseNumber) {
+				} else if (dp.entity instanceof legal.EntitiesAndCaseDockets.SFCaseNumber) {
 					Entity e3 = new Entity(ph.getText(), legalang.getEntity("SFCaseNumber"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 					ph.setGraph(e3);
 				}

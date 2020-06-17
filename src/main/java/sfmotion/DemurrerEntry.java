@@ -1,11 +1,11 @@
 package sfmotion;
 
 public class DemurrerEntry {
-	Entry entry;
+	SFMotionEntry entry;
 
-	DemurrerEntry(Entry e) {
+	DemurrerEntry(SFMotionEntry e) {
 		entry = e;
-		entry.setType(Entry.DEMURRER);
+		entry.setType(SFMotionEntry.DEMURRER);
 		parse();
 	}
 

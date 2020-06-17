@@ -3,7 +3,7 @@ package sfmotion;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ObjectionEntry extends Entry {
+public class ObjectionEntry extends SFMotionEntry {
 	static final String objection = "^OBJECTION";
 	static final Pattern pobjection = Pattern.compile(objection, Pattern.CASE_INSENSITIVE);
 

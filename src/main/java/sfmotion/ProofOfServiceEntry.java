@@ -3,7 +3,7 @@ package sfmotion;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ProofOfServiceEntry extends Entry {
+public class ProofOfServiceEntry extends SFMotionEntry {
 	//	Line 18935: CA_SFC_470419	2017-11-28	POS OF DEC. OF RON NEWT FILED BY PLAINTIFF NEWT, RON
 	//	Line 19020: CA_SFC_470422	2019-02-15	PROOF OF SERVICE (TRANSACTION ID # 100063332) FILED BY DEFENDANT ZAWAIDEH, MAHER ANIS ZAWAIDEH, BAHA
 	static final String pos = "^(PROOF OF (\\w+\\s+)*SERVICE|POS)\\s";

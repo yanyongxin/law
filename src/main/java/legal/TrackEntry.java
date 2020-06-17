@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 
 import utils.Pair;
 
-public class Entry implements Comparable<Entry> {
+public class TrackEntry implements Comparable<TrackEntry> {
 	static final String ANSWER = "ANSW";
 	static final String ARBITRATE = "ARBT";
 	static final String CASE_MANAGEMENT_CONFERENCE = "CMGC";
@@ -42,7 +42,7 @@ public class Entry implements Comparable<Entry> {
 
 	public String text;
 	public String raw;
-	String sdate;
+	public String sdate;
 	public Date date;
 	String filer;
 	String type;
@@ -53,7 +53,7 @@ public class Entry implements Comparable<Entry> {
 	// HEARING:HRG; ANSWER:ANS;
 	public List<Section> sections = new ArrayList<>();
 
-	public Entry(String _d, String _t) {
+	public TrackEntry(String _d, String _t) {
 		raw = _t;
 		text = _t.replaceAll("\\(TRANSA.+?\\)", "").replaceAll("\\(Fee.+?\\)", "").replaceAll("\\(SEALED.+?\\)", "").replaceAll("\\(SLAPP\\)", "");
 		text = text.replaceAll("\\\"", "");
@@ -75,7 +75,7 @@ public class Entry implements Comparable<Entry> {
 		} while (true);
 	}
 
-	public Entry(String _d, String _t, String _type) {
+	public TrackEntry(String _d, String _t, String _type) {
 		text = _t;
 		sdate = _d;
 		date = Date.valueOf(sdate);
@@ -83,7 +83,7 @@ public class Entry implements Comparable<Entry> {
 	}
 
 	@Override
-	public int compareTo(Entry o) {
+	public int compareTo(TrackEntry o) {
 		if (o.date.after(this.date)) {
 			return -1;
 		} else if (o.date.before(date)) {

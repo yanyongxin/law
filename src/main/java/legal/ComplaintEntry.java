@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ComplaintEntry extends Entry {
+public class ComplaintEntry extends TrackEntry {
 	static final String regComplaint = "^(?<caseType>.+?)" + "(COMPLAINT\\s*.+?FILED\\s*BY\\s*PLAINTIFFS?)(?<plaintiffs>.+?)"
 			+ "(AS\\s*TO\\s*DEFENDANTS?(?<defendants>.+?))"
 			+ "(?<summons>SUMMONS\\s*ISSUED\\,?\\s*)" + "(?<coverSheet>JUDICIAL\\s*COUNCIL\\s*CIVIL\\s*CASE\\s*COVER\\s*SHEETS?\\s*FILED\\s*)?"
@@ -22,8 +22,8 @@ public class ComplaintEntry extends Entry {
 			+ "(\\(Fee\\:(?<fee>.+?)\\))?$";
 	static final Pattern pPetition = Pattern.compile(regPetition, Pattern.CASE_INSENSITIVE);
 	String caseType; // some SF cases specify case type at the beginning of complaint docket entry 
-	String plaintiffs; // complaint are always filed by plaintiffs or petitioner
-	String defendants; // complaint entry in SF usually include list of defendants or respondents
+	public String plaintiffs; // complaint are always filed by plaintiffs or petitioner
+	public String defendants; // complaint entry in SF usually include list of defendants or respondents
 	String summons; // whether summons have been issued. Sometimes have multiple separate docket entries on summons issued, one for each defendant
 	String coverSheet; // civil case coversheet accompany complaint. SF docket usually mentions this fact in the complaint entry
 	String caseManagementConferenceDate; // scheduled case management date. Should happen on this date, if not, an entry indicating change should appear before this date.

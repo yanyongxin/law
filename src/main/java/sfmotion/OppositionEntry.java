@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class OppositionEntry extends Entry {
+public class OppositionEntry extends SFMotionEntry {
 	static final String regOpposition1 = "^OPPOSITION\\s((AND\\s)?(RESPONSE|OPPOSITION|OBJECTION)\\s)?(OF\\s(?<filer1>.+?))?TO\\s*(?<opposingParty>.+?)??(?<motion>(?<motionType>MOTION|DEMU*RRER|MIL|MTN|PETITION|EX PARTE ORDER|(THE\\s)?JUDGMENT|REQUEST|OBJECTION|NOTICE|(EX\\s*PARTE\\s)?APP(LICATION)?).+?)(?<transactionID>\\(TRANSACTION\\s*ID\\s*\\#\\s*\\d+\\))?\\,?\\s*FILED\\s*BY\\s*(?<filer>.+?)$";
 	static final Pattern pOpposition1 = Pattern.compile(regOpposition1, Pattern.CASE_INSENSITIVE);
 	static final Pattern pOps = Pattern.compile(
