@@ -75,7 +75,7 @@ public class TrackMotion {
 		if (e.text.startsWith("Payment")) {
 			return;
 		}
-		System.out.println(id + "\t" + e.getDate() + "\t" + e.text);
+		//		System.out.println(id + "\t" + e.getDate() + "\t" + e.text);
 		for (Section sec : e.sections) {
 			if (sec.dephrases.size() == 0 && sec.doneList.size() == 0)
 				continue;
@@ -93,11 +93,11 @@ public class TrackMotion {
 					keylist.add(phlist.get(phlist.size() - 1).endToken);
 					ArrayList<Integer> segments = new ArrayList<Integer>();
 					List<List<Analysis>> lla = Analysis.findBestNew(rpmap, keylist, TOP_N, segments);
-					List<Phrase> plist = DocketEntry.getPhraseList(lla);
+					sec.plist = DocketEntry.getPhraseList(lla);
 					//						System.out.println(e.text);
-					for (Phrase ph : plist) {
-						System.out.println(ph.pprint("", false));
-					}
+					//					for (Phrase ph : sec.plist) {
+					//						System.out.println(ph.pprint("", false));
+					//					}
 					//							ERGraph g = plist.get(0).getGraph();
 				} else {
 					System.out.println("No phrase found!");
@@ -183,9 +183,11 @@ public class TrackMotion {
 		legalang = TrackMotion.initializeRuleEngine();
 		EntitiesAndCaseDockets etcd = new EntitiesAndCaseDockets(entityResources);
 		List<TrackCase> tcs = convertToTrackCases(etcd.cases);
+		int cnt = 1;
 		for (TrackCase cs : tcs) {
-			System.out.println("\n================ " + cs.getID() + " ==================\n");
+			System.out.println(cnt++ + " ================ " + cs.getID() + " ==================\n");
 			TrackEntry e0 = cs.entries.get(0); // first entry is always Complaint in San Francisco
+			ruleEngineParse(e0, cs.getID());
 			ComplaintEntry c = new ComplaintEntry(e0.sdate, e0.text);
 			cs.addEntry(c);
 			for (int i = 1; i < cs.entries.size(); i++) {
@@ -193,7 +195,9 @@ public class TrackMotion {
 				ruleEngineParse(e, cs.getID());
 				SFMotionEntry en = SFMotionEntry.analyze(e.sdate, e.text);
 				cs.addEntry(en);
+
 			}
+			cs.findlastDate();
 			cs.generateLists();
 			cs.findTransactions();
 			//			countGrouped += cs.groupTransactions();
@@ -320,7 +324,7 @@ public class TrackMotion {
 		System.out.println("Oppositions Not Used: " + nUnOppos);
 		System.out.println("Reply Not Used: " + nUnReply);
 
-		String tagfile = args[1] + "_tag_" + args[2] + ".txt";
+		String tagfile = path + "_tag_" + number + ".txt";
 		BufferedWriter wr = new BufferedWriter(new FileWriter(tagfile));
 		for (TrackCase c : tcs) {
 			wr.write(c.id + "\n");
@@ -330,8 +334,24 @@ public class TrackMotion {
 		}
 		wr.close();
 		System.out.println("==========================================================================\n");
-		System.out.println("Tag File:");
-		System.out.println("\t" + tagfile);
+		System.out.println("Tag File:\t" + tagfile);
+		String parseFile = path + "parse_" + number + ".txt";
+		wr = new BufferedWriter(new FileWriter(parseFile));
+		for (TrackCase c : tcs) {
+			wr.write(c.id + "\n");
+			for (TrackEntry e : c.entries) {
+				wr.write(e.toTypeString() + "\n");
+				for (Section sec : e.sections) {
+					if (sec.plist != null) {
+						for (Phrase ph : sec.plist) {
+							wr.write(ph.pprint("", false));
+						}
+					}
+				}
+			}
+		}
+		wr.close();
+		System.out.println("Parse File:\t" + parseFile);
 		System.out.println("\nDone!");
 	}
 

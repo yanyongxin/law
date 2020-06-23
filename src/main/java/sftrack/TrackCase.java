@@ -119,6 +119,11 @@ public class TrackCase {
 		return e;
 	}
 
+	public void findlastDate() {
+		SFMotionEntry e = motionEntries.get(motionEntries.size() - 1);
+		lastDate = e.date;
+	}
+
 	public TrackCase(String _id, List<TrackEntry> _es) {
 		id = _id;
 		entries = _es;

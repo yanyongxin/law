@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import sftrack.Phrase;
 import utils.Pair;
 
 public class TrackEntry implements Comparable<TrackEntry> {
@@ -60,6 +61,8 @@ public class TrackEntry implements Comparable<TrackEntry> {
 		//(TRANSACTION ID # 60057326)(Fee:$900.00)(SEALED DOCUMENT)
 		sdate = _d;
 		date = Date.valueOf(sdate);
+		//		Section s00 = new Section(text, 0);
+		//		sections.add(s00);
 		Matcher m = pSec.matcher(text);
 		int start = 0;
 		do {
@@ -73,6 +76,7 @@ public class TrackEntry implements Comparable<TrackEntry> {
 				break;
 			}
 		} while (true);
+
 	}
 
 	public TrackEntry(String _d, String _t, String _type) {
@@ -129,9 +133,10 @@ public class TrackEntry implements Comparable<TrackEntry> {
 			ssdate = "0" + ssdate;
 		}
 		if (type != null) {
-			return type + "\t" + year + "-" + month + "-" + ssdate + "\t" + text;
+			//			return type + "\t" + year + "-" + month + "-" + ssdate + "\t" + text;
+			return type + "\t" + date + "\t" + text;
 		}
-		return "\t\t" + year + "-" + month + "-" + ssdate + "\t" + text;
+		return "\t\t" + date + "\t" + text;
 	}
 
 	public String toString() {
@@ -175,9 +180,10 @@ public class TrackEntry implements Comparable<TrackEntry> {
 
 	public static class Section {
 		public String text;
-		int offset; // offset from the docket entry text
+		public int offset; // offset from the docket entry text
 		public List<Pair> doneList = new ArrayList<>();
 		public List<DePhrase> dephrases = new ArrayList<>();
+		public List<Phrase> plist;
 
 		Section(String _t, int _offset) {
 			text = _t;

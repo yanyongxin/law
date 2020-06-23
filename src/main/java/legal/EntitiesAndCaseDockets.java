@@ -349,9 +349,9 @@ public class EntitiesAndCaseDockets {
 	static void findEntities_1(TrackEntry entry, CaseParties cn, CaseAttorneys ca, List<Judge> judges, Map<String, Clerk> clerks, Map<String, Reporter> reporters) {
 		for (Section sec : entry.sections) {
 			String text = sec.text;
-			if (text.contains("GALLAGHER, 4) JAMES")) {
-				System.out.println();
-			}
+			//			if (text.contains("GALLAGHER, 4) JAMES")) {
+			//				System.out.println();
+			//			}
 			List<Pair> doneList = sec.doneList; // strings contains no entity of interest.
 			List<DePhrase> dephrases = sec.dephrases;// entities found in docket entry text
 			List<Pair> workList = new ArrayList<>();// Strings to be check for entities of interest in the current iteration
@@ -715,9 +715,6 @@ public class EntitiesAndCaseDockets {
 			String[] items = line.split("\\t");
 			if (!items[0].equals(id)) {
 				id = items[0];
-				//				if (id.equals("CA_SFC_466227")) {
-				//					System.out.println();
-				//				}
 				cn = mapLawyers.get(id);
 				if (cn == null) {
 					cn = new CaseAttorneys(id);

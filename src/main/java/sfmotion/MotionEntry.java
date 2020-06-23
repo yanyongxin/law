@@ -575,7 +575,7 @@ public class MotionEntry extends SFMotionEntry {
 
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("Motion\t\t" + date + "\t" + text + "\n");
+		sb.append(super.toString() + "\n");
 		sb.append("\t\t\tMotion\t" + motionString + "\n");
 		if (hearingDate != null)
 			sb.append("\t\t\tHSet\t" + hearingDate + "\n");

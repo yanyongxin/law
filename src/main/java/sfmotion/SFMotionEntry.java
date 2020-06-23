@@ -166,7 +166,10 @@ public class SFMotionEntry implements Comparable<SFMotionEntry> {
 		if (ssdate.length() == 1) {
 			ssdate = "0" + ssdate;
 		}
-		return year + "-" + month + "-" + ssdate + "\t" + text;
+		//		return year + "-" + month + "-" + ssdate + "\t" + text;
+		StringBuilder sb = new StringBuilder();
+		sb.append(type + "\t\t" + date + "\t" + text);
+		return sb.toString();
 	}
 
 	public void setType(String _t) {

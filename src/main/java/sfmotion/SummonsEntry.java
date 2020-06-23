@@ -184,7 +184,7 @@ public class SummonsEntry extends SFMotionEntry {
 
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(text + "\n");
+		sb.append(super.toString() + "\n");
 		for (String key : items.keySet()) {
 			sb.append("\t" + key + ": " + items.get(key) + "\n");
 		}

@@ -103,8 +103,7 @@ public class HearingEntry extends SFMotionEntry {
 
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("Hearing\t\t" + date + "\t");
-		sb.append(text + "\n");
+		sb.append(super.toString() + "\n");
 		sb.append("\t\t\tmotion:\t" + motion + "\n");
 		//		if (offCalendar) {
 		//			sb.append("\t\t\tOff Calendar\n");
