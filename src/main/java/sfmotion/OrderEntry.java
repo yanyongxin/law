@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 
 import utils.Pair;
 
-public class OrderEntry extends SFMotionEntry {
+public class OrderEntry extends TrackEntry {
 	/*
 	 * Order type 1: grant/deny motion, application, demurrer:
 	 * 

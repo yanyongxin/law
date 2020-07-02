@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 import common.Role;
 import utils.Pair;
 
-public class HearingEntry extends SFMotionEntry {
+public class HearingEntry extends TrackEntry {
 	/**
 	 * SF Hearing types:
 	 * 

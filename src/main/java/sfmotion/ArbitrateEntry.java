@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ArbitrateEntry extends SFMotionEntry {
+public class ArbitrateEntry extends TrackEntry {
 	static final String arbitrate = "\\bARBITRAT";
 	static final Pattern parbitrate = Pattern.compile(arbitrate, Pattern.CASE_INSENSITIVE);
 

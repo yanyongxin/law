@@ -1,4 +1,4 @@
-package legal;
+package sfmotion;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -14,8 +14,8 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import legal.TrackEntry.DePhrase;
-import legal.TrackEntry.Section;
+import sfmotion.TrackEntry.DePhrase;
+import sfmotion.TrackEntry.Section;
 import utils.Pair;
 
 /**

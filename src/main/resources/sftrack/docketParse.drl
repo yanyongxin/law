@@ -417,6 +417,31 @@ rule "Document_,_Document"	// COPIES OF THE MOTION, OPERATIVE COMPLAINT, OPPOSIT
 		}
 end
 */
+rule "NUMP_AND_NUMP"	//no opposition filed, and, good cause shown
+	salience 100
+	when
+		p1: Phrase(synType=="NUMP"
+			,graph.containLink("hasOwner", head, null) ==null
+			,graph.containLink("define", null, head) ==null
+			,graph.containLink("ugoerOfProc", head, null) ==null
+			)
+		p2: Phrase(text==","||text.equalsIgnoreCase("and")||text=="&"||text.equalsIgnoreCase(", and"), synType!=null, begToken==p1.endToken)
+		p3: Phrase(synType=="NUMP", begToken==p2.endToken
+			,graph.containLink("hasOwner", head, null) ==null
+			,graph.containLink("define", null, head) ==null
+			,graph.containLink("ugoerOfProc", head, null) ==null
+			,!isSubString(p1)
+		)
+		eval(p1.similar(p3))
+	then
+		ut.print("Find NUMP_AND_NUMP for:  " + p1 +", "+ p2 +", "+p3 );
+		String name = p1.getHead().getName().replaceAll("\\s+", "") + "_AND_" + p3.getHead().getName().replaceAll("\\s+", "");
+		Phrase ph = p1.addToSet(p2, p3, name, true);
+		if(ph != null){
+			insert(ph);
+			ut.printPhrase(ph);
+		}
+end
 rule "NP_AND_NP"	//no opposition filed, and, good cause shown
 	salience 100
 	when
@@ -1223,7 +1248,7 @@ end
 
 rule "NP_NUMP"	// "DEPT. 206" "DEPT. A"
 	when
-		p1: Phrase(synType=="NP", head.isKindOf("OrgHierarchy"), graph.topLink == null)
+		p1: Phrase(synType=="NP", head.isKindOf("OrgHierarchy")||text.equalsIgnoreCase("SET"), graph.topLink == null)
 		p2: Phrase((synType=="NUMP" && head.isKindOf("NumberValue"))||synType=="LETT", graph.topLink == null, begToken==p1.endToken) 
 	then
 		ut.print("Find NP_NUMP: " + p1 + ", " + p2 );
@@ -1233,6 +1258,33 @@ rule "NP_NUMP"	// "DEPT. 206" "DEPT. A"
 		ut.printPhrase(ph);
 end
 	
+rule "NP_PRP_not_headLast"	//MOTION OF DEFENDANT RECOLOGY INC FOR PEREMPTORY DISQUALIFICATION OF ASSIGNED JUDGE
+	salience 100
+	when
+		p1: Phrase(synType=="NP", lk : graph.topLink, g1 : graph, !headLast(), h1:head, lh: lastHead
+				, lastPhrase.synType=="NP"||lastPhrase.synType=="ORGSUFFIX"
+				, graph.containLink("hasDET", head, null)==null
+				, graph.containLink("hasOwner", head, null)==null)
+		p2: Phrase(synType=="PRP", head.isKindOf("PRPRelation"), !head.isKindOf("of"), h2:head
+				, graph.topLink != null, graph.topLink.getType()=="PRPRelation", lk2: graph.topLink, begToken==p1.endToken)
+		// onto triple: head_1 PRP head_2: Document	for	Process
+		lkx : Link(type==h2.getTheClass().getName(), h1.isKindOf(arg1), lk2.arg2.isKindOf(arg2))
+//		not Link(type==h2.getTheClass().getName(), lh.isKindOf(arg1), lk2.arg2.isKindOf(arg2))
+		// cannot have same PRP twice (except "for"):
+		not(
+			eval(!h2.isKindOf("for") && g1.containLink(lk2.getArg1().getName(), h1, null)!=null)
+		)
+	then
+		ut.print("Find NP_PRP_not_headLast: " + p1 + ", " + p2 );
+		ut.print("lkx: " + lkx);
+		Link r = new Link(lk2.getArg1().getTheClass().getName(), h1, lk2.getArg2());
+		Phrase ph = new Phrase(p1, p2, r, 1);
+		ph.getGraph().remove(h2);
+		insert(ph);
+		ut.printPhrase(ph);
+end
+
+
 rule "NP_PRP_headLast"//COMPLIANCE WITH PROTECTIVE ORDER
 	when
 		//"DISMISSAL OF COMPLAINT WITH PREJUDICE" will not work because of "headLast()" 
@@ -1259,31 +1311,6 @@ rule "NP_PRP_headLast"//COMPLIANCE WITH PROTECTIVE ORDER
 		ut.printPhrase(ph);
 end
 
-	
-rule "NP_PRP_not_headLast"	//MOTION OF DEFENDANT RECOLOGY INC FOR PEREMPTORY DISQUALIFICATION OF ASSIGNED JUDGE
-	when
-		p1: Phrase(synType=="NP", lk : graph.topLink, g1 : graph, !headLast(), h1:head, lh: lastHead
-				, lastPhrase.synType=="NP"||lastPhrase.synType=="ORGSUFFIX"
-				, graph.containLink("hasDET", head, null)==null
-				, graph.containLink("hasOwner", head, null)==null)
-		p2: Phrase(synType=="PRP", head.isKindOf("PRPRelation"), !head.isKindOf("of"), h2:head
-				, graph.topLink != null, graph.topLink.getType()=="PRPRelation", lk2: graph.topLink, begToken==p1.endToken)
-		// onto triple: head_1 PRP head_2: Document	for	Process
-		lkx : Link(type==h2.getTheClass().getName(), h1.isKindOf(arg1), lk2.arg2.isKindOf(arg2))
-		not Link(type==h2.getTheClass().getName(), lh.isKindOf(arg1), lk2.arg2.isKindOf(arg2))
-		// cannot have same PRP twice (except "for"):
-		not(
-			eval(!h2.isKindOf("for") && g1.containLink(lk2.getArg1().getName(), h1, null)!=null)
-		)
-	then
-		ut.print("Find NP_PRP_not_headLast: " + p1 + ", " + p2 );
-		ut.print("lkx: " + lkx);
-		Link r = new Link(lk2.getArg1().getTheClass().getName(), h1, lk2.getArg2());
-		Phrase ph = new Phrase(p1, p2, r, 1);
-		ph.getGraph().remove(h2);
-		insert(ph);
-		ut.printPhrase(ph);
-end
 
 
 rule "NP_PRP_SET"
@@ -1588,6 +1615,18 @@ rule "ADJP_NP"
 		ut.print("Find ADJP_NP: " + p1 + ", " + p2 );
 		Link r = new Link("hasAttribute", p2.getHead(), p1.getHead());
 		Phrase ph = new Phrase(p1, p2, r, 2);
+		insert(ph);
+		ut.printPhrase(ph);
+end
+
+rule "NP_ADJLP"	// REQUEST PENDING
+	when
+		p1: Phrase(synType=="NP", !isSet(), graph.topLink==null)
+		p2: Phrase(synType=="ADJLP" , begToken==p1.endToken )
+	then
+		ut.print("Find NP_ADJLP: " + p1 + ", " + p2 );
+		Link r = new Link("hasAttribute", p1.getHead(), p2.getHead());
+		Phrase ph = new Phrase(p1, p2, r, 1);
 		insert(ph);
 		ut.printPhrase(ph);
 end

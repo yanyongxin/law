@@ -58,7 +58,7 @@ public class LtUtil {
 
 	public void printPhrase(Phrase ph) {
 		if (flagPrint) {
-			//System.out.println(ph.pprint("", false));
+			System.out.println(ph.pprint("", false));
 			//log.debug(ph.pprint("", false));
 		}
 	}
@@ -69,7 +69,7 @@ public class LtUtil {
 
 	public void print(String s) {
 		if (flagPrint) {
-			//System.out.println(s);
+			System.out.println(s);
 			//log.debug(s);
 		}
 	}

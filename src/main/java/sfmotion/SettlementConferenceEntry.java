@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class SettlementConferenceEntry extends SFMotionEntry {
+public class SettlementConferenceEntry extends TrackEntry {
 	static final String settlementConference = "SETTLEMENT CONFERENCE";
 	static final Pattern psettlementConference = Pattern.compile(settlementConference, Pattern.CASE_INSENSITIVE);
 

@@ -1,3 +1,4 @@
+LegalDocket	subclassOf	Document
 ProcAccess	subclassOf	Process
 ProcAcknowledge	subclassOf	Process
 ProcAdd	subclassOf	Process
@@ -127,7 +128,6 @@ ProcTrial	subclassOf	Process
 ProcUse	subclassOf	Process
 ProcVacate	subclassOf	Process
 ProcWithdraw	subclassOf	Process
-LegalDocket	subclassOf	Document
 LaborCode	subclassOf	LegalRule
 EvidenceCode	subclassOf	LegalRule
 HealthCode	subclassOf	LegalRule
@@ -301,6 +301,7 @@ byMeans	instanceOf	PRPRelation
 dueto	instanceOf	PRPRelation
 during	instanceOf	PRPRelation
 for	instanceOf	PRPRelation
+pendingPrep	instanceOf	PRPRelation
 formerlyKnownAs	instanceOf	PRPRelation
 doBusinessAs	instanceOf	PRPRelation
 OrgHierarchyDepartment	subclassOf	OrgHierarchy
@@ -936,7 +937,9 @@ UnitedStatesCode	subclassOf	LegalRule
 CivilCode	subclassOf	LegalRule
 FamilyCode	subclassOf	LegalRule
 ProbateCode	subclassOf	LegalRule
+CaliforniaRulesOfCourt	subclassOf	LegalRule
 CivilProcedure	subclassOf	LegalRule
+GovernmentCode	subclassOf	LegalRule
 AdministrativeProcedure	subclassOf	LegalRule
 LocalRule	subclassOf	LegalRule
 SanFranciscoLocalRule	subclassOf	LocalRule
@@ -1245,3 +1248,19 @@ StatusKnowledgeable	subclassOf	StatusProc
 PersonMostKnowledgeable	subclassOf	HumanType
 PersonMostKnowledgeable	ugoerOfProc	ProcCompel
 Monetary	subclassOf	StatusProc
+NumberOne	instanceOf	NumberValue
+NumberTwo	instanceOf	NumberValue
+NumberThree	instanceOf	NumberValue
+StatusSpecial	subclassOf	StatusProc
+Judgment	after	DefaultDecision
+Calendar	for	DocLegalMotion
+Calendar	for	DocLegalDemurrer
+ProcWaive	subclassOf	Process
+FeeRef	ugoerOfProc	ProcWaive
+CostRef	ugoerOfProc	ProcWaive
+OrgGovCourt	define	FeeRef
+OrgGovCourt	define	CostRef
+Document	pendingPrep	Process
+Process	pendingPrep	Process
+ProcArbitration	subclassOf	Process
+Document	for	ProcWaive

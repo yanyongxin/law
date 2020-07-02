@@ -9,7 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 //
-public class ReplyEntry extends SFMotionEntry {
+public class ReplyEntry extends TrackEntry {
 	//	static String regReplyInSupportMotion = "^REPLY\\s((MEMORANDUM|DECLARATION|BRIEF)\\s)?(OF\\s((DEFENDANT|PLAINTIFF)S?\\s)?.+?)?IN\\sSUPPORT\\sOF\\s((PLAINTIFF|DEFENDANT)\\'?S\\s)?(\\w+\\s)?(MOTION|DEMURRER|APPLICATION|REQUEST)";
 	//	static final String sreg = "\\b(?=(MOTION\\s+(FOR|TO)|PROOF\\s+OF\\s+SERVICE|Fee.{3,10}?\\)|TRANSACTION\\sID\\s.{6,20}?\\)|HEARING\\s*SET\\s*FOR|MEMORANDUM\\s+(OF\\s+POINTS\\s+AND\\s+AUTHORITIES\\s+)IN\\s+SUPPORT|\\,\\s+POINTS\\s+AND\\s+AUTHORITIES|DECLARATION|FILED\\s+BY))";
 	static final String sreg = "(?=\\(TRANSACTION|FILED\\s+BY)";

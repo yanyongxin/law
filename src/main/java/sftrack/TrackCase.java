@@ -16,17 +16,16 @@ import java.util.regex.Pattern;
 import javax.print.attribute.standard.MediaSize.Other;
 
 import common.Role;
-import legal.CaseEntity;
-import legal.CaseLink;
-import legal.ComplaintEntry;
-import legal.PersonName;
-import legal.TrackEntry;
+import sfmotion.CaseEntity;
+import sfmotion.CaseLink;
+import sfmotion.ComplaintEntry;
 import sfmotion.HearingEntry;
 import sfmotion.MotionEntry;
 import sfmotion.OppositionEntry;
 import sfmotion.OrderEntry;
+import sfmotion.PersonName;
 import sfmotion.ReplyEntry;
-import sfmotion.SFMotionEntry;
+import sfmotion.TrackEntry;
 import utils.Pair;
 
 public class TrackCase {
@@ -49,9 +48,9 @@ public class TrackCase {
 	static int MAX_ALLOWED_DAYS_WITH_GD = 4;
 	static int MAX_ALLOWED_DAYS_NO_GD = 14;
 
-	Map<String, List<SFMotionEntry>> transactions = new TreeMap<>();
+	Map<String, List<TrackEntry>> transactions = new TreeMap<>();
 	public List<TrackEntry> entries;
-	public List<SFMotionEntry> motionEntries = new ArrayList<>();
+	public List<TrackEntry> motionEntries = new ArrayList<>();
 	List<List<TrackEntry>> daily; // entries of the same day
 	List<Other> others; // others, that cannot organized into anything
 	// Motions In limine grouped together:
@@ -82,7 +81,7 @@ public class TrackCase {
 	List<OppositionEntry> opsToMiFromDefendant; // Oppositions to plaintiff's motion in limine from defendant
 	List<OppositionEntry> opsToMiFromPlaintiff; // Oppositions to defendant's motion in limine from plaintiff
 	List<OppositionEntry> opsToMiFromUnknown; // Oppositions to motion in limine from unknown party roles
-	List<SFMotionEntry> otherMilist; // declarations, proof of services, from both parties lumped together
+	List<TrackEntry> otherMilist; // declarations, proof of services, from both parties lumped together
 
 	public String getID() {
 		return id;
@@ -120,7 +119,7 @@ public class TrackCase {
 	}
 
 	public void findlastDate() {
-		SFMotionEntry e = motionEntries.get(motionEntries.size() - 1);
+		TrackEntry e = motionEntries.get(motionEntries.size() - 1);
 		lastDate = e.date;
 	}
 
@@ -312,7 +311,7 @@ public class TrackCase {
 		}
 	}
 
-	public void addEntry(SFMotionEntry _e) {
+	public void addMotionEntry(TrackEntry _e) {
 		motionEntries.add(_e);
 	}
 
@@ -340,7 +339,7 @@ public class TrackCase {
 	}
 
 	public void generateLists() {
-		for (SFMotionEntry e : motionEntries) {
+		for (TrackEntry e : motionEntries) {
 			if (e instanceof MotionEntry) {
 				addMotion((MotionEntry) e);
 			} else if (e instanceof HearingEntry) {
@@ -370,12 +369,12 @@ public class TrackCase {
 			MotionEntry ms = motionlist.get(i);
 			String tid = ms.transactionID;
 			if (tid != null) {
-				List<SFMotionEntry> list = transactions.get(tid);
+				List<TrackEntry> list = transactions.get(tid);
 				if (list != null) {
-					for (SFMotionEntry e : list) {
+					for (TrackEntry e : list) {
 						if (e.type == null) {
 							motionlist.remove(e);
-						} else if (ms != e && e.type.equals(SFMotionEntry.MOTION)) {
+						} else if (ms != e && e.type.equals(TrackEntry.MOTION)) {
 							MotionEntry me = (MotionEntry) e;
 							if (me.subtype == ms.subtype) {
 								// need to remove one, remove the one does not have hearing date:
@@ -403,11 +402,11 @@ public class TrackCase {
 	int removeDuplicateMotions1() {
 		int count = 0;
 		for (String tid : transactions.keySet()) {
-			List<SFMotionEntry> list = transactions.get(tid);
+			List<TrackEntry> list = transactions.get(tid);
 			List<MotionEntry> mlist = new ArrayList<>();
-			for (SFMotionEntry e : list) {
+			for (TrackEntry e : list) {
 				boolean be = false;
-				if (e.type != null && e.type.equals(SFMotionEntry.MOTION)) {
+				if (e.type != null && e.type.equals(TrackEntry.MOTION)) {
 					MotionEntry me = (MotionEntry) e;
 					for (int i = 0; i < mlist.size(); i++) {
 						MotionEntry ms = mlist.get(i);
@@ -431,8 +430,8 @@ public class TrackCase {
 					}
 				}
 			}
-			for (SFMotionEntry e : list) {
-				if (e.type == null || !e.type.equals(SFMotionEntry.MOTION)) {
+			for (TrackEntry e : list) {
+				if (e.type == null || !e.type.equals(TrackEntry.MOTION)) {
 					if (mlist.size() == 1) {
 						MotionEntry ms = mlist.get(0);
 						ms.addToGroup(e);
@@ -460,10 +459,10 @@ public class TrackCase {
 			//			}
 			String tid = ms.transactionID;
 			if (tid != null) {
-				List<SFMotionEntry> list = transactions.get(tid);
+				List<TrackEntry> list = transactions.get(tid);
 				if (list != null) {
 					count += list.size() - 1;// -1 to not including ms itself
-					for (SFMotionEntry e : list) {
+					for (TrackEntry e : list) {
 						entries.remove(e);
 					}
 				}
@@ -472,10 +471,10 @@ public class TrackCase {
 		for (OppositionEntry ms : oppositions) {
 			String tid = ms.transactionID;
 			if (tid != null) {
-				List<SFMotionEntry> list = transactions.get(tid);
+				List<TrackEntry> list = transactions.get(tid);
 				if (list != null) {
 					count += list.size() - 1;// -1 to not including ms itself
-					for (SFMotionEntry e : list) {
+					for (TrackEntry e : list) {
 						entries.remove(e);
 					}
 				}
@@ -484,10 +483,10 @@ public class TrackCase {
 		for (OrderEntry ms : orlist) {
 			String tid = ms.transactionID;
 			if (tid != null) {
-				List<SFMotionEntry> list = transactions.get(tid);
+				List<TrackEntry> list = transactions.get(tid);
 				if (list != null) {
 					count += list.size() - 1;// -1 to not including ms itself
-					for (SFMotionEntry e : list) {
+					for (TrackEntry e : list) {
 						entries.remove(e);
 					}
 				}
@@ -496,10 +495,10 @@ public class TrackCase {
 		for (HearingEntry ms : hrlist) {
 			String tid = ms.transactionID;
 			if (tid != null) {
-				List<SFMotionEntry> list = transactions.get(tid);
+				List<TrackEntry> list = transactions.get(tid);
 				if (list != null) {
 					count += list.size() - 1;// -1 to not including ms itself
-					for (SFMotionEntry e : list) {
+					for (TrackEntry e : list) {
 						entries.remove(e);
 					}
 				}
@@ -508,10 +507,10 @@ public class TrackCase {
 		for (ReplyEntry ms : replies) {
 			String tid = ms.transactionID;
 			if (tid != null) {
-				List<SFMotionEntry> list = transactions.get(tid);
+				List<TrackEntry> list = transactions.get(tid);
 				if (list != null) {
 					count += list.size() - 1;// -1 to not including ms itself
-					for (SFMotionEntry e : list) {
+					for (TrackEntry e : list) {
 						entries.remove(e);
 					}
 				}
@@ -549,7 +548,7 @@ public class TrackCase {
 		for (TrackEntry e : entries) {
 			sb.append(e.toString() + "\n");
 		}
-		for (SFMotionEntry e : motionEntries) {
+		for (TrackEntry e : motionEntries) {
 			sb.append(e.toPrintString("\t", 1, 2, 3, 4) + "\n");
 		}
 		return sb.toString();
@@ -566,7 +565,7 @@ public class TrackCase {
 		return sb.toString();
 	}
 
-	public List<SFMotionEntry> getEntries() {
+	public List<TrackEntry> getEntries() {
 		return motionEntries;
 	}
 
@@ -1073,11 +1072,11 @@ public class TrackCase {
 	}
 
 	public void findTransactions() {
-		for (SFMotionEntry e : motionEntries) {
+		for (TrackEntry e : motionEntries) {
 			Matcher mm = ptransactionID.matcher(e.text);
 			if (mm.find()) {
 				String transactionID = mm.group(1);
-				List<SFMotionEntry> list = transactions.get(transactionID);
+				List<TrackEntry> list = transactions.get(transactionID);
 				if (list == null) {
 					list = new ArrayList<>();
 					transactions.put(transactionID, list);

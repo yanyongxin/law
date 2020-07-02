@@ -24,15 +24,15 @@ import org.kie.api.runtime.KieContainer;
 import org.kie.internal.conf.ConstraintJittingThresholdOption;
 import org.kie.internal.io.ResourceFactory;
 
-import legal.TrackEntry;
-import legal.TrackEntry.DePhrase;
-import legal.TrackEntry.Section;
-import legal.LegalCase;
-import legal.EntitiesAndCaseDockets;
-import legal.EntitiesAndCaseDockets.Attorney;
-import legal.EntitiesAndCaseDockets.CaseAttorneys;
-import legal.EntitiesAndCaseDockets.CaseParties;
-import legal.Party;
+import sfmotion.EntitiesAndCaseDockets;
+import sfmotion.LegalCase;
+import sfmotion.Party;
+import sfmotion.TrackEntry;
+import sfmotion.EntitiesAndCaseDockets.Attorney;
+import sfmotion.EntitiesAndCaseDockets.CaseAttorneys;
+import sfmotion.EntitiesAndCaseDockets.CaseParties;
+import sfmotion.TrackEntry.DePhrase;
+import sfmotion.TrackEntry.Section;
 import track.LegaLang.Srunner;
 import utils.Pair;
 
@@ -148,33 +148,33 @@ public class Track {
 				tokens.add(tk);
 				phlist.add(ph);
 				ph.synType = "NP";//Clerk, Judge, Attorney, party
-				if (dp.entity instanceof legal.Party) {
-					legal.Party party = (legal.Party) dp.entity;
-					if (party.type == legal.Party.TYPE_INDIVIDUAL || party.type == legal.Party.TYPE_MINOR) {
+				if (dp.entity instanceof sfmotion.Party) {
+					sfmotion.Party party = (sfmotion.Party) dp.entity;
+					if (party.type == sfmotion.Party.TYPE_INDIVIDUAL || party.type == sfmotion.Party.TYPE_MINOR) {
 						Entity e3 = new Entity(ph.getText(), legalang.getEntity("IndividualParty"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 						ph.setGraph(e3);
-					} else if (party.type == legal.Party.TYPE_DOESROESMOES) {
+					} else if (party.type == sfmotion.Party.TYPE_DOESROESMOES) {
 						Entity e3 = new Entity(ph.getText(), legalang.getEntity("GenericParty"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 						ph.setGraph(e3);
 					} else {
 						Entity e3 = new Entity(ph.getText(), legalang.getEntity("OrgCoParty"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 						ph.setGraph(e3);
 					}
-				} else if (dp.entity instanceof legal.EntitiesAndCaseDockets.Attorney) {
+				} else if (dp.entity instanceof sfmotion.EntitiesAndCaseDockets.Attorney) {
 					//					legal.ExtractEntities.Attorney attorney = (legal.ExtractEntities.Attorney)p.entity;
 					Entity e3 = new Entity(ph.getText(), legalang.getEntity("Attorney"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 					ph.setGraph(e3);
-				} else if (dp.entity instanceof legal.EntitiesAndCaseDockets.Judge) {
+				} else if (dp.entity instanceof sfmotion.EntitiesAndCaseDockets.Judge) {
 					//					legal.ExtractEntities.Judge judge = (legal.ExtractEntities.Judge)p.entity;
 					Entity e3 = new Entity(ph.getText(), legalang.getEntity("Judge"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 					ph.setGraph(e3);
-				} else if (dp.entity instanceof legal.EntitiesAndCaseDockets.Clerk) {
+				} else if (dp.entity instanceof sfmotion.EntitiesAndCaseDockets.Clerk) {
 					Entity e3 = new Entity(ph.getText(), legalang.getEntity("Clerk"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 					ph.setGraph(e3);
-				} else if (dp.entity instanceof legal.EntitiesAndCaseDockets.Reporter) {
+				} else if (dp.entity instanceof sfmotion.EntitiesAndCaseDockets.Reporter) {
 					Entity e3 = new Entity(ph.getText(), legalang.getEntity("Reporter"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 					ph.setGraph(e3);
-				} else if (dp.entity instanceof legal.EntitiesAndCaseDockets.SFCaseNumber) {
+				} else if (dp.entity instanceof sfmotion.EntitiesAndCaseDockets.SFCaseNumber) {
 					Entity e3 = new Entity(ph.getText(), legalang.getEntity("SFCaseNumber"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 					ph.setGraph(e3);
 				}

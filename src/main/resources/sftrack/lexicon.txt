@@ -52,6 +52,7 @@
 {"text":"APPROVAL","type":"NP", "entity":"ProcApprove"}
 {"text":"appointing","type":"VP", "tense":"ing", "entity":"ProcAppoint"}
 {"text":"april","type":"TIMEP","entity":"Month_4"}
+{"text":"arbitration","type":"NP", "entity":"ProcArbitration"}
 {"text":"arbitrator","type":"NP", "entity":"RoleLegalArbitrator"}
 {"text":"are","type":"VP","tense":"present", "entity":"ProcBe"}
 {"text":"argued","type":"VP","tense":"past","entity":"ProcArgument"}
@@ -207,6 +208,7 @@
 {"text":"courtesy","type":"ADJP","entity":"StatusCourtesy"}
 {"text":"Courtroom\\s*\\d\\p{Alpha}","type":"NP", "list":"Courtroom","entity":"Courtroom"}
 {"text":"Cover\\s*letter","type":"NP", "list":"cover","entity":"CoverLetter"}
+{"text":"CRC","type":"NP","entity":"CaliforniaRulesOfCourt"}
 {"text":"Create","type":"VP", "tense":"present","entity":"ProcCreate"}
 {"text":"Credit\\s*Card","type":"NP","list":"credit","entity":"CreditCard"}
 {"text":"Cross-Complaint","type":"NP","entity":"DocLegalCrossComplaint"}
@@ -368,6 +370,8 @@
 {"text":"from","type":"PRP","entity":"from"}
 {"text":"full","type":"ADJP", "entity":"StatusFull"}
 {"text":"further","type":"ADJP", "entity":"StatusFurther"}
+{"text":"G\\.C\\.","type":"NP","list":"g","entity":"GovernmentCode"}
+{"text":"GC","type":"NP","entity":"GovernmentCode"}
 {"text":"General\\s*Electric(\\s*Company)?","type":"NP","list":"General","entity":"OrgCoGeneralElectric"}
 {"text":"good","type":"ADJP","entity":"StatusGood"}
 {"text":"Governing","type":"VP", "tense":"ing", "entity":"ProcGovern"}
@@ -540,6 +544,7 @@
 {"text":"on","type":"PRP","entity":"on"}
 {"text":"on\\s*behalf\\s*of","type":"PRP","list":"on","entity":"onBehalfOf"}
 {"text":"only","type":"ADVP","entity":"StatusOnly"}
+{"text":"one","type":"NUMP", "entity":"NumberOne"}
 {"text":"open","type":"ADJP", "entity":"StatusOpen"}
 {"text":"OPENING","type":"ADJP", "entity":"StatusOpening"}
 {"text":"OPENING\\s*brief","type":"NP", "list":"OPENING", "entity":"DocLegalOpeningBrief"}
@@ -577,6 +582,8 @@
 {"text":"Payment","type":"NP","entity":"Payment"}
 {"text":"PDF","type":"NP","entity":"PDF"}
 {"text":"Pending","type":"ADJP", "entity":"StatusPending"}
+{"text":"Pending","type":"ADJLP", "entity":"StatusPending"}
+{"text":"Pending","type":"PRP", "entity":"pendingPrep"}
 {"text":"per","type":"PRP","entity":"per"}
 {"text":"PEREMPTORY\\s*CHALLENGE","type":"NP", "list":"peremptory", "entity":"PeremptoryChallenge"}
 {"text":"PEREMPTORY\\s*DISQUALIFICATION","type":"NP","list":"PEREMPTORY","entity":"PeremptoryDisqualification"}
@@ -745,6 +752,7 @@
 {"text":"sixth","type":"ADJP","entity":"Sixth"}
 {"text":"sometime","type":"TIMEP","entity":"Sometime"}
 {"text":"SO(\\s*|-)ORDERED","type":"NP","list":"so so-ordered","entity":"DocLegalOrder"}
+{"text":"Special","type":"ADJP", "entity":"StatusSpecial"}
 {"text":"Special\\s*Master","type":"NP", "list":"special","entity":"SpecialMaster"}
 {"text":"standing","type":"NP","entity":"LegalStanding"}
 {"text":"standing","type":"ADJP","entity":"StatusStanding"}
@@ -756,6 +764,7 @@
 {"text":"stay","type":"NP", "entity":"ProcStay"}
 {"text":"stay","type":"VP", "tense":"present","entity":"ProcStay"}
 {"text":"stayed","type":"VP", "tense":"past","entity":"ProcStay"}
+{"text":"staying","type":"VP", "tense":"ing","entity":"ProcStay"}
 {"text":"Stipulated","type":"VP", "tense":"past","entity":"ProcStipulate"}
 {"text":"Stipulated","type":"ADJP", "entity":"StatusStipulate"}
 {"text":"stipulation","type":"NP", "entity":"DocLegalStipulation"}
@@ -803,7 +812,6 @@
 {"text":"text","type":"NP", "entity":"DocText"}
 {"text":"TEXAS","type":"NP","entity":"StateTexas"}
 {"text":"that","type":"DET", "entity":"That"}
-{"text":"which","type":"NP", "entity":"Which"}
 {"text":"the","type":"DET","entity":"The"}
 {"text":"their","type":"POS", "entity":"They"}
 {"text":"Thereof","type":"DET","entity":"Thereof"}
@@ -811,6 +819,7 @@
 {"text":"Things","type":"NP", "entity":"Thing"}
 {"text":"third","type":"ADJP","entity":"Third"}
 {"text":"this","type":"DET", "entity":"This"}
+{"text":"three","type":"NUMP", "entity":"NumberThree"}
 {"text":"through\\s*and\\s*including","type":"PRP", "list":"through", "entity":"throughAndIncluding"}
 {"text":"Thursday","type":"TIMEP", "entity":"Thursday"}
 {"text":"time","type":"NP","entity":"TimeRef"}
@@ -828,6 +837,7 @@
 {"text":"Trial\\s*day","type":"NP","list":"trial", "entity":"TrialDay"}
 {"text":"Trial\\s*setting","type":"NP","list":"trial", "entity":"TrialSetting"}
 {"text":"Tuesday","type":"TIMEP", "entity":"Tuesday"}
+{"text":"two","type":"NUMP", "entity":"NumberTwo"}
 {"text":"UTAH","type":"NP","entity":"StateUtah"}
 {"text":"under","type":"PRP","entity":"under"}
 {"text":"undisputed","type":"ADJP","entity":"StatusUndisputed"}
@@ -850,8 +860,11 @@
 {"text":"viewed","type":"VP", "tense":"past", "entity":"ProcView"}
 {"text":"voluntary","type":"ADJP","entity":"StatusVoluntary"}
 {"text":"was","type":"VP","tense":"past", "entity":"ProcBe"}
+{"text":"waive","type":"VP","tense":"present", "entity":"ProcWaive"}
+{"text":"waiver","type":"NP", "entity":"ProcWaive"}
 {"text":"week","type":"NP", "entity":"Week"}
 {"text":"Wednesday","type":"TIMEP", "entity":"Wednesday"}
+{"text":"which","type":"NP", "entity":"Which"}
 {"text":"will","type":"ADVP","entity":"will"}
 {"text":"with","type":"PRP","entity":"with"}
 {"text":"WITH\\s*RESPECT\\s*TO","type":"PRP","list":"with", "entity":"withRespectTo"}

@@ -19,7 +19,7 @@ import com.google.common.collect.Multiset;
 
 import utils.Pair;
 
-public class MotionEntry extends SFMotionEntry {
+public class MotionEntry extends TrackEntry {
 	// For subtypes:
 	public static final int TYPE_UNKNOWN = 0;
 	public static final int TYPE_MOTION = 1;
@@ -39,7 +39,6 @@ public class MotionEntry extends SFMotionEntry {
 	static final String regTransID = "\\(TRANSAC.+?(?<transactionID>\\d+)\\)";
 	static final String filedby = "(FILED|SUBMITTED) BY\\s(?<filer>.+?)";
 	static final String hearingSetFor = "(?<hearingSetFor>HEARING\\sSET\\sFOR\\s(?<month>\\w+)-(?<date>\\d\\d)-(?<year>\\d+)\\s+AT.+?IN DEP.+?\\d+\\s+)";
-	static final String atTimeLocation = "";
 	static final String regfee = "\\(FEE.+?\\)";
 	static final String regMotion1 = head + motionSlash + noticeOfMotion + "?" + partys + motionProper + regTransactionID + "?" + filedby + "\\s" + hearingSetFor + regfee + "?$";
 	static final String regMotion2 = head + "(" + plaintiffDefendant + "\\s)?" + noticeOfMotion + "?" + motionInLimine + regTransactionID + "?" + filedby + "$";
@@ -58,14 +57,8 @@ public class MotionEntry extends SFMotionEntry {
 			Pattern.CASE_INSENSITIVE);//|(EX\\sPARTE\\s)?APPLICATION
 	static final String left = "";
 	static final String right = "";
-	static final String regComplaint = "^(?<caseType>.+?)" + "(COMPLAINT\\s*.+?FILED\\s*BY\\s*PLAINTIFFS?)(?<plaintiffs>.+?)" + "(AS\\s*TO\\s*DEFENDANTS?(?<defendants>.+?))"
-			+ "(?<summons>SUMMONS\\s*ISSUED\\,?\\s*)" + "(?<coverSheet>JUDICIAL\\s*COUNCIL\\s*CIVIL\\s*CASE\\s*COVER\\s*SHEETS?\\s*FILED\\s*)?"
-			+ "(CASE\\s*MANAGEMENT\\s*CONFERENCE\\s*SCHEDULED\\s*FOR\\s*(?<caseManagementConferenceDate>\\w{3,10}-\\d\\d-\\d{2,4})\\s*)?"
-			+ "(PROOF\\s*OF\\s*SERVICE\\s*DUE\\s*ON\\s*(?<posDate>\\w{3,10}-\\d\\d-\\d{2,4})\\s*)?"
-			+ "(CASE\\s*MANAGEMENT\\s*STATEMENT\\s*DUE\\s*\\s*ON\\s*(?<caseManageStatementDate>\\w{3,10}-\\d\\d-\\d{2,4})\\s*)?" + "(\\(Fee\\:(?<fee>.+?)\\))?";
 	//	static final Pattern pComplaint = Pattern.compile(regComplaint, Pattern.CASE_INSENSITIVE);
 	static final String sreg = "\\;|\\s/\\s|(?=(PROOF\\s+OF\\s+SERVICE|\\(Fee.{3,10}?\\)|\\(TRANSACTION\\sID\\s.{6,20}?\\)|HEARING\\s*SET\\s*FOR|MEMORANDUM\\s+(OF\\s+POINTS\\s+(\\&|AND)\\s+AUTHORITIES)|\\,\\s+POINTS\\s+AND\\s+AUTHORITIES|DECLARATION|FILED\\s+BY))";
-	static final Pattern pContinuedTo = Pattern.compile("(?:(?:IS\\s)?CONTINUED.+?TO|BE HEARD ON)\\s.*?(\\w+)(?:-|\\s)(\\d+)(?:\\,|-)\\s*(\\d+)", Pattern.CASE_INSENSITIVE);
 	static final Pattern pContinueTrial = Pattern.compile("^.{0,15}MOTION\\s*(TO|FOR).{1,4}(CONTINU.{2,6}((JURY|BENCH|COURT)\\s)?TRIAL|((JURY|BENCH|COURT)\\s)?TRIAL.{1,4}CONTINU)");
 	//	static final Map<String, String> monthLookup = new HashMap<>();
 
@@ -76,6 +69,7 @@ public class MotionEntry extends SFMotionEntry {
 	int motionOffset;
 	public Date hearingDate;
 	public Date finalHearingDate;
+	public String partyRaw;
 	// often motion in limine appear in series, "MOTION IN LIMINE NO.3: TO EXCLUDE ..."
 	// But this cannot handle "MOTIONS IN LIMINE I - XXIV"
 	// There are other dates set at the same entry for various 
@@ -85,8 +79,8 @@ public class MotionEntry extends SFMotionEntry {
 	List<OrderEntry> orders = new ArrayList<>();
 	public List<OppositionEntry> oppositions = new ArrayList<>();
 	public List<ReplyEntry> replies = new ArrayList<>();
-	List<SFMotionEntry> group = new ArrayList<>();
-	List<SFMotionEntry> sequence;
+	List<TrackEntry> group = new ArrayList<>();
+	List<TrackEntry> sequence;
 	// It can be more complicated than this, such as moot, partial grant partial deny. grant cause 1 and 3, deny cause 2 and 4.
 	boolean grant = false;
 	boolean deny = false;
@@ -125,8 +119,8 @@ public class MotionEntry extends SFMotionEntry {
 		}
 	}
 
-	public void addToGroup(SFMotionEntry e) {
-		if (e.type != null && e.type.equals(SFMotionEntry.MOTION)) {
+	public void addToGroup(TrackEntry e) {
+		if (e.type != null && e.type.equals(TrackEntry.MOTION)) {
 			MotionEntry me = (MotionEntry) e;
 			if (!me.group.isEmpty()) {
 				boolean b = me.group.remove(this);
@@ -201,6 +195,7 @@ public class MotionEntry extends SFMotionEntry {
 			ms.setHearingDate(hearingdate);
 			ms.setTransactionID(transactionID);
 			ms.setFiler(filer);
+			ms.setParty(parties);
 			return ms;
 		} else {
 			Matcher mm = pMotion2.matcher(txt);
@@ -215,6 +210,10 @@ public class MotionEntry extends SFMotionEntry {
 			}
 			return null;
 		}
+	}
+
+	void setParty(String _party) {
+		partyRaw = _party;
 	}
 
 	static MotionEntry parse(String _sdate, String txt) {
@@ -505,7 +504,7 @@ public class MotionEntry extends SFMotionEntry {
 		return scoreMax;
 	}
 
-	public boolean isCompatible(SFMotionEntry e) {
+	public boolean isCompatible(TrackEntry e) {
 		String s = e.text;
 		int idxMotion = s.indexOf("MOTION");
 		int idxDemurr = s.indexOf("DEMURR");
@@ -580,7 +579,7 @@ public class MotionEntry extends SFMotionEntry {
 		if (hearingDate != null)
 			sb.append("\t\t\tHSet\t" + hearingDate + "\n");
 		if (sequence != null)
-			for (SFMotionEntry od : sequence) {
+			for (TrackEntry od : sequence) {
 				sb.append(od);
 			}
 		if (grant && deny) {
@@ -604,8 +603,8 @@ public class MotionEntry extends SFMotionEntry {
 		}
 		if (!group.isEmpty()) {
 			sb.append("\nGroup members:\n");
-			for (SFMotionEntry e : group) {
-				if (e.type != null && e.type.equals(SFMotionEntry.MOTION)) {
+			for (TrackEntry e : group) {
+				if (e.type != null && e.type.equals(TrackEntry.MOTION)) {
 					sb.append("Extra: " + e + "\n");
 				} else
 					sb.append(e + "\n");
@@ -631,7 +630,23 @@ public class MotionEntry extends SFMotionEntry {
 		while ((line = br.readLine()) != null) {
 			String[] items = line.split("\\t");
 			//			findMotion(items[2], line, wr1, wr2);
-			count += splitMotion(items[2], line, wr1, wr2);
+			MotionEntry e = parse1(items[1], items[2]);
+			if (e != null) {
+				wr1.write(line + "\n");
+				if (e.partyRaw != null)
+					wr1.write("parties: " + e.partyRaw + "\n");
+				if (e.motionString != null)
+					wr1.write("motionProper: " + e.motionString + "\n");
+				if (e.transactionID != null)
+					wr1.write("transactionID: " + e.transactionID + "\n");
+				if (e.filer != null)
+					wr1.write("filer: " + e.filer + "\n");
+				if (e.hearingDate != null)
+					wr1.write("Hearing: " + e.hearingDate + "\n\n");
+				count++;
+			} else {
+				wr2.write(line + "\n");
+			}
 			total++;
 		}
 		br.close();
@@ -649,46 +664,6 @@ public class MotionEntry extends SFMotionEntry {
 			wr1.write(line + "\n");
 		} else {
 			wr2.write(line + "\n");
-		}
-	}
-
-	static int splitMotion(String s, String line, BufferedWriter wr1, BufferedWriter wr2) throws IOException {
-		Matcher m = pMotion1.matcher(s);
-		if (m.find()) {// change to while(m.find()). Some have multiple motions in one docket entry
-			String parties = m.group("parties");
-			String motionProper = m.group("motionProper");
-			String transactionID = m.group("transactionID");
-			String filer = m.group("filer");
-			String month = m.group("month");
-			String sdate = m.group("date");
-			String year = m.group("year");
-			List<String> dlist = new ArrayList<>();
-			dlist.add(month);
-			dlist.add(sdate);
-			dlist.add(year);
-			//			Date date = Date.valueOf(monthLookup.get(month) + "-" + sdate + "-" + year);
-			Date date = utils.DateTime.getSqlDate(dlist);
-			wr1.write(line + "\n");
-			wr1.write("parties: " + parties + "\n");
-			wr1.write("motionProper: " + motionProper + "\n");
-			wr1.write("transactionID: " + transactionID + "\n");
-			wr1.write("filer: " + filer + "\n");
-			wr1.write("Hearing: " + month + "-" + date + "-" + year + "\n\n");
-			return 1;
-		} else {
-			Matcher mm = pMotion2.matcher(s);
-			if (mm.find()) {
-				String motionProper = mm.group("motionProper");
-				String transactionID = mm.group("transactionID");
-				String filer = mm.group("filer");
-				wr1.write(line + "\n");
-				wr1.write("motionProper: " + motionProper + "\n");
-				wr1.write("transactionID: " + transactionID + "\n");
-				wr1.write("filer: " + filer + "\n\n");
-				return 1;
-			}
-			wr2.write(line + "\n");
-			return 0;
 		}
 	}
 

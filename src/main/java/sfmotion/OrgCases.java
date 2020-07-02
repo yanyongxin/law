@@ -69,7 +69,7 @@ public class OrgCases {
 				cs.addEntry(c);
 				last = c.date;
 			} else {
-				SFMotionEntry en = SFMotionEntry.analyze(items[1], items[2]);
+				TrackEntry en = TrackEntry.analyze(items[1], items[2]);
 				cs.addEntry(en);
 				if (en.date.after(last)) {
 					last = en.date;
@@ -85,7 +85,7 @@ public class OrgCases {
 		for (Case c : cases) {
 			//					c.sortEntries();
 			wr.write(c.id + "\n");
-			for (SFMotionEntry e : c.entries) {
+			for (TrackEntry e : c.entries) {
 				wr.write("\t" + e.toTypeString() + "\n");
 			}
 		}

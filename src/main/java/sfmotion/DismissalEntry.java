@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class DismissalEntry extends SFMotionEntry {//
+public class DismissalEntry extends TrackEntry {//
 	static final String entire = "DISMISSAL.{3,50}ENTIRE ACTION";
 	static final Pattern pEntire = Pattern.compile(entire, Pattern.CASE_INSENSITIVE);
 	static final String partial = "DISMISSAL.+?\\bAS TO (?<dismissedParty>.+?$)";

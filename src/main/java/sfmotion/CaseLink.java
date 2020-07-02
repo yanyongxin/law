@@ -1,4 +1,4 @@
-package legal;
+package sfmotion;
 
 public class CaseLink {
 	CaseEntity e1;

@@ -1,11 +1,11 @@
-package legal;
+package sfmotion;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import legal.LegalCase.CaseNames;
+import sfmotion.LegalCase.CaseNames;
 
 public class PartyCluster {
 	static final String LLCP = "A (\\w+\\s){0,6}(COMPANY|PARTNERSHIP|CORP(ORATION))";

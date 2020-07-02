@@ -14,7 +14,7 @@ public class LexToken {
 	static final Pattern ptEntitySuffix = Pattern.compile("llp|llc|pc|pllc|ltd|plc", Pattern.CASE_INSENSITIVE);
 	static final Pattern ptDate = Pattern.compile("\\d{1,2}\\/\\d{1,2}\\/(19|20)?\\d\\d", Pattern.CASE_INSENSITIVE);
 	static final Pattern ptTime = Pattern.compile("(0|1)?\\d\\:\\d\\d\\s*(a|p)\\.?m\\.?", Pattern.CASE_INSENSITIVE);
-	static final Pattern ptNumber = Pattern.compile("\\d+|(\\d{1,3}(\\,\\d{3})*)(\\.\\d+)?", Pattern.CASE_INSENSITIVE);
+	static final Pattern ptNumber = Pattern.compile("(\\d+(\\,\\d{3})*)(\\.\\d+)?", Pattern.CASE_INSENSITIVE);
 	static final Pattern ptSerialNumber = Pattern.compile("\\d*(1st|2nd|3rd)|\\d+th", Pattern.CASE_INSENSITIVE);
 	static final Pattern ptCaseNumber = Pattern.compile("\\d{0,2}\\:\\d\\d?-[a-z][a-z]-\\d{2,5}(-\\w{2,3})*", Pattern.CASE_INSENSITIVE);
 	public static final int LEX_EMPTY = 0;

@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class JudgmentEntry extends SFMotionEntry {
+public class JudgmentEntry extends TrackEntry {
 	//	Line 10794: CA_SFC_468543	2019-06-27	NOTICE OF ENTRY OF JUDGMENT (TRANSACTION ID # 100075969)
 	//	Line 6733: CA_SFC_466097	2017-11-21	JUDGMENT, DISSOLUTION OF MARRIAGE - STATUS ONLY, MARITAL STATUS ENDS SEP-19-2017
 	static final String judgment = "^(NOTICE OF ENTRY OF )?JUDGMENT";

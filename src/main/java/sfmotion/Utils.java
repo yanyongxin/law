@@ -1,4 +1,4 @@
-package legal;
+package sfmotion;
 
 import java.sql.Date;
 import java.util.ArrayList;

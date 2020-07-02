@@ -13,7 +13,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 //
-public class SummonsEntry extends SFMotionEntry {
+public class SummonsEntry extends TrackEntry {
 	//SUMMONS ON COMPLAINT (TRANSACTION ID # 60057326), PROOF OF SERVICE ONLY, FILED BY PLAINTIFF BARRIENTOS, CLAUDIA CRUZ SERVED JAN-06-2017, PERSONAL SERVICE AS TO DEFENDANT YOUNG, LILLIE PEARL
 	//SUMMONS ON COMPLAINT FILED BY PLAINTIFF STRONG, PAUL SERVED MAR-14-2017, POSTING AND MAILING AS TO DEFENDANT TAYLOR, DAVID
 	static final String regSummons1 = "^SUMMONS\\s*ON\\s*COMPLAINT\\,?\\s*(?<transactionID>\\(TRANSACTION\\s*ID\\s*\\#\\s*\\d+\\))?\\,?\\s*(?<prejudgmentClaim>PREJUDGMENT\\sCLAIM\\sOF\\sRIGHT\\sOF\\sPOSSESSION\\,?\\s?)?(?<pos>PROOF\\s*OF\\s*SERVICE\\s*(ONLY)?)?.+?FILED\\s*BY\\s*(?<filer>.+?)"

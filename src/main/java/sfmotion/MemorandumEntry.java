@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MemorandumEntry extends SFMotionEntry {
+public class MemorandumEntry extends TrackEntry {
 	static final String P_And_A = "(OF (POINTS? AND AUTHORITIES|P\\&?A)\\s)?";
 	static final String C_AND_D = "OF COSTS AND DISBURSEMENTS.+?";
 	static final String S_OR_O = "(?<relation>ISO|OPPOSING|-?IN (PARTIAL\\s)?(SUP*ORT? OF|OPPO\\w* TO|REPLY TO))";
