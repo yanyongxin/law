@@ -41,7 +41,7 @@ public class TrackEntry implements Comparable<TrackEntry> {
 	public static final String SUMMONS = "SMMS";
 	public static final String TRIAL = "TRAL";
 
-	static final Pattern pSec = Pattern.compile("\\b(filed by|as to)\\b", Pattern.CASE_INSENSITIVE);
+	static final Pattern pSec = Pattern.compile("\\b(filed by|as to|hearing set for)\\b", Pattern.CASE_INSENSITIVE);
 
 	public String text;
 	public String raw;

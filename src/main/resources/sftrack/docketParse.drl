@@ -20,9 +20,11 @@ rule "dicklook"
 		insert(ph);
 end
 
+/*
 rule "dicklook_rescue"	
 	salience -3000
 	// for Amazon.com, Inc., sometimes only "Amazon" appear in the text.
+	// but will interpret "law" as law firm.
 	when
 		p1: Phrase(synType==null)
 		p2: DictPhrase(matchFirstOne(p1) !=null)
@@ -33,6 +35,7 @@ rule "dicklook_rescue"
 		ut.printPhrase(ph);
 		insert(ph);
 end
+*/
 
 rule "number_1"
 	when
@@ -445,21 +448,25 @@ end
 rule "NP_AND_NP"	//no opposition filed, and, good cause shown
 	salience 100
 	when
-		p1: Phrase(synType=="NP"
+		p1: Phrase(synType=="NP", subs: subphrases
 			,graph.containLink("hasOwner", head, null) ==null
-			,graph.containLink("define", null, head) ==null
+//			,graph.containLink("define", null, head) ==null
 			,graph.containLink("ugoerOfProc", head, null) ==null
-			,!head.isKindOf("LitigationParty")// for Party_,_party
+			,!head.isKindOf("LitigationParty")
 			)
-		p2: Phrase(text==","||text.equalsIgnoreCase("and")||text=="&"||text.equalsIgnoreCase(", and"), synType!=null, begToken==p1.endToken)
+		p2: Phrase(text==","||text.equalsIgnoreCase("and")||text=="&"||text=="/"||text.equalsIgnoreCase(", and"), synType!=null, begToken==p1.endToken)
 		p3: Phrase(synType=="NP", begToken==p2.endToken
 			,graph.containLink("hasOwner", head, null) ==null
-			,graph.containLink("define", null, head) ==null
+//			,graph.containLink("define", null, head) ==null
 			,graph.containLink("ugoerOfProc", head, null) ==null
 			,!isSubString(p1)
 		)
 		eval(p1.similar(p3))
 	then
+	// "word1, word2 and word3" is allowed. "word1 and word2, word3" is not allowed:
+		if(p1.isSet() && subs.size()==3 && ((Phrase)subs.get(1)).getText().equalsIgnoreCase("and") && p2.getText().equalsIgnoreCase(",")){
+			return;
+		}
 		ut.print("Find NP_AND_NP for:  " + p1 +", "+ p2 +", "+p3 );
 		String name = p1.getHead().getName().replaceAll("\\s+", "") + "_AND_" + p3.getHead().getName().replaceAll("\\s+", "");
 		Phrase ph = p1.addToSet(p2, p3, name, true);
@@ -653,7 +660,7 @@ end
 rule "TO_VP"
 	when
 		p1: Phrase(synType=="PARTICLE", head.isKindOf("ToInfinitive"), graph.topLink == null)
-		p2: Phrase(synType=="VP", begToken==p1.endToken)// use past tense
+		p2: Phrase(synType=="VP", tense=="present", begToken==p1.endToken)// use past tense
 	then
 		ut.print("Find TO_VP: " + p1 + ", " + p2 );
 	   Link r = new Link("ToInfinitive", p1.getHead(), p2.getHead());
@@ -664,7 +671,7 @@ end
 
 rule "NP_TOVP" // "time to respond", "motion to strike", NOT "'Notice of motion and motion' to strike", "5 days to answer"
 	when
-		p1: Phrase(synType=="NP"||synType=="TIMEP", headLast(), graph.containLink("hasOwner", head, null)==null
+		p1: Phrase(synType=="NP"||synType=="TIMEP", headLast()||lastHead.isKindOf("StatusProc"), graph.containLink("hasOwner", head, null)==null
 			, graph.containLink("hasDET", head, null)==null, !isSet())
 		p2: Phrase(synType=="PARTICLE", head.isKindOf("ToInfinitive"), g : graph, lk2: graph.topLink,  begToken==p1.endToken)
 		eval(lk2 != null && lk2.getType()=="ToInfinitive")
@@ -673,7 +680,7 @@ rule "NP_TOVP" // "time to respond", "motion to strike", NOT "'Notice of motion 
 		ut.print("Find NP_TOVP: " + p1 + ", " + p2 );
 		Link r = new Link(lk2.getArg1().getName(), p1.getHead(), lk2.getArg2());
 		Phrase ph = new Phrase(p1, p2, r, 1);
-//		ph.getGraph().remove(p2.getHead());
+		ph.getGraph().remove(p2.getHead());
 		insert(ph);
 		ut.printPhrase(ph);
 end
@@ -717,6 +724,19 @@ rule "NP_VP"	// "The court ordered (the following judgment entered)", "Defendant
 		Link r = new Link("agentOfProc", p1.getHead(), p2.getHead());
 		Phrase ph = new Phrase(p1, p2, r, 2);// result is VP
 		ph.setSubject(p1);
+		insert(ph);
+		ut.printPhrase(ph);
+end
+
+rule "NP_NPofVP"	// "FIREARM RELINQUISHMENT"
+	when
+		p1: Phrase(synType=="NP", graph.topLink==null)
+		p2: Phrase(synType=="NP", head.isKindOf("Process"), graph.topLink==null, begToken==p1.endToken)
+		Link(type=="ugoerOfProc", p1.head.isKindOf(arg1), p2.head.isKindOf(arg2))
+	then
+		ut.print("Find NP_NPofVP: " + p1 + ", " + p2 );
+		Link r = new Link("ugoerOfProc", p1.getHead(), p2.getHead());
+		Phrase ph = new Phrase(p1, p2, r, 2);// result is NP
 		insert(ph);
 		ut.printPhrase(ph);
 end
@@ -832,21 +852,6 @@ rule "VP_set_NP"	// "dismiss or abate action"
 		insert(ph);
 		ut.printPhrase(ph);
 end
-rule "NP(VP)_NP"
-	when
-		p1: Phrase(synType=="NP", lk : graph.topLink, head.isKindOf("Process"), h1:head)
-		p2: Phrase(synType=="NP", h2:head, graph.containLink("agentOfProc", head, null)==null, 
-					graph.containLink("ugoerOfProc", head, null)==null, begToken==p1.endToken)
-
-		Link(type=="ugoerOfProc", h2.isKindOf(arg1), h1.isKindOf(arg2))
-	then
-		ut.print("Find NP(VP)_NP: " + p1 + ", " + p2 );
-		Link r = new Link("ugoerOfProc", p2.getHead(), p1.getHead());
-		Phrase ph = new Phrase(p1, p2, r, 1);	// NP
-		insert(ph);
-		ut.printPhrase(ph);
-end
-
 
 rule "VP_because_VP"	//DEFENSE COUNSEL REQUEST JUDGMENT BE VACATED AS PLAINTIFF IS DECEASED. 
 	when
@@ -868,30 +873,19 @@ rule "VP_because_VP"	//DEFENSE COUNSEL REQUEST JUDGMENT BE VACATED AS PLAINTIFF 
 		ut.printPhrase(ph);
 end
 
-rule "VP_AND_VP"	//COMPLY WITH SFLR 2.7B AND PROVIDE COURTESY COPIES OF THE MOTION
-	salience 100
+rule "VP_AND_VP"	//"COMPLY WITH SFLR 2.7B AND PROVIDE COURTESY COPIES OF THE MOTION",, "authorizing and directing"
 	when
 		p1: Phrase(synType=="VP")
-		p2: Phrase(text.equalsIgnoreCase("and")||text.equalsIgnoreCase(", and"), synType=="CONJ", begToken==p1.endToken)
+		p2: Phrase(text.equalsIgnoreCase("and")||text.equals("/")||text.equalsIgnoreCase(", and"), begToken==p1.endToken)
 		p3: Phrase(synType=="VP", begToken==p2.endToken)
-//		eval(p1.similar(p3))
 	then
 		ut.print("Find VP_AND_VP for:  " + p1 +", "+ p2 +", "+p3 );
-		String name = p1.getHead().getName().replaceAll("\\s+", "") + "_AND_" + p3.getHead().getName().replaceAll("\\s+", "");
+		String name1 = p1.getHead().getName().replaceAll("\\s+", "");
+		String name2 = p3.getHead().getName().replaceAll("\\s+", "");
+		String name = name1 + "_AND_" + name2; 
 		Phrase ph = p1.addToSet(p2, p3, name, true);
 		if(ph != null){
-/*			Entity h1 = p1.getHead().getTheClass();
-			Entity h2 = p3.getHead().getTheClass();
-			Entity h3 = h1;
-			if(h1.isKindOf(h2)){
-				h3 = h2;
-			} else if(h2.isKindOf(h1)){
-				h3 = h1;
-			} else {
-				h3 = onto.getEntity("Process");
-			}  
-			ph.getHead().setTheClass(h3);
-*/			insert(ph);
+			insert(ph);
 			ut.printPhrase(ph);
 		}
 end
@@ -1288,7 +1282,9 @@ end
 rule "NP_PRP_headLast"//COMPLIANCE WITH PROTECTIVE ORDER
 	when
 		//"DISMISSAL OF COMPLAINT WITH PREJUDICE" will not work because of "headLast()" 
-		p1: Phrase(synType=="NP", lk : graph.topLink, g1 : graph, headLast(), lk1 : graph.containLink("hasMember", head, null)
+		p1: Phrase(synType=="NP", lk : graph.topLink, g1 : graph
+				, headLast()||getLastHead().isKindOf("StatusProc")
+				, lk1 : graph.containLink("hasMember", head, null)
 		//, graph.prpCount <3
 				, graph.containLink("hasDET", head, null)==null
 //				, graph.containLink("ugoerOfProc", head, null)==null
@@ -1417,7 +1413,10 @@ rule "NP_PRP_of"	// day 9 of trial (graph.containLink("hasValue", head, null))
 			eval(lk==null) 
 			eval(lk !=null && (!(onto.isKindOf(lk.getType(), "ugoerOfProc") && lk.getArg1().equals(p1.getHead()))))
 		)
-		p2: Phrase(synType=="PRP", head.isKindOf("of"), lk2: graph.topLink, begToken==p1.endToken, lk2!=null, graph.containLink("hasMember", lk2.getArg2(), null)==null)
+		p2: Phrase(synType=="PRP", head.isKindOf("of"), lk2: graph.topLink, begToken==p1.endToken, lk2!=null
+		// followng restriction eliminate a lot of combinations but can eliminate correct ones in some cases:
+//				, graph.containLink("hasMember", lk2.getArg2(), null)==null
+				)
 		eval(lk2 != null && lk2.getType()=="PRPRelation")
 		not (
 				eval(p1.getHead().isKindOf("Process")) and
@@ -2500,14 +2499,14 @@ rule "remove more phrase"
 end
 */
 
-
+/*
 query "One Phrase longest sentence"
 //	ph : Phrase(begToken ==0, synType != null)
 	ph : Phrase(begToken ==0, synType != null, synType != "EMPTY")
 	(not Phrase(subphrases != null, subphrases.contains(ph)))
 	(not Phrase(begToken == 0, endToken > ph.endToken))
 end
-
+*/
 
 
 

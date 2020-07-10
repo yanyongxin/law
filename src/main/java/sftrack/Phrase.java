@@ -347,7 +347,7 @@ public class Phrase implements Cloneable {
 		subphrases = new ArrayList<Phrase>();
 		if (g.isSet()) {
 			ERGraph g1 = p1.getGraph();
-			if (g1.isSet()) {
+			if (g1 != null && g1.isSet()) {
 				List<Phrase> ls = p1.getSubphrases();
 				if (ls != null) {
 					subphrases.addAll(ls);
@@ -359,7 +359,7 @@ public class Phrase implements Cloneable {
 			}
 			if (p2 != null) {
 				ERGraph g2 = p2.getGraph();
-				if (g2.isSet()) {
+				if (g2 != null && g2.isSet()) {
 					List<Phrase> ls = p2.getSubphrases();
 					if (ls != null) {
 						subphrases.addAll(ls);
@@ -370,8 +370,8 @@ public class Phrase implements Cloneable {
 					subphrases.add(p2);
 				}
 			}
-			ERGraph g2 = p2.getGraph();
-			if (g2.isSet()) {
+			ERGraph g3 = p3.getGraph();
+			if (g3 != null && g3.isSet()) {
 				List<Phrase> ls = p3.getSubphrases();
 				if (ls != null) {
 					subphrases.addAll(ls);

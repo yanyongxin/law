@@ -70,6 +70,7 @@ public class SFcomplex {
 		legalang = SFcomplex.initializeRuleEngine();
 		EntitiesAndCaseDockets etcd = new EntitiesAndCaseDockets(entityResources);
 		int caseCount = 0;
+		List<String> triedText = new ArrayList<>();
 		for (LegalCase cs : etcd.cases) {
 			caseCount++;
 			//			if (caseCount < 2)
@@ -89,10 +90,19 @@ public class SFcomplex {
 				if (e.text.startsWith("Payment")) {
 					continue;
 				}
-				System.out.println(cs.getID() + "\t" + e.getDate() + "\t" + e.text);
+				String printed = cs.getID() + "\t" + e.getDate() + "\t" + e.text;
+				boolean bP = false;
 				for (Section sec : e.sections) {
 					if (sec.dephrases.size() == 0 && sec.doneList.size() == 0)
 						continue;
+					if (triedText.contains(sec.text)) {
+						continue;
+					}
+					triedText.add(sec.text);
+					if (!bP) {
+						System.out.println(printed);
+						bP = true;
+					}
 					try {
 						//					Entity.resetSerial();
 						Srunner srun = legalang.createSrunner(true);
@@ -120,6 +130,7 @@ public class SFcomplex {
 					} catch (Exception ex) {
 						fail(ex.getMessage());
 					}
+					break;// only do the first section for now. ignore "filed by" and everything after 
 				}
 			}
 			//			break;
