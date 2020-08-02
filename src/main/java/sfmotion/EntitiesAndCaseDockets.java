@@ -315,20 +315,35 @@ public class EntitiesAndCaseDockets {
 	}
 
 	void identifyEntities_1(List<LegalCase> cases) throws IOException {
+		int count = 0;
+		int perline = 10;
+		int theline = 0;
 		for (LegalCase c : cases) {
 			CaseParties cp = parties.get(c.id);
 			CaseAttorneys ca = attorneys.get(c.id);
 			for (TrackEntry e : c.entries) {
+				count++;
+				if (count % 10000 == 0) {
+					System.out.print(count + " ");
+					theline++;
+					if (theline >= perline) {
+						System.out.println();
+						theline = 0;
+					}
+				}
 				if (e.text.startsWith("Payment"))
 					continue;
 
 				findEntities_1(e, cp, ca, judges, clerks, reporters);
 			}
 		}
+		System.out.println("Total identify entries: " + count);
 	}
 
-	static void breakTwo(String str, String template, int idx, int offset, List<Pair> list, List<DePhrase> plist, Object o) {
+	static boolean breakTwo(String str, String template, int idx, int offset, List<Pair> list, List<DePhrase> plist, Object o) {
 		// list contains strings that contains no recognized entities
+		if (template == null || template.length() == 0)
+			return false;
 		int index1 = offset;
 		String s1 = str.substring(0, idx);
 		int len = idx + template.length();
@@ -342,6 +357,7 @@ public class EntitiesAndCaseDockets {
 			list.add(new Pair(Integer.valueOf(index2), s2));
 		DePhrase dp = new DePhrase(template.trim(), offset + idx, index2, o);
 		plist.add(dp);
+		return true;
 	}
 
 	static Pattern pDecla = Pattern.compile("(?<=DECLARATION\\sOF\\s).+?(?=IN\\s*SUPPORT|\\;|$)", Pattern.CASE_INSENSITIVE);
@@ -371,9 +387,9 @@ public class EntitiesAndCaseDockets {
 						String name = mm.group().trim();
 						PersonName pn = PersonName.parse(name, PersonName.GivMidSur);
 						Party pty = new Party(name, pn, Party.ROLE_SUPPORTER);
-						breakTwo(str, mm.group(), iidx, offset, nextList, dephrases, pty);
-						b = true;
-						break;
+						b = breakTwo(str, mm.group(), iidx, offset, nextList, dephrases, pty);
+						if (b)
+							break;
 					}
 					// for parties:
 					if (cn != null)
@@ -382,40 +398,42 @@ public class EntitiesAndCaseDockets {
 							for (String raw : p.raw) {
 								idx = str.indexOf(raw);
 								if (idx >= 0) {
-									breakTwo(str, raw, idx, offset, nextList, dephrases, p);
-									b = true;
-									break;
+									b = breakTwo(str, raw, idx, offset, nextList, dephrases, p);
+									if (b)
+										break;
 								}
 							}
 							if (b)
 								break;
-							idx = str.indexOf(p.name);
-							if (idx >= 0) {
-								breakTwo(str, p.name, idx, offset, nextList, dephrases, p);
-								b = true;
-								break;
+							if (p.name.length() > 0) {
+								idx = str.indexOf(p.name);
+								if (idx >= 0) {
+									b = breakTwo(str, p.name, idx, offset, nextList, dephrases, p);
+									if (b)
+										break;
+								}
 							}
 							if (p.errSued != null) {
 								idx = str.indexOf(p.errSued);
 								if (idx >= 0) {
-									breakTwo(str, p.errSued, idx, offset, nextList, dephrases, p);
-									b = true;
-									break;
+									b = breakTwo(str, p.errSued, idx, offset, nextList, dephrases, p);
+									if (b)
+										break;
 								}
 							}
 							if (p.nameCorp != null) {
 								Matcher m = p.nameCorp.pattern.matcher(str);
 								if (m.find()) {
 									idx = m.start();
-									breakTwo(str, m.group(), idx, offset, nextList, dephrases, p);
-									b = true;
-									break;
+									b = breakTwo(str, m.group(), idx, offset, nextList, dephrases, p);
+									if (b)
+										break;
 								}
 								idx = str.indexOf(p.nameCorp.stem);
 								if (idx >= 0) {
-									breakTwo(str, p.nameCorp.stem, idx, offset, nextList, dephrases, p);
-									b = true;
-									break;
+									b = breakTwo(str, p.nameCorp.stem, idx, offset, nextList, dephrases, p);
+									if (b)
+										break;
 								}
 							}
 							if (p.namePerson != null) {
@@ -423,9 +441,9 @@ public class EntitiesAndCaseDockets {
 								Matcher m = ptn.matcher(str);
 								if (m.find()) {
 									idx = m.start();
-									breakTwo(str, m.group(), idx, offset, nextList, dephrases, p);
-									b = true;
-									break;
+									b = breakTwo(str, m.group(), idx, offset, nextList, dephrases, p);
+									if (b)
+										break;
 								}
 							}
 						} //	end for parties
@@ -437,9 +455,9 @@ public class EntitiesAndCaseDockets {
 								Pattern ptn = p.name.getPattern();
 								Matcher m = ptn.matcher(str);
 								if (m.find()) {
-									breakTwo(str, m.group(), m.start(), offset, nextList, dephrases, p);
-									b = true;
-									break;
+									b = breakTwo(str, m.group(), m.start(), offset, nextList, dephrases, p);
+									if (b)
+										break;
 								}
 							}
 						}
@@ -450,9 +468,9 @@ public class EntitiesAndCaseDockets {
 						Pattern ptn = j.pattern;
 						Matcher m = ptn.matcher(str);
 						if (m.find()) {
-							breakTwo(str, m.group(), m.start(), offset, nextList, dephrases, j);
-							b = true;
-							break;
+							b = breakTwo(str, m.group(), m.start(), offset, nextList, dephrases, j);
+							if (b)
+								break;
 						}
 					}
 					if (b)
@@ -469,24 +487,21 @@ public class EntitiesAndCaseDockets {
 								clk.increment();
 							}
 							clerks.put(clerkName, clk);
-							breakTwo(str, m.group(), m.start(), offset, nextList, dephrases, clk);
-							b = true;
+							b = breakTwo(str, m.group(), m.start(), offset, nextList, dephrases, clk);
 						}
 					}
 					if (b)
 						continue;
 					Matcher mc = pCaseNumber.matcher(str);
-					if (mc.find()) {
+					if (mc.find() && (mc.end() > mc.start())) {
 						SFCaseNumber sfcn = new SFCaseNumber(mc.group());
-						breakTwo(str, mc.group(), mc.start(), offset, nextList, dephrases, sfcn);
-						b = true;
+						b = breakTwo(str, mc.group(), mc.start(), offset, nextList, dephrases, sfcn);
 						continue;
 					}
 					index = str.indexOf("REPORTER");
 					if (index >= 0) {
 						Matcher m = pReporter.matcher(str);
-						if (m.find()) {
-							String g0 = m.group();
+						if (m.find() && (m.end() > m.start())) {
 							String reporterName = m.group(2);
 							Reporter clk = reporters.get(reporterName);
 							if (clk == null) {
@@ -495,8 +510,7 @@ public class EntitiesAndCaseDockets {
 								clk.increment();
 							}
 							reporters.put(reporterName, clk);
-							breakTwo(str, str.substring(m.start()), m.start(), offset, nextList, dephrases, clk);
-							b = true;
+							b = breakTwo(str, str.substring(m.start()), m.start(), offset, nextList, dephrases, clk);
 						}
 					}
 					if (b)
@@ -654,7 +668,19 @@ public class EntitiesAndCaseDockets {
 		String caseID = "";
 		String line;
 		List<TrackEntry> entries = null;
+		int count = 0;
+		int perline = 10;
+		int theline = 0;
 		while ((line = br.readLine()) != null) {
+			count++;
+			if (count % 10000 == 0) {
+				System.out.print(count + " ");
+				theline++;
+				if (theline >= perline) {
+					System.out.println();
+					theline = 0;
+				}
+			}
 			String[] items = line.split("\\t");
 			if (items.length < 3)
 				continue;
@@ -667,6 +693,7 @@ public class EntitiesAndCaseDockets {
 			TrackEntry en = new TrackEntry(items[1], items[2]);
 			entries.add(en);
 		}
+		System.out.println("Total case lines: " + count);
 		br.close();
 		return cases;
 	}
@@ -677,9 +704,14 @@ public class EntitiesAndCaseDockets {
 		String line = br.readLine();// throw away the first line, they are column names
 		String id = "";
 		CaseParties cn = null;
+		int lineCount = 0;
 		while ((line = br.readLine()) != null) {
 			line = line.toUpperCase();
+			lineCount++;
 			String[] items = line.split("\\t");
+			if (items[1].startsWith("&")) {// many "&nbsp"
+				continue;
+			}
 			if (!items[0].equals(id)) {
 				id = items[0];
 				cn = mapParty.get(id);
@@ -688,12 +720,20 @@ public class EntitiesAndCaseDockets {
 					mapParty.put(id, cn);
 				}
 			}
-			int role = findRole(items[2]);
+			String[] roles = items[2].split("/");
+			int role = findRole(roles[0].trim());
 			Party p = Party.parse(items[1], role);
 			if (p != null) {
 				cn.addParty(p);
+				if (roles.length > 1) {
+					role = findRole(roles[1].trim());
+					if (role != Party.ROLE_UNKNOWN) {
+						p.addRole(role);
+					}
+				}
 			}
 		}
+		System.out.println("Number of party lines: " + lineCount);
 		br.close();
 		Party.Cmp cmp = new Party.Cmp();
 		for (CaseParties csn : mapParty.values()) {
@@ -710,8 +750,10 @@ public class EntitiesAndCaseDockets {
 		String id = "";
 		CaseAttorneys cn = null;
 		String line = br.readLine(); // skip the first line, column names. check file format to make sure this is true.
+		int lineCount = 0;
 		while ((line = br.readLine()) != null) {
 			line = line.toUpperCase();
+			lineCount++;
 			String[] items = line.split("\\t");
 			if (!items[0].equals(id)) {
 				id = items[0];
@@ -724,6 +766,7 @@ public class EntitiesAndCaseDockets {
 			cn.addAttorney(items[1], items[2]);
 		}
 		br.close();
+		System.out.println("Number of Attorney lines: " + lineCount);
 		return mapLawyers;
 	}
 
@@ -762,7 +805,7 @@ public class EntitiesAndCaseDockets {
 		if (role != null) {
 			return role.intValue();
 		} else {
-			if (!(_r.startsWith("MST_PARTY_TYPE_NAME") || _r.startsWith("NOT YET CLASSIFIED")))
+			if (!(_r.startsWith("MST_PARTY_TYPE_NAME") || _r.startsWith("NOT YET CLASSIFIED") || _r.startsWith("NOT CLASSIFIED")))
 				System.out.println("Unknown Role: " + _r);
 		}
 		return Party.ROLE_UNKNOWN;
@@ -914,6 +957,10 @@ public class EntitiesAndCaseDockets {
 		}
 
 		public static Attorney createAttorney(String _name, String _firm) {
+			//			int index = _name.indexOf("HILLSMAN");
+			//			if (index >= 0) {
+			//				System.out.println();
+			//			}
 			_name = _name.replaceAll("\\(.+?\\)", "");
 			PersonName pn = PersonName.parse(_name, PersonName.SurGivMid);
 			// check if already in the registry

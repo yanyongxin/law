@@ -12,16 +12,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.kie.api.KieBase;
-import org.kie.api.KieBaseConfiguration;
-import org.kie.api.KieServices;
-import org.kie.api.builder.KieBuilder;
-import org.kie.api.builder.KieFileSystem;
-import org.kie.api.io.Resource;
-import org.kie.api.runtime.KieContainer;
-import org.kie.internal.conf.ConstraintJittingThresholdOption;
-import org.kie.internal.io.ResourceFactory;
-
 import common.Role;
 import sfmotion.ComplaintEntry;
 import sfmotion.EntitiesAndCaseDockets;
@@ -47,28 +37,6 @@ public class TrackMotion {
 			"C:\\data\\191023\\dockets\\judgeparty/ca_sfc_judge.txt",
 			"C:\\data\\191023\\dockets\\judgeparty/ca_sfc_attorney.txt",
 			"C:\\data\\191023\\dockets/motions_3.txt" };
-
-	private static LegaLanguage initializeRuleEngine() {
-		try {
-			//Loading KieServices:
-			KieServices ks = KieServices.Factory.get();
-			//Creating KieFileSystem:
-			KieFileSystem kfs = ks.newKieFileSystem();
-			//Loading rules file: docketParse.drl:
-			Resource dd = ResourceFactory.newClassPathResource(rulesFile);
-			kfs.write("src/main/resources/sftrack/docketParse.drl", dd);
-			KieBuilder kbuilder = ks.newKieBuilder(kfs);
-			kbuilder.buildAll();
-			KieContainer kcontainer = ks.newKieContainer(kbuilder.getKieModule().getReleaseId());
-			KieBaseConfiguration kbConfig = KieServices.Factory.get().newKieBaseConfiguration();
-			kbConfig.setOption(ConstraintJittingThresholdOption.get(-1));
-			KieBase kbase = kcontainer.newKieBase(kbConfig);
-			legalang = LegaLanguage.create(kbase, triplesFile, lexiconFile);
-		} catch (Exception ex) {
-			fail("Knowledge Base loading error!");
-		}
-		return legalang;
-	}
 
 	private static void ruleEngineParse(TrackEntry e, String id) {
 		if (e.text.startsWith("Payment")) {
@@ -179,7 +147,7 @@ public class TrackMotion {
 		BufferedWriter wr11 = new BufferedWriter(new FileWriter(limineFile));
 		int countGrouped = 0;
 		int duplicates = 0;
-		legalang = TrackMotion.initializeRuleEngine();
+		legalang = LegaLanguage.initializeRuleEngine();
 		EntitiesAndCaseDockets etcd = new EntitiesAndCaseDockets(entityResources);
 		List<TrackCase> tcs = convertToTrackCases(etcd.cases);
 		int cnt = 1;
@@ -192,8 +160,8 @@ public class TrackMotion {
 			for (int i = 1; i < cs.entries.size(); i++) {
 				TrackEntry e = cs.entries.get(i);
 				ruleEngineParse(e, cs.getID());
-				TrackEntry en = TrackEntry.analyze(e);
-				cs.addEntry(en);
+				TrackEntry.analyze(e);
+				cs.addEntry(e);
 
 			}
 			cs.findlastDate();

@@ -6,8 +6,8 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LtUtil {
-	private static final Logger log = LoggerFactory.getLogger(LtUtil.class);
+public class ParseUtil {
+	private static final Logger log = LoggerFactory.getLogger(ParseUtil.class);
 
 	boolean flagPrint = true;
 	static Map<String, Integer> monthNameToMonthNumber = new HashMap<String, Integer>();
@@ -39,7 +39,7 @@ public class LtUtil {
 		monthNameToMonthNumber.put("Month_12", 12);
 	}
 
-	public LtUtil() {
+	public ParseUtil() {
 
 	}
 
@@ -58,7 +58,7 @@ public class LtUtil {
 
 	public void printPhrase(Phrase ph) {
 		if (flagPrint) {
-			System.out.println(ph.pprint("", false));
+			//System.out.println(ph.pprint("", false));
 			//log.debug(ph.pprint("", false));
 		}
 	}
@@ -69,7 +69,7 @@ public class LtUtil {
 
 	public void print(String s) {
 		if (flagPrint) {
-			System.out.println(s);
+			//System.out.println(s);
 			//log.debug(s);
 		}
 	}

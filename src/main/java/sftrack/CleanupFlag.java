@@ -1,9 +1,9 @@
 package sftrack;
 
-public class LexFlag {
+public class CleanupFlag {
 	boolean flag = false;
 
-	public LexFlag(boolean b) {
+	public CleanupFlag(boolean b) {
 		flag = b;
 	}
 

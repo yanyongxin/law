@@ -10,6 +10,7 @@
 {"text":"ACTIONS","type":"NP", "entity":"LegalCase"}
 {"text":"added","type":"VP", "tense":"past", "entity":"ProcAdd"}
 {"text":"Additional","type":"ADJP", "entity":"StatusAdditional"}
+{"text":"additur","type":"NP", "entity":"Additur"}
 {"text":"address","type":"NP", "entity":"AddressClass"}
 {"text":"administration","type":"NP", "entity":"ProcAdministration"}
 {"text":"ADMISSION","type":"NP", "entity":"ProcAdmission"}
@@ -142,6 +143,145 @@
 {"text":"Changed","type":"VP","tense":"past","entity":"ProcChange"}
 {"text":"Changing","type":"VP","tense":"ing","entity":"ProcChange"}
 {"text":"chief","type":"ADJP", "entity":"StatusChief"}
+{"text":"City\\s*of\\s*ALAMEDA","type":"NP", "list":"city", "entity":"CityOfAlameda"}
+{"text":"City\\s*of\\s*ALBANY","type":"NP", "list":"city", "entity":"CityOfAlbany"}
+{"text":"City\\s*of\\s*ALISO VIEJO","type":"NP","list":"city",  "entity":"CityOfAlisoViejo"}
+{"text":"City\\s*of\\s*ALHAMBRA","type":"NP","list":"city",  "entity":"CityOfAlhambra"}
+{"text":"City\\s*of\\s*ANDERSON","type":"NP", "list":"city", "entity":"CityOfAnderson"}
+{"text":"City\\s*of\\s*ANTIOCH","type":"NP", "list":"city", "entity":"CityOfAntioch"}
+{"text":"City\\s*of\\s*APPLE VALLEY","type":"NP","list":"city",  "entity":"CityOfAppleValley"}
+{"text":"City\\s*of\\s*ARCADIA","type":"NP", "list":"city", "entity":"CityOfArcadia"}
+{"text":"City\\s*of\\s*ATWATER","type":"NP", "list":"city", "entity":"CityOfAtwater"}
+{"text":"City\\s*of\\s*AZUSA","type":"NP", "list":"city", "entity":"CityOfAzusa"}
+{"text":"City\\s*of\\s*BAKERSFIELD","type":"NP", "list":"city", "entity":"CityOfBakersfield"}
+{"text":"City\\s*of\\s*BALDWIN\\s*PARK","type":"NP","list":"city",  "entity":"CityOfBaldwinPark"}
+{"text":"City\\s*of\\s*BANNING","type":"NP", "list":"city", "entity":"CityOfBanning"}
+{"text":"City\\s*of\\s*BELL\\s*GARDENS","type":"NP", "list":"city",  "entity":"CityOfBellGardens"}
+{"text":"City\\s*of\\s*BELLFLOWER","type":"NP","list":"city",  "entity":"CityOfBellflower"}
+{"text":"City\\s*of\\s*BENECIA","type":"NP", "list":"city", "entity":"CityOfBenecia"}
+{"text":"City\\s*of\\s*BERKELEY","type":"NP", "list":"city", "entity":"CityOfBerkeley"}
+{"text":"City\\s*of\\s*BRISBANE","type":"NP", "list":"city", "entity":"CityOfBrisbane"}
+{"text":"City\\s*of\\s*BUELLTON","type":"NP", "list":"city", "entity":"CityOfBuellton"}
+{"text":"City\\s*of\\s*BUENAVENTURA","type":"NP","list":"city",  "entity":"CityOfBuenaventura"}
+{"text":"City\\s*of\\s*BURBANK","type":"NP", "list":"city", "entity":"CityOfBurbank"}
+{"text":"City\\s*of\\s*CALIMESA","type":"NP", "list":"city", "entity":"CityOfCalimesa"}
+{"text":"City\\s*of\\s*CARSON","type":"NP", "list":"city", "entity":"CityOfCarson"}
+{"text":"City\\s*of\\s*CATHEDRAL","type":"NP", "list":"city", "entity":"CityOfCathedral"}
+{"text":"City\\s*of\\s*CERRITOS","type":"NP", "list":"city", "entity":"CityOfCerritos"}
+{"text":"City\\s*of\\s*CHICO","type":"NP", "list":"city", "entity":"CityOfChico"}
+{"text":"City\\s*of\\s*CHULA\\s*VISTA","type":"NP","list":"city",  "entity":"CityOfChulaVista"}
+{"text":"City\\s*of\\s*CLAREMONT","type":"NP", "list":"city", "entity":"CityOfClaremont"}
+{"text":"City\\s*of\\s*COLTON","type":"NP", "list":"city", "entity":"CityOfColton"}
+{"text":"City\\s*of\\s*COMMERCE","type":"NP", "list":"city", "entity":"CityOfCommerce"}
+{"text":"City\\s*of\\s*CORONA","type":"NP", "list":"city", "entity":"CityOfCorona"}
+{"text":"City\\s*of\\s*COSTA\\s*MESA","type":"NP", "list":"city",  "entity":"CityOfCostaMesa"}
+{"text":"City\\s*of\\s*COVINA","type":"NP", "list":"city", "entity":"CityOfCovina"}
+{"text":"City\\s*of\\s*DALY\\s*CITY","type":"NP", "list":"city",  "entity":"CityOfDalyCity"}
+{"text":"City\\s*of\\s*DUBLIN","type":"NP", "list":"city", "entity":"CityOfDublin"}
+{"text":"City\\s*of\\s*EL\\s*CENTRO","type":"NP", "list":"city", "entity":"CityOfElCentro"}
+{"text":"City\\s*of\\s*EL\\s*SEGUNDO","type":"NP", "list":"city",  "entity":"CityOfElSegundo"}
+{"text":"City\\s*of\\s*ELK\\s*GROVE","type":"NP","list":"city",   "entity":"CityOfElkGrove"}
+{"text":"City\\s*of\\s*EMERYVILLE","type":"NP", "list":"city", "entity":"CityOfEmeryville"}
+{"text":"City\\s*of\\s*FOLSOM","type":"NP", "list":"city", "entity":"CityOfFolsom"}
+{"text":"City\\s*of\\s*FOSTER\\s*CITY","type":"NP","list":"city",   "entity":"CityOfFosterCity"}
+{"text":"City\\s*of\\s*FOUNTAIN\\s*VALLEY","type":"NP", "list":"city",  "entity":"CityOfFountainValley"}
+{"text":"City\\s*of\\s*FREMONT","type":"NP", "list":"city", "entity":"CityOfFremont"}
+{"text":"City\\s*of\\s*FRESNO","type":"NP", "list":"city", "entity":"CityOfFresno"}
+{"text":"City\\s*of\\s*GLENDALE","type":"NP", "list":"city", "entity":"CityOfGlendale"}
+{"text":"City\\s*of\\s*GONZALES","type":"NP", "list":"city", "entity":"CityOfGonzales"}
+{"text":"City\\s*of\\s*HAYWARD","type":"NP", "list":"city", "entity":"CityOfHayward"}
+{"text":"City\\s*of\\s*HEMET","type":"NP", "list":"city", "entity":"CityOfHemet"}
+{"text":"City\\s*of\\s*HUNTINGTON\\s*BEACH","type":"NP","list":"city",  "entity":"CityOfHuntingtonBeach"}
+{"text":"City\\s*of\\s*HURON","type":"NP", "list":"city", "entity":"CityOfHuron"}
+{"text":"City\\s*of\\s*IMPERIAL\\s*BEACH","type":"NP","list":"city",  "entity":"CityOfImperialBeach"}
+{"text":"City\\s*of\\s*INDUSTRY","type":"NP", "list":"city", "entity":"CityOfIndustry"}
+{"text":"City\\s*of\\s*IRVINE","type":"NP", "list":"city", "entity":"CityOfIrvine"}
+{"text":"City\\s*of\\s*IRWINDALE","type":"NP", "list":"city", "entity":"CityOfIrwindale"}
+{"text":"City\\s*of\\s*LAGUNA\\s*HILLS","type":"NP", "list":"city", "entity":"CityOfLagunaHills"}
+{"text":"City\\s*of\\s*LAGUNA\\s*NIGUEL","type":"NP", "list":"city",  "entity":"CityOfLagunaNiguel"}
+{"text":"City\\s*of\\s*LA\\s*HABRA","type":"NP", "list":"city",   "entity":"CityOfLaHabra"}
+{"text":"City\\s*of\\s*LA\\s*PALMA","type":"NP", "list":"city",  "entity":"CityOfLaPalma"}
+{"text":"City\\s*of\\s*LAKE\\s*FOREST","type":"NP","list":"city",   "entity":"CityOfLakeForest"}
+{"text":"City\\s*of\\s*LAKEWOOD","type":"NP", "list":"city", "entity":"CityOfLakewood"}
+{"text":"City\\s*of\\s*LIVERMORE","type":"NP", "list":"city", "entity":"CityOfLivermore"}
+{"text":"City\\s*of\\s*LODI","type":"NP", "list":"city", "entity":"CityOfLodi"}
+{"text":"City\\s*of\\s*LOMA\\s*LINDA","type":"NP", "list":"city", "entity":"CityOfLomaLinda"}
+{"text":"City\\s*of\\s*LONG\\s*BEACH","type":"NP","list":"city",   "entity":"CityOfLongBeach"}
+{"text":"City\\s*of\\s*Los\\s*Angeles","type":"NP", "list":"city",  "entity":"CityOfLosAngeles"}
+{"text":"City\\s*of\\s*MARINA","type":"NP", "list":"city", "entity":"CityOfMarina"}
+{"text":"City\\s*of\\s*Menlo\\s*Park","type":"NP", "list":"city", "entity":"CityOfMenloPark"}
+{"text":"City\\s*of\\s*MERCED","type":"NP", "list":"city", "entity":"CityOfMerced"}
+{"text":"City\\s*of\\s*MILL\\s*VALLEY","type":"NP", "list":"city", "entity":"CityOfMillValley"}
+{"text":"City\\s*of\\s*MILPITAS","type":"NP", "list":"city", "entity":"CityOfMilpitas"}
+{"text":"City\\s*of\\s*MODESTO","type":"NP", "list":"city", "entity":"CityOfModesto"}
+{"text":"City\\s*of\\s*MONTCLAIR","type":"NP", "list":"city", "entity":"CityOfMontclair"}
+{"text":"City\\s*of\\s*MONTEBELLO","type":"NP", "list":"city", "entity":"CityOfMontebello"}
+{"text":"City\\s*of\\s*MORENO\\s*VALLEY","type":"NP", "list":"city", "entity":"CityOfMorenoValley"}
+{"text":"City\\s*of\\s*MORGAN\\s*HILL","type":"NP","list":"city",  "entity":"CityOfMorganHill"}
+{"text":"City\\s*of\\s*MORRO\\s*BAY","type":"NP", "list":"city", "entity":"CityOfMorroBay"}
+{"text":"City\\s*of\\s*MOUNTAIN\\s*VIEW","type":"NP","list":"city",  "entity":"CityOfMountainView"}
+{"text":"City\\s*of\\s*NEWPORT\\s*BEACH","type":"NP","list":"city",  "entity":"CityOfNewportBeach"}
+{"text":"City\\s*of\\s*OCEANSIDE","type":"NP", "list":"city", "entity":"CityOfOceanside"}
+{"text":"City\\s*of\\s*Oakland","type":"NP", "list":"city", "entity":"CityOfOakland"}
+{"text":"City\\s*of\\s*OXNARD","type":"NP", "list":"city", "entity":"CityOfOxnard"}
+{"text":"City\\s*of\\s*PACIFICA","type":"NP", "list":"city", "entity":"CityOfPacifica"}
+{"text":"City\\s*of\\s*Palo\\s*Alto","type":"NP", "list":"city", "entity":"CityOfPaloAlto"}
+{"text":"City\\s*of\\s*PARAMOUNT","type":"NP", "list":"city", "entity":"CityOfParamount"}
+{"text":"City\\s*of\\s*PATTERSON","type":"NP", "list":"city", "entity":"CityOfPatterson"}
+{"text":"City\\s*of\\s*PETALUMA","type":"NP", "list":"city", "entity":"CityOfPetaluma"}
+{"text":"City\\s*of\\s*PINOLE","type":"NP", "list":"city", "entity":"CityOfPinole"}
+{"text":"City\\s*of\\s*PLACENTIA","type":"NP", "list":"city", "entity":"CityOfPlacentia"}
+{"text":"City\\s*of\\s*PLACER","type":"NP", "list":"city", "entity":"CityOfPlacer"}
+{"text":"City\\s*of\\s*PLACERVILLE","type":"NP", "list":"city", "entity":"CityOfPlacerville"}
+{"text":"City\\s*of\\s*PLEASANT\\s*HILL","type":"NP", "list":"city", "entity":"CityOfPleasanHill"}
+{"text":"City\\s*of\\s*PLEASANTON","type":"NP", "list":"city", "entity":"CityOfPleasanton"}
+{"text":"City\\s*of\\s*POMONA","type":"NP", "list":"city", "entity":"CityOfPomona"}
+{"text":"City\\s*of\\s*RANCHO\\s*CUCAMONGA","type":"NP", "list":"city", "entity":"CityOfRanchoCucamonga"}
+{"text":"City\\s*of\\s*RANCHO\\s*MIRAGE","type":"NP","list":"city",  "entity":"CityOfRanchoMirage"}
+{"text":"City\\s*of\\s*RANCHO\\s*SANTA\\s*MARGARITA","type":"NP","list":"city", "entity":"CityOfRanchoSantaMargarita"}
+{"text":"City\\s*of\\s*REDLANDS","type":"NP", "list":"city", "entity":"CityOfRedlands"}
+{"text":"City\\s*of\\s*REDONDO\\s*BEACH","type":"NP", "list":"city", "entity":"CityOfRedondoBeach"}
+{"text":"City\\s*of\\s*RICHMOND","type":"NP", "list":"city", "entity":"CityOfRichmond"}
+{"text":"City\\s*of\\s*RIVERSIDE","type":"NP", "list":"city", "entity":"CityOfRiverside"}
+{"text":"City\\s*of\\s*ROCKLIN","type":"NP", "list":"city", "entity":"CityOfRocklin"}
+{"text":"City\\s*of\\s*ROSEMEAD","type":"NP", "list":"city", "entity":"CityOfRosemead"}
+{"text":"City\\s*of\\s*ROSEVILLE","type":"NP", "list":"city", "entity":"CityOfRoseville"}
+{"text":"City\\s*of\\s*SACRAMENTO","type":"NP", "list":"city", "entity":"CityOfSacramento"}
+{"text":"City\\s*of\\s*SAN\\s*BRUNO","type":"NP", "list":"city", "entity":"CityOfSanBruno"}
+{"text":"City\\s*of\\s*SAN\\s*BUENAVENTURA","type":"NP", "list":"city", "entity":"CityOfSanBuenaventura"}
+{"text":"City\\s*of\\s*SAN\\s*CARLOS","type":"NP", "list":"city", "entity":"CityOfSanCarlos"}
+{"text":"City\\s*of\\s*SAN\\s*DIEGO","type":"NP", "list":"city", "entity":"CityOfSanDiego"}
+{"text":"City\\s*of\\s*SAN\\s*DIMAS","type":"NP", "list":"city", "entity":"CityOfSanDimas"}
+{"text":"City\\s*of\\s*(San\\s*Francisco|SF)","type":"NP", "list":"city", "entity":"CityOfSanFrancisco"}
+{"text":"City\\s*of\\s*SAN\\s*JOAQUIN","type":"NP", "list":"city", "entity":"CityOfSanJoaquin"}
+{"text":"City\\s*of\\s*SAN\\s*JOSE","type":"NP", "list":"city", "entity":"CityOfSanJose"}
+{"text":"City\\s*of\\s*SAN\\s*LUIS OBISPO","type":"NP", "list":"city", "entity":"CityOfSanLuisObispo"}
+{"text":"City\\s*of\\s*SAN\\s*MATEO","type":"NP", "list":"city", "entity":"CityOfSanMateo"}
+{"text":"City\\s*of\\s*SAN\\s*PABLO","type":"NP", "list":"city", "entity":"CityOfSanPablo"}
+{"text":"City\\s*of\\s*SAN\\s*RAMON","type":"NP", "list":"city", "entity":"CityOfSanRamon"}
+{"text":"City\\s*of\\s*SAN\\s*RAFAEL","type":"NP", "list":"city", "entity":"CityOfSanRafael"}
+{"text":"City\\s*of\\s*Santa\\s*Clara","type":"NP","list":"city",  "entity":"CityOfSantaClara"}
+{"text":"City\\s*of\\s*SANTA\\s*FE\\s*SPRINGS","type":"NP", "list":"city", "entity":"CityOfSantaFeSprings"}
+{"text":"City\\s*of\\s*SANTA\\s*MONICA","type":"NP", "list":"city", "entity":"CityOfSantaMonica"}
+{"text":"City\\s*of\\s*SEASIDE","type":"NP", "list":"city", "entity":"CityOfSeaside"}
+{"text":"City\\s*of\\s*SIGNAL\\s*HILL","type":"NP","list":"city",  "entity":"CityOfSignalHill"}
+{"text":"City\\s*of\\s*SOLANA\\s*BEACH","type":"NP", "list":"city", "entity":"CityOfSolanaBeach"}
+{"text":"City\\s*of\\s*SOUTH\\s*LAKE\\s*TAHOE","type":"NP","list":"city",  "entity":"CityOfSouthLakeTahoe"}
+{"text":"City\\s*of\\s*South\\s*San\\s*Francisco","type":"NP", "list":"city", "entity":"CityOfSouthSanFrancisco"}
+{"text":"City\\s*of\\s*STOCKTON","type":"NP","list":"city",  "entity":"CityOfStockton"}
+{"text":"City\\s*of\\s*SUNNYVALE","type":"NP","list":"city",  "entity":"CityOfSunnyvale"}
+{"text":"City\\s*of\\s*TAFT","type":"NP", "list":"city", "entity":"CityOfTaft"}
+{"text":"City\\s*of\\s*TEMPLE","type":"NP", "list":"city", "entity":"CityOfTemple"}
+{"text":"City\\s*of\\s*TORRANCE","type":"NP", "list":"city", "entity":"CityOfTorrance"}
+{"text":"City\\s*of\\s*TULARE","type":"NP", "list":"city", "entity":"CityOfTulare"}
+{"text":"City\\s*of\\s*UPLAND","type":"NP", "list":"city", "entity":"CityOfUpland"}
+{"text":"City\\s*of\\s*VACAVILLE","type":"NP", "list":"city", "entity":"CityOfVacaville"}
+{"text":"City\\s*of\\s*VALLEJO","type":"NP", "list":"city", "entity":"CityOfVallejo"}
+{"text":"City\\s*of\\s*WEST\\s*COVINA","type":"NP","list":"city",  "entity":"CityOfWestCovina"}
+{"text":"City\\s*of\\s*YORBA\\s*LINDA","type":"NP","list":"city",  "entity":"CityOfYorbaLinda"}
+{"text":"City\\s*of\\s*YREKA","type":"NP", "list":"city", "entity":"CityOfYreka"}
+{"text":"City\\s*of\\s*MIAMI","type":"NP", "list":"city", "entity":"CityOfMiami"}
+{"text":"City\\s*of\\s*HALF\\s*MOON\\s*BAY","type":"NP", "list":"city", "entity":"CityOfHalfMoonBay"}
 {"text":"Civil","type":"ADJP", "entity":"StatusCivil"}
 {"text":"Civil\\s*Code","type":"NP","list":"civil", "entity":"CivilCode"}
 {"text":"Civil\\s*Procedure","type":"NP","list":"civil", "entity":"CivilProcedure"}
@@ -213,6 +353,8 @@
 {"text":"Containing","type":"VP", "tense":"ing","entity":"ProcContain"}
 {"text":"Contention","type":"NP", "entity":"DocLegalContention"}
 {"text":"Contentions","type":"NP", "entity":"DocLegalContention"}
+{"text":"Contest","type":"VP", "tense":"present","entity":"ProcContest"}
+{"text":"Contested","type":"ADJP", "entity":"StatusContested"}
 {"text":"continue","type":"VP", "tense":"present","entity":"ProcContinue"}
 {"text":"continued","type":"VP", "tense":"past","entity":"ProcContinue"}
 {"text":"continuing","type":"VP", "tense":"ing","entity":"ProcContinue"}
@@ -235,6 +377,7 @@
 {"text":"COUNTERCLAIMs","type":"NP", "entity":"DocLegalCounterclaim"}
 {"text":"County","type":"NP", "entity":"County"}
 {"text":"Court","type":"NP", "entity":"OrgGovCourt"}
+{"text":"Courts","type":"NP", "entity":"OrgGovCourt"}
 {"text":"COURT\\s*REPORTING\\s*SERVICES\\s*LESS\\s*THAN\\s*1\\s*HOUR","type":"NP","list":"Court","entity":"CourtReportingService"}
 {"text":"COURT\\s*TRIAL","type":"NP","list":"Court","entity":"CourtTrial"}
 {"text":"courtesy","type":"ADJP","entity":"StatusCourtesy"}
@@ -356,8 +499,10 @@
 {"text":"EVID(ENCE|\\.)\\s*CODE","type":"NP","list":"evidence evid","entity":"EvidenceCode"}
 {"text":"EX\\s*PARTE","type":"ADJP","list":"ex exparte","entity":"StatusExParte"}
 {"text":"EXAMINATION","type":"NP", "entity":"ProcExam"}
+{"text":"EXAM","type":"NP", "entity":"ProcExam"}
 {"text":"EX\\s*PARTE\\s*APPLICATION","type":"NP","list":"ex","entity":"DocApplication"}
 {"text":"Exception","type":"NP", "entity":"Exception"}
+{"text":"Exchange","type":"NP", "entity":"ProcExchange"}
 {"text":"Exclude","type":"VP", "tense":"present", "entity":"ProcExclude"}
 {"text":"Executed","type":"VP", "tense":"past", "entity":"ProcExecute"}
 {"text":"Executor","type":"NP", "entity":"Executor"}
@@ -547,6 +692,7 @@
 {"text":"Master\\s*jury\\s*Calendar","type":"NP", "list":"master", "entity":"MasterCalendar"}
 {"text":"may","type":"TIMEP","entity":"Month_5"}
 {"text":"management","type":"NP", "entity":"Management"}
+{"text":"marriage","type":"NP", "entity":"Marriage"}
 {"text":"material","type":"NP", "entity":"Material"}
 {"text":"materials","type":"NP", "entity":"Material"}
 {"text":"matters","type":"NP", "entity":"Matter"}
@@ -666,6 +812,7 @@
 {"text":"petition","type":"NP","entity":"DocLegalPetition"}
 {"text":"petitioner","type":"NP","entity":"RoleLegalPetitioner"}
 {"text":"phone","type":"NP","entity":"DevicePhone"}
+{"text":"physical","type":"ADJP", "entity":"StatusPhysical"}
 {"text":"place","type":"NP","entity":"PlaceRef"}
 {"text":"plaintiff","type":"NP","entity":"RoleLegalPlaintiff"}
 {"text":"plaintiffs","type":"NP","entity":"RoleLegalPlaintiff"}
@@ -675,6 +822,7 @@
 {"text":"Pleadings","type":"NP","entity":"DocLegalPleading"}
 {"text":"pltf","type":"NP","entity":"RoleLegalPlaintiff"}
 {"text":"points\\s*and\\s*authorities","type":"NP","list":"points","entity":"PointsAndAuthorities"}
+{"text":"Portions","type":"NP","entity":"PortionRef"}
 {"text":"position","type":"NP","entity":"LegalPosition"}
 {"text":"positions","type":"NP","entity":"LegalPosition"}
 {"text":"Post-Markman","type":"ADJP", "entity":"PostMarkman"}
@@ -722,7 +870,6 @@
 {"text":"Reconsideration","type":"NP", "entity":"ProcReconsider"}
 {"text":"recover","type":"VP", "tense":"present", "entity":"ProcRecover"}
 {"text":"REDACTED","type":"ADJP", "entity":"StatusRedacted"}
-{"text":"UNREDACTED","type":"ADJP", "entity":"StatusUnRedacted"}
 {"text":"redact","type":"VP", "tense":"present", "entity":"ProcRedact"}
 {"text":"REDACTION","type":"NP", "entity":"ProcRedact"}
 {"text":"Regarding|re\\:?","type":"PRP","list":"re Regarding", "entity":"re"}
@@ -738,6 +885,7 @@
 {"text":"related","type":"ADJP", "entity":"StatusRelated"}
 {"text":"Release","type":"VP", "tense":"present","entity":"ProcRelease"}
 {"text":"Release","type":"NP", "entity":"ProcRelease"}
+{"text":"Relief","type":"NP", "entity":"ProcRelieve"}
 {"text":"RELIEVED","type":"VP", "tense":"past","entity":"ProcRelieve"}
 {"text":"Relinquish","type":"VP", "tense":"present","entity":"ProcRelinquish"}
 {"text":"Relinquished","type":"VP", "tense":"past","entity":"ProcRelinquish"}
@@ -746,12 +894,14 @@
 {"text":"Remark","type":"NP", "entity":"DocRemark"}
 {"text":"remove","type":"VP", "tense":"present","entity":"ProcRemove"}
 {"text":"renew","type":"VP", "tense":"present","entity":"ProcRenew"}
+{"text":"renewed","type":"ADJP", "entity":"StatusRenewed"}
 {"text":"replaced","type":"VP", "tense":"past","entity":"ProcReplace"}
 {"text":"reply","type":"NP", "entity":"DocLegalReply"} 
 {"text":"reply\\s*brief","type":"NP", "list":"reply", "entity":"DocLegalReplyBrief"}
 {"text":"report","type":"NP", "entity":"DocLegalReport"} 
 {"text":"reporter","type":"NP", "entity":"Reporter"}
 {"text":"reported","type":"VP", "tense":"past", "entity":"ProcReport"}
+{"text":"REPRESENTATIVE","type":"NP", "entity":"Representative"}
 {"text":"Request","type":"VP", "tense":"present", "entity":"ProcRequest"}
 {"text":"Request","type":"NP", "entity":"ProcRequest"}
 {"text":"Requested","type":"VP", "tense":"past", "entity":"ProcRequest"}
@@ -779,6 +929,7 @@
 {"text":"Revised","type":"ADJP", "entity":"ProcRevise"}
 {"text":"Revised","type":"VP", "tense":"past", "entity":"ProcRevise"}
 {"text":"RIGHT\\s*OF\\s*PUBLICITY","type":"NP", "list":"right","entity":"LegalRightOfPublicity"}
+{"text":"rights","type":"NP", "entity":"Rights"}
 {"text":"rule","type":"NP", "entity":"LegalRule"} 
 {"text":"ruling","type":"NP", "entity":"LegalRule"} 
 {"text":"rules","type":"NP", "entity":"LegalRule"} 
@@ -802,6 +953,9 @@
 {"text":"sec.?","type":"NP","list":"sec", "entity":"Section"}
 {"text":"see","type":"VP","tense":"present", "entity":"ProcSee"}
 {"text":"SEE\\s*SCANNED\\s*(DOC(UMENT)?|JUDGMENT|ORDER\\s*FOR\\s*DETAILS)","type":"VP","tense":"present", "list":"see", "entity":"SeeScannedDoc"}
+{"text":"seek","type":"VP","tense":"present", "entity":"ProcSeek"}
+{"text":"seeks","type":"VP","tense":"present", "entity":"ProcSeek"}
+{"text":"seeking","type":"VP","tense":"ing", "entity":"ProcSeek"}
 {"text":"sent","type":"VP","tense":"past", "entity":"ProcSend"}
 {"text":"separate","type":"ADJP","entity":"StatusSeparate"}
 {"text":"September","type":"TIMEP","entity":"Month_9"}
@@ -848,6 +1002,7 @@
 {"text":"Stipulated","type":"ADJP", "entity":"StatusStipulate"}
 {"text":"stipulation","type":"NP", "entity":"DocLegalStipulation"}
 {"text":"strike","type":"VP","tense":"present","entity":"ProcStrike"}
+{"text":"Structured","type":"ADJP", "entity":"StatusStructured"}
 {"text":"Subject\\s*Matter","type":"NP", "list":"Subject","entity":"SubjectMatter"}
 {"text":"submit","type":"VP", "tense":"present", "entity":"ProcSubmit"}
 {"text":"submitted","type":"VP", "tense":"past", "entity":"ProcSubmit"}
@@ -895,6 +1050,7 @@
 {"text":"the","type":"DET","entity":"The"}
 {"text":"their","type":"POS", "entity":"They"}
 {"text":"Thereof","type":"DET","entity":"Thereof"}
+{"text":"Therapist","type":"NP","entity":"Therapist"}
 {"text":"these","type":"DET","entity":"These"}
 {"text":"Things","type":"NP", "entity":"Thing"}
 {"text":"third","type":"ADJP","entity":"Third"}
@@ -919,11 +1075,13 @@
 {"text":"Trial\\s*setting","type":"NP","list":"trial", "entity":"TrialSetting"}
 {"text":"Tuesday","type":"TIMEP", "entity":"Tuesday"}
 {"text":"two","type":"NUMP", "entity":"NumberTwo"}
-{"text":"UTAH","type":"NP","entity":"StateUtah"}
+{"text":"Uncontested","type":"ADJP", "entity":"StatusUncontested"}
 {"text":"under","type":"PRP","entity":"under"}
 {"text":"undisputed","type":"ADJP","entity":"StatusUndisputed"}
 {"text":"unopposed","type":"ADJP","entity":"StatusUnopposed"}
+{"text":"UNREDACTED","type":"ADJP", "entity":"StatusUnRedacted"}
 {"text":"upon","type":"PRP","entity":"upon"}
+{"text":"UTAH","type":"NP","entity":"StateUtah"}
 {"text":"(U\\.?\\s*S\\.?)?\\s*Magistrate\\s*Judge","list":"u us magistrate", "type":"NP","entity":"MagistrateJudge"}
 {"text":"U\\.?\\s*S\\.?(\\s*A\\.?)?","list":"u us usa", "type":"NP","entity":"UnitedStates"}
 {"text":"U\\.?\\s*S\\.?\\s*C\\.?","list":"u usc", "type":"NP","entity":"UnitedStatesCode"}
@@ -945,6 +1103,7 @@
 {"text":"VERSION","type":"NP","entity":"VersionRef"}
 {"text":"viewed","type":"VP", "tense":"past", "entity":"ProcView"}
 {"text":"voluntary","type":"ADJP","entity":"StatusVoluntary"}
+{"text":"volume","type":"NP","entity":"VolumeRef"}
 {"text":"was","type":"VP","tense":"past", "entity":"ProcBe"}
 {"text":"waive","type":"VP","tense":"present", "entity":"ProcWaive"}
 {"text":"waiver","type":"NP", "entity":"ProcWaive"}

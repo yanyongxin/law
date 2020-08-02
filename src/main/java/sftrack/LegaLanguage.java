@@ -1,5 +1,7 @@
 package sftrack;
 
+import static org.junit.Assert.fail;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -16,11 +18,17 @@ import org.drools.core.WorkingMemory;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.kie.api.KieBase;
+import org.kie.api.KieBaseConfiguration;
 import org.kie.api.KieServices;
 import org.kie.api.builder.KieBuilder;
+import org.kie.api.builder.KieFileSystem;
+import org.kie.api.io.Resource;
+import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.QueryResults;
 import org.kie.api.runtime.rule.QueryResultsRow;
+import org.kie.internal.conf.ConstraintJittingThresholdOption;
+import org.kie.internal.io.ResourceFactory;
 
 import sftrack.CaseData.LitiEntity;
 import sftrack.CaseData.LitiParty;
@@ -35,6 +43,9 @@ public class LegaLanguage {
 	//	private static final Logger log = LoggerFactory.getLogger(Ontology.class);
 	// static Ontology worldOnto;
 
+	static final String rulesFile = "sftrack/docketParse.drl";
+	static final String triplesFile = "src/main/resources/sftrack/triples.txt";
+	static final String lexiconFile = "src/main/resources/sftrack/lexicon.txt";
 	protected final Map<String, Entity> namedEntities = new HashMap<String, Entity>();
 	public final List<Link> relations = Collections.synchronizedList(new ArrayList<Link>());
 	public final Map<String, List<Link>> linkmap = new HashMap<String, List<Link>>();
@@ -62,6 +73,29 @@ public class LegaLanguage {
 		List<LexToken> tks = new ArrayList<LexToken>();
 		tks.add(tk);
 		EmptyPhrase = new Phrase("EMPTY", "EMPTY", g, 0, 1, tks);
+	}
+
+	public static LegaLanguage initializeRuleEngine() {
+		LegaLanguage legalang = null;
+		try {
+			//Loading KieServices:
+			KieServices ks = KieServices.Factory.get();
+			//Creating KieFileSystem:
+			KieFileSystem kfs = ks.newKieFileSystem();
+			//Loading rules file: docketParse.drl:
+			Resource dd = ResourceFactory.newClassPathResource(rulesFile);
+			kfs.write("src/main/resources/sftrack/docketParse.drl", dd);
+			KieBuilder kbuilder = ks.newKieBuilder(kfs);
+			kbuilder.buildAll();
+			KieContainer kcontainer = ks.newKieContainer(kbuilder.getKieModule().getReleaseId());
+			KieBaseConfiguration kbConfig = KieServices.Factory.get().newKieBaseConfiguration();
+			kbConfig.setOption(ConstraintJittingThresholdOption.get(-1));
+			KieBase kbase = kcontainer.newKieBase(kbConfig);
+			legalang = LegaLanguage.create(kbase, triplesFile, lexiconFile);
+		} catch (Exception ex) {
+			fail("Knowledge Base loading error!");
+		}
+		return legalang;
 	}
 
 	private void ReInitTransmap() {
@@ -575,7 +609,7 @@ public class LegaLanguage {
 	}
 
 	public Srunner createSrunner(boolean b) {
-		LtUtil lu = new LtUtil();
+		ParseUtil lu = new ParseUtil();
 		lu.setPrint(b);
 		Srunner srun = new Srunner(kbase, lu, this);
 		insertSession(srun);
@@ -585,12 +619,12 @@ public class LegaLanguage {
 
 	public static class Srunner {
 		KieSession ksession = null;
-		LtUtil ut;
-		LexFlag lexflag = new LexFlag(true);
+		ParseUtil ut;
+		CleanupFlag cleanUp = new CleanupFlag(true);
 
 		// KnowledgeRuntimeLogger logger;
 
-		public Srunner(KieBase kbase, LtUtil lu, LegaLanguage ot) {
+		public Srunner(KieBase kbase, ParseUtil lu, LegaLanguage ot) {
 			ksession = kbase.newKieSession();
 			ut = lu;
 			ksession.setGlobal("ut", ut);
@@ -624,10 +658,10 @@ public class LegaLanguage {
 		}
 
 		public void reset() {
-			lexflag.setFlag(true);
-			ksession.insert(lexflag);
+			cleanUp.setFlag(true);
+			ksession.insert(cleanUp);
 			ksession.fireAllRules();
-			lexflag.setFlag(false);
+			cleanUp.setFlag(false);
 			ksession.insert(EmptyPhrase);
 		}
 

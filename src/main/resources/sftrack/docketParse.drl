@@ -1,4 +1,4 @@
-//created on: Jul 11, 2013
+//created on: May 1, 2019
 package sftrack;
 
 import java.util.ArrayList;
@@ -6,7 +6,7 @@ import java.util.List;
 import sftrack.CaseData.LitiParty;
 import sftrack.LegaLanguage;
 //declare any global variables here
-global LtUtil ut;
+global ParseUtil ut;
 global LegaLanguage onto;
 
 rule "dicklook"
@@ -145,7 +145,7 @@ rule "month_date_year_name"	// July 4, 2013
 		ut.print("Find month_date_year: " + p1 + ", " + p2 + ", " + p3 + ", " + p4);
 		ERGraph g = new ERGraph();
 		Entity e0 = new Entity("MonthDateValue", onto);
-		int monthnum = LtUtil.getMonthNumber(p1.getHead().getTheClass().getName());
+		int monthnum = ParseUtil.getMonthNumber(p1.getHead().getTheClass().getName());
 		Entity e1 = new Entity(""+ monthnum, onto.getEntity("MonthNumber"), Entity.TYPE_INSTANCE, onto, p1.getBegToken());
 		Entity e2 = new Entity(p2.getText(), onto.getEntity("DateNumber"), Entity.TYPE_INSTANCE, onto, p2.getBegToken());
 		Entity e3 = new Entity(p4.getText(), onto.getEntity("YearNumber"), Entity.TYPE_INSTANCE, onto, p4.getBegToken());
@@ -452,7 +452,7 @@ rule "NP_AND_NP"	//no opposition filed, and, good cause shown
 			,graph.containLink("hasOwner", head, null) ==null
 //			,graph.containLink("define", null, head) ==null
 			,graph.containLink("ugoerOfProc", head, null) ==null
-			,!head.isKindOf("LitigationParty")
+//			,!head.isKindOf("LitigationParty")
 			)
 		p2: Phrase(text==","||text.equalsIgnoreCase("and")||text=="&"||text=="/"||text.equalsIgnoreCase(", and"), synType!=null, begToken==p1.endToken)
 		p3: Phrase(synType=="NP", begToken==p2.endToken
@@ -806,7 +806,7 @@ end
 
 rule "VP_NP"	// "strike answer", "quash subpoena", But not "strike answer and quash subpoena"
 	when
-		p1: Phrase(synType=="VP", lk : graph.topLink, !isSet(), graph.containLink("ugoerOfProc", null, head)==null)
+		p1: Phrase(synType=="VP", !isSet(), graph.containLink("ugoerOfProc", null, head)==null)
 		p2: Phrase(synType=="NP", graph.containLink("agentOfProc", null, head)==null, 
 					graph.containLink("ugoerOfProc", head, null)==null, 
 					graph.containLink("re", head, null)==null, begToken==p1.endToken)
@@ -832,7 +832,7 @@ end
 
 rule "VP_set_NP"	// "dismiss or abate action"
 	when
-		p1: Phrase(synType=="VP", lk : graph.topLink, isSet()
+		p1: Phrase(synType=="VP", isSet()
 			, graph.containLink("ugoerOfProc", null, head)==null
 			, lks1: graph.containLinkKindList("hasMember", head, null)
 			, lks1 != null)
@@ -893,7 +893,7 @@ end
 
 rule "VP_TIMEP"	// summons served JUN-17-2012, conference held MAY-06-2016
 	when
-		p1: Phrase(synType=="VP", lk : graph.topLink, tense=="past")
+		p1: Phrase(synType=="VP", tense=="past")
 		p2: Phrase(synType=="TIMEP", graph.containLink("re", head, null)==null, begToken==p1.endToken)
 	then
 		ut.print("Find VP_TIMEP: " + p1 + ", " + p2 );
@@ -905,7 +905,7 @@ end
 
 rule "VPP_NP_TIMEP"
 	when
-		p1: Phrase(synType=="VP", lk : graph.topLink, graph.containLink("ugoerOfProc", null, head)==null)
+		p1: Phrase(synType=="VP", graph.containLink("ugoerOfProc", null, head)==null)
 		p2: Phrase(synType=="TIMEP", graph.containLink("agentOfProc", null, head)==null, 
 					graph.containLink("re", head, null)==null, begToken==p1.endToken)
 		exists Link(type=="secondObjectOf", p2.head.isKindOf(arg1), p1.head.isKindOf(arg2))
@@ -934,7 +934,7 @@ end
 
 rule "VP_VP_attachToAgent"	// "John start working"
 	when
-		p1: Phrase(synType=="VP", lk : graph.topLink, subject != null)
+		p1: Phrase(synType=="VP", subject != null)
 		p2: Phrase(synType=="VP", graph.containLink("agentOfProc", null, head)==null, tense=="ing", begToken==p1.endToken)
 		exists Link(type=="agentOfProc", p1.subject.head.isKindOf(arg1), p2.head.isKindOf(arg2))
 	then
@@ -949,7 +949,7 @@ rule "VP_VP_attachToVerb"	// "John tasked rule making"
 // if cannot be attached to agent, then to verb
 	salience -200
 	when
-		p1: Phrase(synType=="VP", lk : graph.topLink, subject != null)
+		p1: Phrase(synType=="VP", subject != null)
 		p2: Phrase(synType=="VP", graph.containLink("agentOfProc", null, head)==null, tense=="ing", begToken==p1.endToken)
 		not Link(type=="agentOfProc", p1.subject.head.isKindOf(arg1), p2.head.isKindOf(arg2))
 	then
@@ -1061,6 +1061,7 @@ rule "NP_define_NP_not_set"	// Defendants'  letter, Rule 16 conference
 			eval(toplink2==null)
 			eval(toplink2 !=null && onto.isKindOf(toplink2.getType(), "compoundRelation") == true)
 			eval(toplink2 !=null && onto.isKindOf(toplink2.getType(), "hasSuffix") == true)
+			eval(toplink2 !=null && onto.isKindOf(toplink2.getType(), "hasValue") == true)
 		)
 		exists Link(type=="define", p1.head.isKindOf(arg1), p2.head.isKindOf(arg2))
 //		(not Phrase(synType=="NP", begToken<=p1.begToken, endToken>=p2.endToken))//not already created, 
@@ -1240,22 +1241,11 @@ rule "PRP_VP"
 		ut.printPhrase(ph);
 end
 
-rule "NP_NUMP"	// "DEPT. 206" "DEPT. A"
-	when
-		p1: Phrase(synType=="NP", head.isKindOf("OrgHierarchy")||text.equalsIgnoreCase("SET"), graph.topLink == null)
-		p2: Phrase((synType=="NUMP" && head.isKindOf("NumberValue"))||synType=="LETT", graph.topLink == null, begToken==p1.endToken) 
-	then
-		ut.print("Find NP_NUMP: " + p1 + ", " + p2 );
-		Link r = new Link("numberIdentified", p1.getHead(), p2.getHead());
-		Phrase ph = new Phrase(p1, p2, r, 1);
-		insert(ph);
-		ut.printPhrase(ph);
-end
-	
+
 rule "NP_PRP_not_headLast"	//MOTION OF DEFENDANT RECOLOGY INC FOR PEREMPTORY DISQUALIFICATION OF ASSIGNED JUDGE
 	salience 100
 	when
-		p1: Phrase(synType=="NP", lk : graph.topLink, g1 : graph, !headLast(), h1:head, lh: lastHead
+		p1: Phrase(synType=="NP", g1 : graph, !headLast(), h1:head, lh: lastHead
 				, lastPhrase.synType=="NP"||lastPhrase.synType=="ORGSUFFIX"
 				, graph.containLink("hasDET", head, null)==null
 				, graph.containLink("hasOwner", head, null)==null)
@@ -2114,6 +2104,54 @@ rule "SerialClass_NumberValue"	// Number 788,200, Rule 16.2b Scheduling Teleconf
 		ut.printPhrase(ph);	
 end
 
+rule "Comma_SerialClass_NumberValue"	// ", Set one"
+	when
+		p1: Phrase(text == ",", synType != null);
+		p2: Phrase(synType == "NP", lk: graph.topLink, lk!=null, lk.type=="hasValue", begToken==p1.endToken)
+	then
+		ut.print("Find Comma_SerialClass_NumberValue: " + p1 + ", " + p2 );
+		Phrase ph = new Phrase(p1, p2, (Link)null, 2);
+		insert(ph);
+		ut.printPhrase(ph);	
+end
+
+rule "SerialClass_NumberValue_Comma"	// "Set one, "
+	when
+		p1: Phrase(synType == "NP", lk:graph.topLink, lk!=null, lk.type=="hasValue")
+		p2: Phrase(text == ",", synType != null, begToken==p1.endToken);
+	then
+		ut.print("Find SerialClass_NumberValue_Comma: " + p1 + ", " + p2 );
+		Phrase ph = new Phrase(p1, p2, (Link)null, 1);
+		insert(ph);
+		ut.printPhrase(ph);	
+end
+
+
+rule "Document_SerialClass_NumberValue"	// "Set one, "
+	when
+		p1: Phrase(synType == "NP", lk:graph.topLink, lk!=null, lk.type=="hasValue")
+		p2: Phrase(text == ",", synType != null, begToken==p1.endToken);
+	then
+		ut.print("Find SerialClass_NumberValue_Comma: " + p1 + ", " + p2 );
+		Phrase ph = new Phrase(p1, p2, (Link)null, 1);
+		insert(ph);
+		ut.printPhrase(ph);	
+end
+
+
+/*
+rule "NP_NUMP"	// "DEPT. 206" "DEPT. A"
+	when
+		p1: Phrase(synType=="NP", head.isKindOf("OrgHierarchy"), graph.topLink == null)
+		p2: Phrase((synType=="NUMP" && head.isKindOf("NumberValue"))||synType=="LETT", graph.topLink == null, begToken==p1.endToken) 
+	then
+		ut.print("Find NP_NUMP: " + p1 + ", " + p2 );
+		Link r = new Link("numberIdentified", p1.getHead(), p2.getHead());
+		Phrase ph = new Phrase(p1, p2, r, 1);
+		insert(ph);
+		ut.printPhrase(ph);
+end
+*/
 rule "NumberValue_SerialClass"	// 170.6 C.C.P.
 	when
 		p1: Phrase(synType == "NUMP"||synType == "LETT")
@@ -2148,6 +2186,21 @@ rule "SerialClass_,_SerialClass_NumberValue"	// CODE OF CIVIL PROCEDURE, SECTION
 	then
 		ut.print("Find SerialClass_,_SerialClass_NumberValue: " + p1 + ", " + p2 );
 		Link r = new Link("hasValue", p1.getHead(), p2.getHead());
+		Phrase ph = new Phrase(p1, p2, r, 1);
+		insert(ph);
+		ut.printPhrase(ph);
+end
+
+
+rule "NP_SerialClass_NumberValue"	// CODE OF CIVIL PROCEDURE, SECTION 2031.285(D)(1).
+	when
+		p1: Phrase(synType == "NP", h1:head);
+		p2: Phrase(synType == "NP", h2:head, head.isKindOf("SerialClass"), begToken==p1.endToken, lk:graph.topLink);
+			eval(lk!=null && lk.getType().equals("hasValue"))
+		lkx:Link(type=="subSection", h1.isKindOf(arg1), h2.isKindOf(arg2))
+	then
+		ut.print("NP_SerialClass_NumberValue: " + p1 + ", " + p2 );
+		Link r = new Link("subSection", p1.getHead(), p2.getHead());
 		Phrase ph = new Phrase(p1, p2, r, 1);
 		insert(ph);
 		ut.printPhrase(ph);
@@ -2450,7 +2503,7 @@ end
 rule		"remove all phrases"
 	salience 10000
 	when
-		LexFlag(flag==true)
+		CleanupFlag(flag==true)
 		ph :Phrase()
 	then
 //	System.out.println("remove phrase: " + ph);
@@ -2473,17 +2526,13 @@ rule	"count phrases"
 end
 
 
-rule		"remove LexFlag"
+rule "remove CleanupFlag"
 	salience 10000
 	when
-		lf: LexFlag()
+		lf: CleanupFlag()
 		pc: PhraseCounter()
 		not Phrase()
 	then
-//	System.out.println("remove LexFlag");
-//		int cnt = pc.getPhraseCount();
-//		System.err.println("Phrase count: " + cnt);
-//		ut.print("Phrase count: " + cnt);
 		retract(lf);
 		retract(pc);
 end

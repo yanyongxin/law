@@ -65,16 +65,18 @@ public class TrackEntry implements Comparable<TrackEntry> {
 		//(TRANSACTION ID # 60057326)(Fee:$900.00)(SEALED DOCUMENT)
 		sdate = _d;
 		date = Date.valueOf(sdate);
-		//		Section s00 = new Section(text, 0);
+		int len = text.length();
 		//		sections.add(s00);
 		Matcher m = pSec.matcher(text);
 		int start = 0;
 		do {
-			if (m.find(start + 4)) { // 4 < "AS TO".length();
+			if (start + 4 < len && m.find(start + 4)) { // 4 < "AS TO".length();
 				int offset = m.start();
 				Section s0 = new Section(text.substring(start, offset), start);
 				sections.add(s0);
 				start = offset;
+				// Keep only the first, temporary
+				break;
 			} else {
 				sections.add(new Section(text.substring(start), start));
 				break;
@@ -209,22 +211,22 @@ public class TrackEntry implements Comparable<TrackEntry> {
 
 	static final Pattern pSummons2 = Pattern.compile(regSummons2, Pattern.CASE_INSENSITIVE);
 
-	public boolean analyze() {
-		Matcher m = pPos.matcher(text);
+	public static boolean analyze(TrackEntry e) {
+		Matcher m = pPos.matcher(e.text);
 		if (m.find()) {
-			type = PROOFOFSERVICE;
+			e.type = PROOFOFSERVICE;
 			return true;
 		}
-		m = pobjection.matcher(text);
+		m = pobjection.matcher(e.text);
 		if (m.find()) {
-			type = OBJECTION;
+			e.type = OBJECTION;
 			return true;
 		}
-		if (!text.startsWith("SUMMONS")) {
+		if (!e.text.startsWith("SUMMONS")) {
 			return false;
 		}
 		Map<String, Object> _items = new TreeMap<>();
-		m = pSummons1.matcher(text);
+		m = pSummons1.matcher(e.text);
 		if (m.find()) {
 			String item;
 			_items.put("document", "COMPLAINT");
@@ -256,11 +258,11 @@ public class TrackEntry implements Comparable<TrackEntry> {
 			if (item != null) {
 				_items.put("serviceMethod", item);
 			}
-			type = SUMMONS;
-			items = _items;
+			e.type = SUMMONS;
+			e.items = _items;
 			return true;
 		} else {
-			m = pSummons2.matcher(text);
+			m = pSummons2.matcher(e.text);
 			if (m.find()) {
 				String item = m.group("document");
 				if (item != null) {
@@ -270,12 +272,12 @@ public class TrackEntry implements Comparable<TrackEntry> {
 				if (item != null) {
 					_items.put("receiver", item);
 				}
-				type = SUMMONS;
-				items = _items;
+				e.type = SUMMONS;
+				e.items = _items;
 				return true;
 			} else {
 				List<String> _noUse = new ArrayList<>();
-				String[] splits = text.split(sreg);
+				String[] splits = e.text.split(sreg);
 				boolean bready = false;
 				if (splits.length > 1)
 					bready = true;

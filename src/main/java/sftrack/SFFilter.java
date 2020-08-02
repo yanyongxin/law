@@ -2,6 +2,8 @@ package sftrack;
 
 import static org.junit.Assert.fail;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 
 //import static org.junit.Assert.assertEquals;
@@ -11,103 +13,122 @@ import java.io.IOException;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+
+import org.kie.api.KieBase;
+import org.kie.api.KieBaseConfiguration;
+import org.kie.api.KieServices;
+import org.kie.api.builder.KieBuilder;
+import org.kie.api.builder.KieFileSystem;
+import org.kie.api.io.Resource;
+import org.kie.api.runtime.KieContainer;
+import org.kie.internal.conf.ConstraintJittingThresholdOption;
+import org.kie.internal.io.ResourceFactory;
 
 import sfmotion.EntitiesAndCaseDockets;
 import sfmotion.LegalCase;
 import sfmotion.TrackEntry;
 import sfmotion.TrackEntry.DePhrase;
 import sfmotion.TrackEntry.Section;
-import sftrack.LegaLanguage.Srunner;
 import utils.Pair;
 
-public class SFcomplex {
+public class SFFilter {
 	static LegaLanguage legalang;
 	static final int TOP_N = 3;
-	static String[] entityResources = { "C:\\data\\191023\\dockets\\judgeparty/ca_sfc_party.txt",
-			"C:\\data\\191023\\dockets\\judgeparty/ca_sfc_judge.txt",
-			"C:\\data\\191023\\dockets\\judgeparty/ca_sfc_attorney.txt",
-			"C:\\data\\191023\\dockets/testline.txt" };
+	static final String rulesFile = "sftrack/docketParse.drl";
+	static final String triplesFile = "src/main/resources/sftrack/triples.txt";
+	static final String lexiconFile = "src/main/resources/sftrack/lexicon.txt";
+	static String[] entityResources = { "C:\\data\\200523\\0713\\sfc_file/ca_sfc_party.tsv",
+			"C:\\data\\200523\\0713\\sfc_file/ca_sfc_judge.tsv",
+			"C:\\data\\200523\\0713\\sfc_file/ca_sfc_attorney.tsv",
+			"\\data\\200523/motions.txt" };
+
+	private static LegaLanguage initializeRuleEngine() {
+		try {
+			//Loading KieServices:
+			KieServices ks = KieServices.Factory.get();
+			//Creating KieFileSystem:
+			KieFileSystem kfs = ks.newKieFileSystem();
+			//Loading rules file: docketParse.drl:
+			Resource dd = ResourceFactory.newClassPathResource(rulesFile);
+			kfs.write("src/main/resources/sftrack/docketParse.drl", dd);
+			KieBuilder kbuilder = ks.newKieBuilder(kfs);
+			kbuilder.buildAll();
+			KieContainer kcontainer = ks.newKieContainer(kbuilder.getKieModule().getReleaseId());
+			KieBaseConfiguration kbConfig = KieServices.Factory.get().newKieBaseConfiguration();
+			kbConfig.setOption(ConstraintJittingThresholdOption.get(-1));
+			KieBase kbase = kcontainer.newKieBase(kbConfig);
+			legalang = LegaLanguage.create(kbase, triplesFile, lexiconFile);
+		} catch (Exception ex) {
+			fail("Knowledge Base loading error!");
+		}
+		return legalang;
+	}
 
 	public static void main(String[] args) throws IOException {
 		System.out.println("Initialization ...");
-		legalang = LegaLanguage.initializeRuleEngine();
+		legalang = SFFilter.initializeRuleEngine();
 		EntitiesAndCaseDockets etcd = new EntitiesAndCaseDockets(entityResources);
-		parseAllEntries(etcd);
-	}
-
-	static void parseAllEntries(EntitiesAndCaseDockets etcd) {
 		int caseCount = 0;
+		int entryCount = 0;
 		int skipped = 0;
-		List<String> triedText = new ArrayList<>();
-		List<String> skipText = new ArrayList<>();
+		int cycle = 1000;
+		int cycCount = cycle;
+		Set<String> triedText = new HashSet<>();
+		Set<String> triedSet = new TreeSet<>();
 		for (LegalCase cs : etcd.cases) {
 			caseCount++;
-			String csid = cs.getID();
-			System.out.println("\n================ " + csid + " ==================\n");
-			//			CaseParties cp = etcd.parties.get(cs.getID());
-			//			List<Party> parties = cp.getParties();
-			//			for (Party pt : parties) {
-			//				System.out.println(pt);
-			//			}
-			//			CaseAttorneys ats = etcd.attorneys.get(cs.getID());
-			//			List<Attorney> attorneys = ats.getAttorneys();
-			//			for (Attorney at : attorneys) {
-			//				System.out.println(at.toNamePattern());
-			//			}
 			for (TrackEntry e : cs.entries) {
+				entryCount++;
+				if (entryCount >= cycCount) {
+					cycCount += cycle;
+					System.out.println("caseCount:" + caseCount + "; entryCount:" + entryCount + "; triedSetSize:" + triedSet.size());
+				}
 				if (e.text.startsWith("Payment")) {
 					continue;
 				}
-				String printed = cs.getID() + "\t" + e.getDate() + "\t" + e.text;
-				boolean bP = false;
 				for (Section sec : e.sections) {
 					if (sec.dephrases.size() == 0 && sec.doneList.size() == 0)
 						continue;
 					if (triedText.contains(sec.text)) {
 						skipped++;
-						skipText.add(sec.text);
 						continue;
 					}
 					triedText.add(sec.text);
-					if (!bP) {
-						System.out.println(printed);
-						bP = true;
-					}
 					try {
 						//					Entity.resetSerial();
-						Srunner srun = legalang.createSrunner(true);
 						List<Phrase> phlist = generatePhraseList(sec);
-						srun.insertList(phlist);
-						srun.execute();
-						Map<Integer, List<Phrase>> rpmap = srun.findAllPhrases();
-						if (rpmap.size() > 0) {
-							List<Integer> keylist = Analysis.buildKeyList(rpmap);
-							//			assertTrue(keylist.size() > 0);
-							//					keylist.add(tokens.size());
-							keylist.add(phlist.get(phlist.size() - 1).endToken);
-							ArrayList<Integer> segments = new ArrayList<Integer>();
-							List<List<Analysis>> lla = Analysis.findBestNew(rpmap, keylist, TOP_N, segments);
-							List<Phrase> plist = DocketEntry.getPhraseList(lla);
-							//						System.out.println(e.text);
-							for (Phrase ph : plist) {
-								System.out.println(ph.pprint("", false));
+						StringBuilder sb = new StringBuilder();
+						for (int i = 0; i < phlist.size(); i++) {
+							Phrase ph = phlist.get(i);
+							if (ph.sentence.get(i).getType() == LexToken.LEX_ENTITY) {
+								sb.append("entity_id ");
+							} else {
+								sb.append(ph.text.toLowerCase().trim() + " ");
 							}
-							//ERGraph g = plist.get(0).getGraph();
-						} else {
-							System.out.println("No phrase found!");
 						}
-						srun.dispose();
+						String sbb = sb.toString().trim();
+						//						if (!triedSet.contains(sbb)) {
+						triedSet.add(sbb);
+						//						}
 					} catch (Exception ex) {
 						fail(ex.getMessage());
 					}
 					break;// only do the first section for now. ignore "filed by" and everything after 
 				}
 			}
+			//			break;
 		}
-		System.out.println("CaseCount: " + caseCount);
+		System.out.println("caseCount:" + caseCount + "; entryCount:" + entryCount + "; triedSetSize:" + triedSet.size());
 		System.out.println("Skipped: " + skipped);
+		BufferedWriter wr = new BufferedWriter(new FileWriter(args[0]));
+		for (String s : triedSet) {
+			wr.write(s + "\n");
+		}
+		wr.close();
 	}
 
 	static List<Phrase> generatePhraseList(Section sec) {

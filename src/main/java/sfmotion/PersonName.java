@@ -214,10 +214,15 @@ public class PersonName implements Comparable<PersonName> {
 			}
 		}
 		sb.insert(0, "\\b" + MyStringUtils.regConvert(surname));
-		sb.append("\\,\\s*" + MyStringUtils.regConvert(givname) + "\\b");
-		String p1 = "\\b" + MyStringUtils.regConvert(surname) + sufx + "\\,\\s*" + MyStringUtils.regConvert(givname) + "\\b";
-		if (givname.length() == 1) { // allow M. to MING-XING
-			sb.append("(\\w|-)*\\.?");
+		String p1 = "";
+		if (givname != null) {
+			sb.append("\\,\\s*" + MyStringUtils.regConvert(givname) + "\\b");
+			p1 = "\\b" + MyStringUtils.regConvert(surname) + sufx + "\\,\\s*" + MyStringUtils.regConvert(givname) + "\\b";
+			if (givname.length() == 1) { // allow M. to MING-XING
+				sb.append("(\\w|-)*\\.?");
+			}
+		} else {
+			p1 = "\\b" + MyStringUtils.regConvert(surname) + sufx + "\\b";
 		}
 		if (midname != null) {
 			if (midname instanceof String) {
@@ -241,44 +246,48 @@ public class PersonName implements Comparable<PersonName> {
 		}
 
 		String r = "";
-		String r1 = MyStringUtils.regConvert(givname.substring(0, 1)) + "(\\.|" + MyStringUtils.regConvert(givname.substring(1)) + ")?\\s*"; // givname surname, g. surname
-		if (midname == null) {
-			String r2 = MyStringUtils.regConvert(givname) + "(\\s\\w+|\\w\\.)"; // givname unknownmidname surname
-			String r3 = MyStringUtils.regConvert(givname) + "\\s(\\w\\.\\s*){0,2}"; // givname unknown_midinitial_1. unknown_midinitial_2. surname
-			r = "\\b(" + r1 + "|" + r2 + "|" + r3 + ")\\s*";
-		} else {
-			if (midname instanceof String) {
-				String mid = (String) midname;
-				if (mid.length() == 1) {
-					String r4 = MyStringUtils.regConvert(givname) + "\\s+" + MyStringUtils.regConvert(mid) + "((\\.|(\\w|-)+)\\s*|\\s+)"; // givname m. surname
-					String r5 = MyStringUtils.regConvert(givname.substring(0, 1)) + "\\.\\s*" + MyStringUtils.regConvert(mid) + "\\.\\s*"; // g. m. surname
-					String r6 = MyStringUtils.regConvert(givname.substring(0, 1) + mid) + "\\s+"; // gm surname
-					r = "\\b(" + r1 + "|" + r4 + "|" + r5 + "|" + r6 + ")";
-				} else {
-					String giv = givname;
-					if (givname.length() == 1) {
-						giv = MyStringUtils.regConvert(giv) + "\\.?";
-					}
-					String r3 = MyStringUtils.regConvert(giv) + "\\s+" + MyStringUtils.regConvert(mid) + "\\s+"; // givname midname surname
-					String r4 = MyStringUtils.regConvert(giv) + "\\s+" + MyStringUtils.regConvert(mid.substring(0, 1)) + "(\\.\\s*|\\s+)"; // givname m. surname
-					String r5 = MyStringUtils.regConvert(givname.substring(0, 1)) + "\\.\\s*" + MyStringUtils.regConvert(mid.substring(0, 1)) + "\\.\\s*"; // g. m. surname
-					String r6 = MyStringUtils.regConvert(givname.substring(0, 1) + mid.substring(0, 1)) + "\\s+"; // gm surname
-					r = "\\b(" + r1 + "|" + r3 + "|" + r4 + "|" + r5 + "|" + r6 + ")";
-				}
+		String r1 = "";
+		if (givname != null && givname.length() >= 1) {
+			r1 += MyStringUtils.regConvert(givname.substring(0, 1)) + "(\\.|" + MyStringUtils.regConvert(givname.substring(1)) + ")?\\s*"; // givname surname, g. surname
+			if (midname == null || ((midname instanceof String) && ((String) midname).length() == 0)) {
+				String r2 = MyStringUtils.regConvert(givname) + "(\\s\\w+|\\w\\.)"; // givname unknownmidname surname
+				String r3 = MyStringUtils.regConvert(givname) + "\\s(\\w\\.\\s*){0,2}"; // givname unknown_midinitial_1. unknown_midinitial_2. surname
+				r = "\\b(" + r1 + "|" + r2 + "|" + r3 + ")\\s*";
 			} else {
-				r = "\\b" + MyStringUtils.regConvert(givname) + "\\s+";
-				List<String> midlist = (List<String>) midname;
-				for (String mid : midlist) {
-					r += MyStringUtils.regConvert(mid);
+				if (midname instanceof String) {
+					String mid = (String) midname;
 					if (mid.length() == 1) {
-						r += "(\\.|(\\w|-)+)?";
+						String r4 = MyStringUtils.regConvert(givname) + "\\s+" + MyStringUtils.regConvert(mid) + "((\\.|(\\w|-)+)\\s*|\\s+)"; // givname m. surname
+						String r5 = MyStringUtils.regConvert(givname.substring(0, 1)) + "\\.\\s*" + MyStringUtils.regConvert(mid) + "\\.\\s*"; // g. m. surname
+						String r6 = MyStringUtils.regConvert(givname.substring(0, 1) + mid) + "\\s+"; // gm surname
+						r = "\\b(" + r1 + "|" + r4 + "|" + r5 + "|" + r6 + ")";
+					} else {
+						String giv = givname;
+						if (givname.length() == 1) {
+							giv = MyStringUtils.regConvert(giv) + "\\.?";
+						}
+						String r3 = MyStringUtils.regConvert(giv) + "\\s+" + MyStringUtils.regConvert(mid) + "\\s+"; // givname midname surname
+						String r4 = MyStringUtils.regConvert(giv) + "\\s+" + MyStringUtils.regConvert(mid.substring(0, 1)) + "(\\.\\s*|\\s+)"; // givname m. surname
+						String r5 = MyStringUtils.regConvert(givname.substring(0, 1)) + "\\.\\s*" + MyStringUtils.regConvert(mid.substring(0, 1)) + "\\.\\s*"; // g. m. surname
+						String r6 = MyStringUtils.regConvert(givname.substring(0, 1) + mid.substring(0, 1)) + "\\s+"; // gm surname
+						r = "\\b(" + r1 + "|" + r3 + "|" + r4 + "|" + r5 + "|" + r6 + ")";
+					}
+				} else {
+					r = "\\b" + MyStringUtils.regConvert(givname) + "\\s+";
+					List<String> midlist = (List<String>) midname;
+					for (String mid : midlist) {
+						r += MyStringUtils.regConvert(mid);
+						if (mid.length() == 1) {
+							r += "(\\.|(\\w|-)+)?";
+						}
 					}
 				}
 			}
 		}
+
 		r += "\\b" + MyStringUtils.regConvert(surname) + "S?\\b" + sufx;// the S? is added to accommodate "John Smiths opposition" 
 		String regex = p1 + "|" + r;
-		if (givname.length() == 1 && midname != null && (midname instanceof String)) {
+		if (givname != null && givname.length() == 1 && midname != null && (midname instanceof String)) {
 			// "A. JAMES ROBERTSON, II" can also appear as "JAMES A. ROBERTSON, II", don't know why.
 			String mid = (String) midname;
 			if (mid.length() > 1) {
@@ -549,7 +558,7 @@ public class PersonName implements Comparable<PersonName> {
 			name = name.substring(0, idx);
 		}
 		name = name.replaceAll("\\*", "");
-		String[] splitAKA = name.split(" A/?K/?A/? | ALSO KNOWN AS ");
+		String[] splitAKA = name.split(" A/?K/?A/? | ALSO KNOWN AS | O/?B/?O/? |ON BEHALF OF");//obo=on behalf of
 		if (splitAKA.length > 1) {
 			akas = new ArrayList<>();
 			for (int i = 1; i < splitAKA.length; i++) {
@@ -576,6 +585,25 @@ public class PersonName implements Comparable<PersonName> {
 				midname = split2[1].replaceAll("\\p{Punct}", "").trim();
 				for (int j = 2; j < split2.length; j++) {
 					midname += " " + split2[j];
+				}
+			}
+		} else {
+			String[] split1 = name.split("\\s+");
+			surname = split1[0];
+			if (split1.length == 1)
+				return;
+			int start = 1;
+			if (suffixNames.contains(split1[1])) {
+				addSuffix(split1[1]);
+				start++;
+			}
+			if (start < split1.length) {
+				givname = split1[start++];
+				if (start < split1.length) {
+					midname = split1[start++].replaceAll("\\p{Punct}", "").trim();
+					for (int j = start; j < split1.length; j++) {
+						midname += " " + split1[j];
+					}
 				}
 			}
 		}
@@ -638,7 +666,7 @@ public class PersonName implements Comparable<PersonName> {
 				}
 				String mid1 = (String) midname;
 				String mid2 = (String) (pn2.midname);
-				if (mid1.length() == 1 || mid2.length() == 1) {
+				if ((mid1.length() == 1 && mid2.length() >= 1) || (mid1.length() >= 1 && mid2.length() == 1)) {
 					if (mid1.charAt(0) != mid2.charAt(0))
 						return false;
 				}

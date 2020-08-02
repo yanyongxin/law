@@ -1071,6 +1071,12 @@ public class ERGraph implements Cloneable {
 				}
 			}
 			eg.setTopLink(linkNew);
+		} else {
+			if (headNew == 1) {
+				eg.setTopLink(g1.topLink);
+			} else if (headNew == 2) {
+				eg.setTopLink(g2.topLink);
+			}
 		}
 		return eg;
 	}
