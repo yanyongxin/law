@@ -1,10 +1,5 @@
 package sfmotion;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +7,7 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class DeclarationEntry extends TrackEntry {
+public class DeclarationEntry {
 	static final String left = "(?=\\(TRANSACTION\\sID\\s.{6,40}?\\)|\\(SEALED DOCUMENT\\)|FILED\\s+BY)";
 	static final String right = "(?<=\\(TRANSACTION\\sID\\s.{6,40}?\\)|\\(SEALED DOCUMENT\\))";
 	static final String breaks = left + "|" + right;
@@ -60,43 +55,15 @@ public class DeclarationEntry extends TrackEntry {
 	List<String> useless = new ArrayList<>();
 	SFMotionEntry entry;
 
-	public DeclarationEntry(String _sdate, String _text) {
-		super(_sdate, _text, DECLARATION);
+	public DeclarationEntry() {
 	}
 
-	public static void main(String[] args) throws IOException {
-		if (args.length != 2) {
-			System.out.println("args: infile outfile");
-			System.exit(-1);
+	public static boolean parse(TrackEntry e) {
+		if (!e.text.startsWith("DECLARATION")) {
+			return false;
 		}
-		String infile = args[0];
-		String outfile = args[1];
-		BufferedReader br = new BufferedReader(new FileReader(infile));
-		BufferedWriter wr = new BufferedWriter(new FileWriter(outfile));
-		String line;
-		int countDeclare = 0;
-		int countTrans = 0;
-		int countFiler = 0;
-		while ((line = br.readLine()) != null) {
-			String[] splits = line.split("\\t");
-			if (splits.length != 3) {
-				continue;
-			}
-			countDeclare++;
-			DeclarationEntry ct = DeclarationEntry.parse(splits[1], splits[2]);
-		}
-		br.close();
-		wr.close();
-		System.out.println("lines: " + countDeclare + ", trans: " + countTrans + ", filers: " + countFiler);
-		br.close();
-	}
-
-	public static DeclarationEntry parse(String _sdate, String _text) {
-		if (!_text.startsWith("DECLARATION")) {
-			return null;
-		}
-		DeclarationEntry entry = new DeclarationEntry(_sdate, _text);
-		String[] split1 = entry.text.split(breaks);
+		DeclarationEntry entry = new DeclarationEntry();
+		String[] split1 = e.text.split(breaks);
 		String stem = null;
 		for (String p : split1) {
 			p = p.trim();
@@ -119,32 +86,25 @@ public class DeclarationEntry extends TrackEntry {
 		}
 
 		if (stem != null) {
-			if (entry.mp3(stem, p3)) {
-				return entry;
-			}
-			if (entry.mp5_1(stem, p5_1)) {
-				return entry;
-			}
-			if (entry.mp4_1(stem, p4_1)) {
-				return entry;
-			}
-			if (entry.mp4_2(stem, p4_2)) {
-				return entry;
-			}
-			if (entry.mp5_2(stem, p5_2)) {
-				return entry;
-			}
-			if (entry.mp4_3(stem, p4_3)) {
-				return entry;
-			}
-			if (entry.mp4_4(stem, p4_4)) {
-				return entry;
-			}
-			if (entry.mp2(stem, p2)) {
-				return entry;
+			if (!entry.mp3(stem, p3)) {
+				if (!entry.mp5_1(stem, p5_1)) {
+					if (!entry.mp4_1(stem, p4_1)) {
+						if (!entry.mp4_2(stem, p4_2)) {
+							if (!entry.mp5_2(stem, p5_2)) {
+								if (!entry.mp4_3(stem, p4_3)) {
+									if (!entry.mp4_4(stem, p4_4)) {
+										entry.mp2(stem, p2);
+									}
+								}
+							}
+						}
+					}
+				}
 			}
 		}
-		return entry;
+		e.setType(TrackEntry.DECLARATION);
+		e.setTypeSpecific(entry);
+		return true;
 	}
 
 	// Order of use: p3, p5_1, p4_1, p4_2, p5_2, p4_3, p2

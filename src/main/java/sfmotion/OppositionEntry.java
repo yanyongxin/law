@@ -1,14 +1,9 @@
 package sfmotion;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class OppositionEntry extends TrackEntry {
+public class OppositionEntry {
 	static final String regOpposition1 = "^OPPOSITION\\s((AND\\s)?(RESPONSE|OPPOSITION|OBJECTION)\\s)?(OF\\s(?<filer1>.+?))?TO\\s*(?<opposingParty>.+?)??(?<motion>(?<motionType>MOTION|DEMU*RRER|MIL|MTN|PETITION|EX PARTE ORDER|(THE\\s)?JUDGMENT|REQUEST|OBJECTION|NOTICE|(EX\\s*PARTE\\s)?APP(LICATION)?).+?)(?<transactionID>\\(TRANSACTION\\s*ID\\s*\\#\\s*\\d+\\))?\\,?\\s*FILED\\s*BY\\s*(?<filer>.+?)$";
 	static final Pattern pOpposition1 = Pattern.compile(regOpposition1, Pattern.CASE_INSENSITIVE);
 	static final Pattern pOps = Pattern.compile(
@@ -23,36 +18,7 @@ public class OppositionEntry extends TrackEntry {
 			"OPPOSITION TO DEFENDANT NYRENE HOWARDS MOTIONS IN LIMINE NOS 118 (TRANSACTION ID # 100044287) FILED BY PLAINTIFF HOWARD, SCOTT AN INDIVIDUAL",
 	};
 
-	public OppositionEntry(String _sdate, String _text) {
-		super(_sdate, _text, OPPOSITION);
-	}
-
-	public static void main(String[] args) throws IOException {
-		if (args.length != 3) {
-			System.out.println("args: infile outfile failfile");
-			System.exit(-1);
-		}
-		String infile = args[0];
-		String outfile = args[1];
-		BufferedReader br = new BufferedReader(new FileReader(infile));
-		BufferedWriter wr = new BufferedWriter(new FileWriter(outfile));
-		BufferedWriter wr2 = new BufferedWriter(new FileWriter(args[2]));
-		String line;
-		while ((line = br.readLine()) != null) {
-			String[] splits = line.split("\\t");
-			if (splits.length != 3) {
-				continue;
-			}
-			OppositionEntry ct = OppositionEntry.parse(splits[1], splits[2]);
-			if (ct != null) {
-				wr.write(ct.toString() + "\n");
-			} else {
-				wr2.write(line + "\n");
-			}
-		}
-		br.close();
-		wr.close();
-		wr2.close();
+	public OppositionEntry() {
 	}
 
 	static boolean testOppositions(String s) {
@@ -62,13 +28,13 @@ public class OppositionEntry extends TrackEntry {
 		return false;
 	}
 
-	public boolean isToMIL() {
-		String motionType = (String) this.getItem("motionType");
+	public boolean isToMIL(TrackEntry e) {
+		String motionType = (String) e.getItem("motionType");
 		if (motionType == null) {
 			return false;
 		}
 		if (motionType.equalsIgnoreCase("MOTION")) {
-			String motion = (String) this.getItem("motion");
+			String motion = (String) e.getItem("motion");
 			if (motion == null)
 				return false;
 			if (MotionEntry.containsMIL(motion)) {
@@ -78,58 +44,60 @@ public class OppositionEntry extends TrackEntry {
 		return false;
 	}
 
-	static public OppositionEntry parse(String _sdate, String _text) {
+	static public boolean parse(TrackEntry e) {
 		//		if (_text.startsWith("OPPOSITION TO MTN FOR SUMMARY JUDGMENT FILED BY DEFENDANT BANKS, JAMES D.")) {
 		//			System.out.print("");
 		//		}
-		Matcher m = pOps.matcher(_text);
+		Matcher m = pOps.matcher(e.text);
 		if (!m.find()) {
-			return null;
+			return false;
 		}
-		OppositionEntry entry = new OppositionEntry(_sdate, _text);
-		m = pOpposition1.matcher(_text);
+		OppositionEntry entry = new OppositionEntry();
+		m = pOpposition1.matcher(e.text);
 		if (m.find()) {
 			String item;
 			item = m.group("filer");
 			if (item != null) {
-				entry.storeItem("filer", item);
-				entry.setFiler(item);
+				e.storeItem("filer", item);
+				e.setFiler(item);
 			}
 			item = m.group("opposingParty");
 			if (item != null) {
-				entry.storeItem("opposingParty", item);
+				e.storeItem("opposingParty", item);
 			}
 			item = m.group("motion");
 			if (item != null) {
-				entry.storeItem("motion", item);
+				e.storeItem("motion", item);
 			}
 			item = m.group("motionType");
 			if (item != null) {
-				entry.storeItem("motionType", item);
+				e.storeItem("motionType", item);
 			}
 			item = m.group("transactionID");
 			if (item != null) {
-				entry.storeItem("transactionID", item);
+				e.storeItem("transactionID", item);
 			}
 			item = m.group("filer1");
 			if (item != null) {
-				entry.storeItem("filer1", item);
+				e.storeItem("filer1", item);
 			}
-			return entry;
+			e.setType(TrackEntry.OPPOSITION);
+			e.setTypeSpecific(entry);
+			return true;
 		} else {
-			String[] splits = _text.split(sreg);
+			String[] splits = e.text.split(sreg);
 			for (String s : splits) {
 				if (s.startsWith("FILED BY")) {
 					String filer = s.substring("FILED BY".length()).trim();
-					entry.setFiler(filer);
+					e.setFiler(filer);
 				} else if (s.startsWith("SUBMITTED BY")) {
 					String filer = s.substring("SUBMITTED BY".length()).trim();
-					entry.setFiler(filer);
+					e.setFiler(filer);
 				} else if (s.startsWith("(TRANS")) {
 					Matcher tr = pTrans.matcher(s);
 					if (tr.find()) {
 						String tid = tr.group();
-						entry.transactionID = tid;
+						e.transactionID = tid;
 					}
 				} else {
 					Matcher mt = pMtn.matcher(s);
@@ -139,8 +107,8 @@ public class OppositionEntry extends TrackEntry {
 						if (sp.length > 1) {
 							mtn = sp[0];
 						}
-						entry.storeItem("motion", mtn);
-						entry.storeItem("motionType", "MOTION");
+						e.storeItem("motion", mtn);
+						e.storeItem("motionType", "MOTION");
 					} else {
 						Matcher mda = pDemurrApp.matcher(s);
 						if (mda.find()) {
@@ -150,25 +118,26 @@ public class OppositionEntry extends TrackEntry {
 								motion = sp[0];
 							}
 							String motionType = mda.group("motionType");
-							entry.storeItem("motion", motion);
-							entry.storeItem("motionType", motionType);
+							e.storeItem("motion", motion);
+							e.storeItem("motionType", motionType);
 						}
 					}
 				}
 			}
 		}
-		return entry;
+		e.setType(TrackEntry.OPPOSITION);
+		e.setTypeSpecific(entry);
+		return true;
 	}
 
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("Opposition\t" + date + "\t");
-		sb.append(text + "\n");
-		if (items != null)
-			for (String key : items.keySet()) {
-				sb.append("\t\t\t" + key + ": " + items.get(key) + "\n");
-			}
-		return sb.toString();
+	public String toString() {// in the items
+		return "";
+		//		StringBuilder sb = new StringBuilder();
+		//		//		if (items != null)
+		//		//			for (String key : items.keySet()) {
+		//		//				sb.append("\t\t\t" + key + ": " + items.get(key) + "\n");
+		//		//			}
+		//		return sb.toString();
 	}
 
 }

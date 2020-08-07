@@ -34,7 +34,114 @@ public class SFcomplex {
 		System.out.println("Initialization ...");
 		legalang = LegaLanguage.initializeRuleEngine();
 		EntitiesAndCaseDockets etcd = new EntitiesAndCaseDockets(entityResources);
-		parseAllEntries(etcd);
+		compareTwoEntries(etcd);
+		//		parseAllEntries(etcd);
+	}
+
+	static void compareTwoEntries(EntitiesAndCaseDockets etcd) {
+		LegalCase cs = etcd.cases.get(0);
+		TrackEntry e1 = cs.entries.get(0);
+		TrackEntry e2 = cs.entries.get(1);
+
+		Section sec1 = e1.sections.get(0);
+		Section sec2 = e2.sections.get(0);
+		Map<Integer, List<Phrase>> rpmap1 = null;
+		List<Phrase> phlist1 = null;
+		ArrayList<Integer> segments1 = null;
+		List<List<Analysis>> lla1 = null;
+		List<Phrase> plist1 = null;
+		try {
+			Srunner srun = legalang.createSrunner(true);
+			phlist1 = generatePhraseList(sec1);
+			srun.insertList(phlist1);
+			srun.execute();
+			rpmap1 = srun.findAllPhrases();
+			if (rpmap1.size() > 0) {
+				List<Integer> keylist = Analysis.buildKeyList(rpmap1);
+				keylist.add(phlist1.get(phlist1.size() - 1).endToken);
+				segments1 = new ArrayList<Integer>();
+				lla1 = Analysis.findBestNew(rpmap1, keylist, TOP_N, segments1);
+				plist1 = DocketEntry.getPhraseList(lla1);
+				//						System.out.println(e.text);
+				for (Phrase ph : plist1) {
+					System.out.println(ph.pprint("", false));
+				}
+				//ERGraph g = plist.get(0).getGraph();
+			} else {
+				System.out.println("No phrase found!");
+			}
+			srun.dispose();
+		} catch (Exception ex) {
+			fail(ex.getMessage());
+		}
+
+		Map<Integer, List<Phrase>> rpmap2 = null;
+		List<Phrase> phlist2 = null;
+		ArrayList<Integer> segments2 = null;
+		List<List<Analysis>> lla2 = null;
+		List<Phrase> plist2 = null;
+		try {
+			Srunner srun = legalang.createSrunner(true);
+			phlist2 = generatePhraseList(sec2);
+			srun.insertList(phlist2);
+			srun.execute();
+			rpmap2 = srun.findAllPhrases();
+			if (rpmap2.size() > 0) {
+				List<Integer> keylist = Analysis.buildKeyList(rpmap2);
+				keylist.add(phlist2.get(phlist2.size() - 1).endToken);
+				segments2 = new ArrayList<Integer>();
+				lla2 = Analysis.findBestNew(rpmap2, keylist, TOP_N, segments2);
+				plist2 = DocketEntry.getPhraseList(lla2);
+				//						System.out.println(e.text);
+				for (Phrase ph : plist2) {
+					System.out.println(ph.pprint("", false));
+				}
+				//ERGraph g = plist.get(0).getGraph();
+			} else {
+				System.out.println("No phrase found!");
+			}
+			srun.dispose();
+		} catch (Exception ex) {
+			fail(ex.getMessage());
+		}
+
+	}
+
+	static void compareEntries(EntitiesAndCaseDockets etcd) {
+		LegalCase cs = etcd.cases.get(0);
+		for (TrackEntry e : cs.entries) {
+			for (Section sec : e.sections) {
+				if (sec.dephrases.size() == 0 && sec.doneList.size() == 0)
+					continue;
+				try {
+					//					Entity.resetSerial();
+					Srunner srun = legalang.createSrunner(true);
+					List<Phrase> phlist = generatePhraseList(sec);
+					srun.insertList(phlist);
+					srun.execute();
+					Map<Integer, List<Phrase>> rpmap = srun.findAllPhrases();
+					if (rpmap.size() > 0) {
+						List<Integer> keylist = Analysis.buildKeyList(rpmap);
+						//			assertTrue(keylist.size() > 0);
+						//					keylist.add(tokens.size());
+						keylist.add(phlist.get(phlist.size() - 1).endToken);
+						ArrayList<Integer> segments = new ArrayList<Integer>();
+						List<List<Analysis>> lla = Analysis.findBestNew(rpmap, keylist, TOP_N, segments);
+						List<Phrase> plist = DocketEntry.getPhraseList(lla);
+						//						System.out.println(e.text);
+						for (Phrase ph : plist) {
+							System.out.println(ph.pprint("", false));
+						}
+						//ERGraph g = plist.get(0).getGraph();
+					} else {
+						System.out.println("No phrase found!");
+					}
+					srun.dispose();
+				} catch (Exception ex) {
+					fail(ex.getMessage());
+				}
+			}
+		}
 	}
 
 	static void parseAllEntries(EntitiesAndCaseDockets etcd) {

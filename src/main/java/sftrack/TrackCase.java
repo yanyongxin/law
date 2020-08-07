@@ -68,19 +68,19 @@ public class TrackCase {
 	public Date lastDate; // date of the last entry;
 	List<Party> partylist;
 
-	List<MotionEntry> motionlist = new ArrayList<>();
-	List<HearingEntry> hrlist = new ArrayList<>();
-	List<OrderEntry> orlist = new ArrayList<>();
-	public List<OppositionEntry> oppositions = new ArrayList<>(); //  
-	public List<ReplyEntry> replies = new ArrayList<>(); //  
+	List<TrackEntry> motionlist = new ArrayList<>();
+	List<TrackEntry> hrlist = new ArrayList<>();
+	List<TrackEntry> orlist = new ArrayList<>();
+	public List<TrackEntry> oppositions = new ArrayList<>(); //  
+	public List<TrackEntry> replies = new ArrayList<>(); //  
 	// Motions In limine grouped together:
-	public Map<Role, List<MotionEntry>> mlnlists;
-	public Map<Role, List<OppositionEntry>> oplists;
-	List<MotionEntry> miplist; // plaintiff motion in limine, 
-	List<MotionEntry> miulist; // unknown motion in limine, 
-	List<OppositionEntry> opsToMiFromDefendant; // Oppositions to plaintiff's motion in limine from defendant
-	List<OppositionEntry> opsToMiFromPlaintiff; // Oppositions to defendant's motion in limine from plaintiff
-	List<OppositionEntry> opsToMiFromUnknown; // Oppositions to motion in limine from unknown party roles
+	public Map<Role, List<TrackEntry>> mlnlists;
+	public Map<Role, List<TrackEntry>> oplists;
+	List<TrackEntry> miplist; // plaintiff motion in limine, 
+	List<TrackEntry> miulist; // unknown motion in limine, 
+	List<TrackEntry> opsToMiFromDefendant; // Oppositions to plaintiff's motion in limine from defendant
+	List<TrackEntry> opsToMiFromPlaintiff; // Oppositions to defendant's motion in limine from plaintiff
+	List<TrackEntry> opsToMiFromUnknown; // Oppositions to motion in limine from unknown party roles
 	List<TrackEntry> otherMilist; // declarations, proof of services, from both parties lumped together
 
 	public String getID() {
@@ -119,8 +119,10 @@ public class TrackCase {
 	}
 
 	public void findlastDate() {
-		TrackEntry e = motionEntries.get(motionEntries.size() - 1);
-		lastDate = e.date;
+		if (entries.size() > 1) {
+			TrackEntry e = entries.get(entries.size() - 1);
+			lastDate = e.date;
+		}
 	}
 
 	public TrackCase(String _id, List<TrackEntry> _es) {
@@ -315,12 +317,13 @@ public class TrackCase {
 		motionEntries.add(_e);
 	}
 
-	public void addOpposition(OppositionEntry e) {
-		if (e.isToMIL()) {
+	public void addOpposition(TrackEntry e) {
+		OppositionEntry oe = (OppositionEntry) e.getTypeSpecific();
+		if (oe.isToMIL(e)) {
 			if (oplists == null) {
 				oplists = new HashMap<>();
 			}
-			List<OppositionEntry> oplist;
+			List<TrackEntry> oplist;
 			//			if (e.role == null) {
 			//				e.role = "UNKNOWN";
 			//			}
@@ -334,22 +337,25 @@ public class TrackCase {
 			oppositions.add(e);
 	}
 
-	public void addReply(ReplyEntry e) {
+	public void addReply(TrackEntry e) {
 		replies.add(e);
 	}
 
 	public void generateLists() {
-		for (TrackEntry e : motionEntries) {
-			if (e instanceof MotionEntry) {
-				addMotion((MotionEntry) e);
-			} else if (e instanceof HearingEntry) {
-				addHearingEntry((HearingEntry) e);
-			} else if (e instanceof OrderEntry) {
-				addOrder((OrderEntry) e);
-			} else if (e instanceof OppositionEntry) {
-				addOpposition((OppositionEntry) e);
-			} else if (e instanceof ReplyEntry) {
-				addReply((ReplyEntry) e);
+		for (TrackEntry te : entries) {
+			String t = te.getType();
+			if (t == null)
+				continue;
+			if (t.equals(TrackEntry.MOTION)) {
+				addMotion(te);
+			} else if (t.equals(TrackEntry.HEARING)) {
+				addHearingEntry(te);
+			} else if (t.equals(TrackEntry.ORDER)) {
+				addOrder(te);
+			} else if (t.equals(TrackEntry.OPPOSITION)) {
+				addOpposition(te);
+			} else if (t.equals(TrackEntry.REPLY)) {
+				addReply(te);
 			}
 		}
 	}
@@ -366,84 +372,33 @@ public class TrackCase {
 	int removeDuplicateMotions() {
 		int count = 0;
 		for (int i = 0; i < motionlist.size(); i++) {
-			MotionEntry ms = motionlist.get(i);
-			String tid = ms.transactionID;
+			TrackEntry s = motionlist.get(i);
+			MotionEntry ms = (MotionEntry) s.getTypeSpecific();
+			String tid = s.transactionID;
 			if (tid != null) {
 				List<TrackEntry> list = transactions.get(tid);
 				if (list != null) {
 					for (TrackEntry e : list) {
 						if (e.type == null) {
 							motionlist.remove(e);
-						} else if (ms != e && e.type.equals(TrackEntry.MOTION)) {
-							MotionEntry me = (MotionEntry) e;
+						} else if (s != e && e.type.equals(TrackEntry.MOTION)) {
+							MotionEntry me = (MotionEntry) e.getTypeSpecific();
 							if (me.subtype == ms.subtype) {
 								// need to remove one, remove the one does not have hearing date:
 								if (ms.hearingDate != null && me.hearingDate == null) {
 									motionlist.remove(e);
 								} else if (ms.hearingDate == null && me.hearingDate != null) {
-									motionlist.remove(ms);
+									motionlist.remove(s);
 									MotionEntry mt = me;
-									e = ms;
+									s = e;
 									ms = mt;
 									i--;
 								}
 								count++;
 							}
 						}
-						if (ms != e)
+						if (s != e)
 							ms.addToGroup(e);
-					}
-				}
-			}
-		}
-		return count;
-	}
-
-	int removeDuplicateMotions1() {
-		int count = 0;
-		for (String tid : transactions.keySet()) {
-			List<TrackEntry> list = transactions.get(tid);
-			List<MotionEntry> mlist = new ArrayList<>();
-			for (TrackEntry e : list) {
-				boolean be = false;
-				if (e.type != null && e.type.equals(TrackEntry.MOTION)) {
-					MotionEntry me = (MotionEntry) e;
-					for (int i = 0; i < mlist.size(); i++) {
-						MotionEntry ms = mlist.get(i);
-						if (me.subtype == ms.subtype) {
-							// need to remove one, remove the one does not have hearing date:
-							if (ms.hearingDate == null && me.hearingDate != null) {
-								motionlist.remove(ms);
-								me.addToGroup(ms);
-								mlist.remove(i);
-								mlist.add(me);
-							} else {
-								motionlist.remove(me);
-								ms.addToGroup(me);
-							}
-							be = true;
-							count++;
-						}
-					}
-					if (!be) {// not combined with any existing
-						mlist.add(me);
-					}
-				}
-			}
-			for (TrackEntry e : list) {
-				if (e.type == null || !e.type.equals(TrackEntry.MOTION)) {
-					if (mlist.size() == 1) {
-						MotionEntry ms = mlist.get(0);
-						ms.addToGroup(e);
-					} else if (mlist.size() > 1) {
-						//						if (e.text.startsWith("MEMORANDUM OF POINTS AND AUTHORITIES IN SUPPORT OF MOTION TO STRIKE (TRANSACTION ID # 61722537)")) {
-						//							System.out.print("");
-						//						}
-						for (MotionEntry ms : mlist) {
-							if (ms.isCompatible(e)) {
-								ms.addToGroup(e);
-							}
-						}
 					}
 				}
 			}
@@ -453,7 +408,7 @@ public class TrackCase {
 
 	int groupTransactions() {
 		int count = 0;
-		for (MotionEntry ms : motionlist) {
+		for (TrackEntry ms : motionlist) {
 			//			if (ms.text.contains("MOTION TO COMPEL DISCOVERY RESPONSES, ATTENDANCE AND TESTIMONY OF DEFENDANTS AT DEPOSITION, AND FOR MONETARY SANCTIONS (TRANSACTION ID # 61415847)")) {
 			//				System.out.println("Captured");
 			//			}
@@ -468,7 +423,7 @@ public class TrackCase {
 				}
 			}
 		}
-		for (OppositionEntry ms : oppositions) {
+		for (TrackEntry ms : oppositions) {
 			String tid = ms.transactionID;
 			if (tid != null) {
 				List<TrackEntry> list = transactions.get(tid);
@@ -480,7 +435,7 @@ public class TrackCase {
 				}
 			}
 		}
-		for (OrderEntry ms : orlist) {
+		for (TrackEntry ms : orlist) {
 			String tid = ms.transactionID;
 			if (tid != null) {
 				List<TrackEntry> list = transactions.get(tid);
@@ -492,7 +447,7 @@ public class TrackCase {
 				}
 			}
 		}
-		for (HearingEntry ms : hrlist) {
+		for (TrackEntry ms : hrlist) {
 			String tid = ms.transactionID;
 			if (tid != null) {
 				List<TrackEntry> list = transactions.get(tid);
@@ -504,7 +459,7 @@ public class TrackCase {
 				}
 			}
 		}
-		for (ReplyEntry ms : replies) {
+		for (TrackEntry ms : replies) {
 			String tid = ms.transactionID;
 			if (tid != null) {
 				List<TrackEntry> list = transactions.get(tid);
@@ -558,7 +513,7 @@ public class TrackCase {
 		StringBuilder sb = new StringBuilder();
 		sb.append(id + "\n");
 		if (motionlist.size() > 0) {
-			for (MotionEntry ms : motionlist) {
+			for (TrackEntry ms : motionlist) {
 				sb.append("\n" + ms + "\n");
 			}
 		}
@@ -617,62 +572,65 @@ public class TrackCase {
 		}
 	}
 
-	public List<MotionEntry> getMotionList() {
+	public List<TrackEntry> getMotionList() {
 		return motionlist;
 	}
 
-	public List<HearingEntry> getHearingEntries() {
+	public List<TrackEntry> getHearingEntries() {
 		return hrlist;
 	}
 
-	public List<OrderEntry> getOrderEntries() {
+	public List<TrackEntry> getOrderEntries() {
 		return orlist;
 	}
 
-	void addHearingEntry(HearingEntry _lm) {
+	void addHearingEntry(TrackEntry _lm) {
 		hrlist.add(_lm);
 	}
 
-	void addMotion(List<MotionEntry> _mslist) {
+	void addMotion(List<TrackEntry> _mslist) {
 		motionlist.addAll(_mslist);
 	}
 
-	void addMotion(MotionEntry me) {
+	void addMotion(TrackEntry te) {
+		MotionEntry me = (MotionEntry) te.getTypeSpecific();
 		if (me.b_motionInLimine) {
 			if (mlnlists == null) {
 				mlnlists = new HashMap<>();
 			}
 			//			if (me.role == null)
 			//				me.role = "UNKNOWN";
-			List<MotionEntry> mlnlist = mlnlists.get(me.role);
+			List<TrackEntry> mlnlist = mlnlists.get(te.role);
 			if (mlnlist == null) {
 				mlnlist = new ArrayList<>();
-				mlnlists.put(me.role, mlnlist);
+				mlnlists.put(te.role, mlnlist);
 			}
-			mlnlist.add(me);
+			mlnlist.add(te);
 		} else
-			motionlist.add(me);
+			motionlist.add(te);
 	}
 
-	void addOrder(OrderEntry _or) {
+	void addOrder(TrackEntry _or) {
 		orlist.add(_or);
 	}
 
 	public void trackMotionSequences() {
-		for (MotionEntry ms : motionlist) {
+		for (TrackEntry ms : motionlist) {
 			findMatchingHearings(ms);
 			findMatchingOrders(ms);
 			findMatchingOppositions(ms);
 			findMatchingReplies(ms);
-			ms.organizeSequence();
+			MotionEntry me = (MotionEntry) ms.getTypeSpecific();
+			me.organizeSequence();
 		}
 	}
 
 	// Find hearing entry from a given date
-	List<HearingEntry> findHearing(Date _hdate) {
-		List<HearingEntry> hrs = new ArrayList<HearingEntry>();
-		for (HearingEntry e : hrlist) {
-			if (e.motion == null)
+	List<TrackEntry> findHearing(Date _hdate) {
+		List<TrackEntry> hrs = new ArrayList<TrackEntry>();
+		for (TrackEntry e : hrlist) {
+			HearingEntry he = (HearingEntry) e.getTypeSpecific();
+			if (he.motion == null)
 				continue;
 			if (_hdate.before(e.date)) { // because lmlist is date ordered, no more can be there
 				break;
@@ -686,27 +644,29 @@ public class TrackCase {
 	}
 
 	// Find order entry with n days from a given date
-	List<OrderEntry> findOrder(Date _hdate, int ndays, int subtype) {
-		List<OrderEntry> hrs = new ArrayList<>();
-		for (OrderEntry e : orlist) {
-			if (e.content == null)
+	List<TrackEntry> findOrder(Date _hdate, int ndays, int subtype) {
+		List<TrackEntry> hrs = new ArrayList<>();
+		for (TrackEntry e : orlist) {
+			OrderEntry oe = (OrderEntry) e.getTypeSpecific();
+			if (oe.content == null)
 				continue;
 			if (_hdate.before(e.date)) { // because orlist is date ordered, no more can be there
 				break;
 			}
 			if (utils.DateTime.daysInBetween(e.date, _hdate) > ndays)
 				continue;
-			if (subtype != MotionEntry.TYPE_UNKNOWN && e.subtype != MotionEntry.TYPE_UNKNOWN && subtype != e.subtype)
+			if (subtype != MotionEntry.TYPE_UNKNOWN && oe.subtype != MotionEntry.TYPE_UNKNOWN && subtype != oe.subtype)
 				continue;
 			hrs.add(e);
 		}
 		return hrs;
 	}
 
-	boolean findMatchingOppositions(MotionEntry ms) {
+	boolean findMatchingOppositions(TrackEntry te) {
 		//		if (ms.text.startsWith("MOTION FOR SUMMARY JUDGMENT, PROOF OF SERVICE FILED BY PLAINTIFF COURTHOUSE VENTURES INC. HEARING SET FOR SEP-12-2018")) {
 		//			System.out.print("");
 		//		}
+		MotionEntry ms = (MotionEntry) te.getTypeSpecific();
 		Date hearingDate = ms.finalHearingDate;
 		//		List<HearingEntry> hrs = ms.hearingEntries;
 		//		if (hrs != null && hrs.size() > 0) {
@@ -718,20 +678,21 @@ public class TrackCase {
 		//		}
 		int i = 0;
 		while (i < oppositions.size()) {
-			OppositionEntry lm = oppositions.get(i);
-			if (hearingDate != null && lm.date.after(hearingDate)) {
+			TrackEntry le = oppositions.get(i);
+			OppositionEntry lm = (OppositionEntry) le.getTypeSpecific();
+			if (hearingDate != null && le.date.after(hearingDate)) {
 				break;
 			}
-			if (lm.items == null) {
+			if (le.items == null) {
 				i++;
 				continue;
 			}
-			String motion = (String) lm.items.get("motion");
+			String motion = (String) le.items.get("motion");
 			if (motion == null) {
 				i++;
 				continue;
 			}
-			if (lm.date.before(ms.date)) {
+			if (le.date.before(te.date)) {
 				i++;
 				continue;
 			}
@@ -741,7 +702,7 @@ public class TrackCase {
 			//				day = h.date;
 			//			}
 			if (ms.matchMotion(motion)) {
-				ms.addOppositionEntry(lm);
+				ms.addOppositionEntry(le);
 				oppositions.remove(i);
 				continue;
 			}
@@ -752,16 +713,18 @@ public class TrackCase {
 		return false;
 	}
 
-	boolean findMatchingHearings(MotionEntry ms) {
+	boolean findMatchingHearings(TrackEntry te) {
 		//		if (ms.text.startsWith("NOTICE OF MOTION AND MOTION TO CONTINUE TRIAL DATE, ALL RELATED DEADLINES, INCLUDING DISCOVERY (TRANSACTION ID # 100045042)")) {
 		//			System.out.print("");
 		//		}
+		MotionEntry ms = (MotionEntry) te.getTypeSpecific();
 		Date hearingDate = ms.hearingDate;
 		int i = 0;
 		boolean ret = false;
 		while (i < hrlist.size() && hearingDate != null) {
-			HearingEntry lm = hrlist.get(i);
-			if (lm.date.before(ms.date)) {
+			TrackEntry hte = hrlist.get(i);
+			HearingEntry lm = (HearingEntry) hte.getTypeSpecific();
+			if (hte.date.before(te.date)) {
 				i++;
 				continue;
 			}
@@ -771,7 +734,7 @@ public class TrackCase {
 					continue;
 				}
 			}
-			int daysAfter = utils.DateTime.daysInBetween(hearingDate, lm.date);
+			int daysAfter = utils.DateTime.daysInBetween(hearingDate, hte.date);
 			if (daysAfter >= MAX_ALLOWED_DAYS_WITH_GD) {
 				i++;
 				break;
@@ -781,17 +744,17 @@ public class TrackCase {
 				continue;
 			}
 			if (ms.matchMotion(lm.motion)) {
-				if (ms.filer != null && ms.filer.length() > 4 && lm.authors != null && lm.authors.length() > 4) {
-					if (!ms.matchMotion(ms.filer, lm.authors)) {
+				if (te.filer != null && te.filer.length() > 4 && lm.authors != null && lm.authors.length() > 4) {
+					if (!ms.matchMotion(te.filer, lm.authors)) {
 						i++; // does not match, skip
-						ms.matchMotion(ms.filer, lm.authors);// this is for debugging
+						ms.matchMotion(te.filer, lm.authors);// this is for debugging
 						continue;
 					}
 					// reaches here means good match 
-				} else if (ms.role != null && lm.authorRole != null) {
-					if (!ms.role.equals(lm.authorRole)) {
+				} else if (te.role != null && lm.authorRole != null) {
+					if (!te.role.equals(lm.authorRole)) {
 						i++; // does not match, skip
-						ms.role.equals(lm.authorRole);// this is for debugging
+						te.role.equals(lm.authorRole);// this is for debugging
 						continue;
 					}
 					// reaches here means good match 
@@ -799,14 +762,14 @@ public class TrackCase {
 				// we check before and after the hearingDate differently:
 				if (daysAfter <= 0) {
 					if (lm.offCalendar) {
-						ms.setOffCalendar(lm.date);
-						ms.addHearingEntry(lm);
+						ms.setOffCalendar(hte.date);
+						ms.addHearingEntry(hte);
 						hrlist.remove(i);
 						return true;
 					}
 					if (lm.newDate != null) {// moved to a new date
 						hearingDate = lm.newDate;
-						ms.addHearingEntry(lm);
+						ms.addHearingEntry(hte);
 						hrlist.remove(i);
 						continue;
 					}
@@ -824,7 +787,7 @@ public class TrackCase {
 							} else if (s.startsWith("OVER")) {// overruled
 								ms.setOverruled();
 							} else if (s.startsWith("OFF")) {
-								ms.setOffCalendar(lm.date);
+								ms.setOffCalendar(hte.date);
 							} else if (s.startsWith("M")) {
 								ms.setMoot();
 							}
@@ -832,38 +795,41 @@ public class TrackCase {
 						ret = true;
 						//					break;
 					}
-					ms.addHearingEntry(lm);
+					ms.addHearingEntry(hte);
 					hrlist.remove(i);
 					continue;
 				}
 				// Otherwise, it's not for this Motion, ignore it:
 				i++;
 				continue;
-			} else if (!ret && lm.date.equals(hearingDate)) {
+			} else if (!ret && hte.date.equals(hearingDate)) {
 				HearingEntry hr = lm;
+				TrackEntry thr = hte;
 				int ml = 0;
 				if (hr.motion != null) {
 					ml = ms.fuzzyMatchMotion(hr.motion);
 				}
-				List<HearingEntry> hrs = findHearing(hearingDate);
+				List<TrackEntry> hrs = findHearing(hearingDate);
 				if (hrs != null) {
 					for (int k = 0; k < hrs.size(); k++) {
-						HearingEntry he = hrs.get(k);
-						if (he == hr)
+						TrackEntry he = hrs.get(k);
+						HearingEntry het = (HearingEntry) he.getTypeSpecific();
+						if (het == hr)
 							continue;
-						if (he.motion == null)
+						if (het.motion == null)
 							continue;
-						int kl = ms.fuzzyMatchMotion(he.motion);
+						int kl = ms.fuzzyMatchMotion(het.motion);
 						if (kl > ml) {
 							ml = kl;
-							hr = he;
+							hr = het;
+							thr = he;
 						}
 					}
 				}
-				ms.addHearingEntry(hr);
-				hrlist.remove(hr);
+				ms.addHearingEntry(thr);
+				hrlist.remove(thr);
 				if (hr.offCalendar) {
-					ms.setOffCalendar(hr.date);
+					ms.setOffCalendar(thr.date);
 					return true;
 				}
 				Date oldhearingdate = hearingDate;
@@ -882,7 +848,7 @@ public class TrackCase {
 							} else if (s.startsWith("OVER")) {
 								ms.setOverruled();
 							} else if (s.startsWith("OFF")) {
-								ms.setOffCalendar(lm.date);
+								ms.setOffCalendar(thr.date);
 							} else if (s.startsWith("M")) {
 								ms.setMoot();
 							}
@@ -891,7 +857,7 @@ public class TrackCase {
 					}
 				}
 				while (i < hrlist.size()) {
-					HearingEntry he = hrlist.get(i);
+					TrackEntry he = hrlist.get(i);
 					if (he.date.after(oldhearingdate)) {
 						break;
 					}
@@ -903,25 +869,28 @@ public class TrackCase {
 			// more sophisticated similarity measurement
 		}
 		if (!ret && hearingDate != null) {// not found among hearings, check that date:
-			List<HearingEntry> hrs = findHearing(hearingDate);
+			List<TrackEntry> hrs = findHearing(hearingDate);
 			if (hrs.size() > 0) {
-				HearingEntry hr = hrs.get(0);
+				TrackEntry hr = hrs.get(0);
+				HearingEntry hr1 = (HearingEntry) hr.getTypeSpecific();
 				if (hrs.size() > 1) {
-					int ml = ms.fuzzyMatchMotion(hr.motion);
+					int ml = ms.fuzzyMatchMotion(hr1.motion);
 					for (int k = 1; k < hrs.size(); k++) {
-						HearingEntry he = hrs.get(k);
-						if (he.motion == null)
+						TrackEntry he = hrs.get(k);
+						HearingEntry hr2 = (HearingEntry) he.getTypeSpecific();
+						if (hr2.motion == null)
 							continue;
-						int kl = ms.fuzzyMatchMotion(he.motion);
+						int kl = ms.fuzzyMatchMotion(hr2.motion);
 						if (kl > ml) {
 							ml = kl;
 							hr = he;
+							hr1 = hr2;
 						}
 					}
 				}
 				ms.addHearingEntry(hr);
 				hrlist.remove(hr);
-				if (hr.offCalendar) {
+				if (hr1.offCalendar) {
 					ms.setOffCalendar(hr.date);
 					return true;
 				}
@@ -929,7 +898,7 @@ public class TrackCase {
 				//							hearingDate = hr.hearingDate;
 				//							continue;
 				//						}
-				for (Pair p : hr.gds) {
+				for (Pair p : hr1.gds) {
 					String s = (String) p.o2;
 					if (s.startsWith("G")) {
 						ms.setGranted();
@@ -954,16 +923,18 @@ public class TrackCase {
 		return ret;
 	}
 
-	boolean findMatchingOrders(MotionEntry ms) {
+	boolean findMatchingOrders(TrackEntry te) {
 		//		if (ms.text.startsWith("EX PARTE APPLICATION FOR ORDER TO FILE CROSS COMPLAINT AGAINST VIKING")) {
 		//			System.out.print("");
 		//		}
+		MotionEntry ms = (MotionEntry) te.getTypeSpecific();
 		Date hearingDate = ms.finalHearingDate;
 		boolean ret = false;
 		int i = 0;
 		while (i < orlist.size()) {
-			OrderEntry or = orlist.get(i);
-			if (or.date.before(ms.date)) {
+			TrackEntry or = orlist.get(i);
+			OrderEntry ore = (OrderEntry) or.getTypeSpecific();
+			if (or.date.before(te.date)) {
 				i++;
 				continue;
 			}
@@ -977,10 +948,10 @@ public class TrackCase {
 					continue;
 				}
 			}
-			if (ms.matchMotion(or.content)) {
+			if (ms.matchMotion(ore.content)) {
 				ms.addOrder(or);
 				orlist.remove(i);
-				for (Pair p : or.gds) {
+				for (Pair p : ore.gds) {
 					String s = (String) p.o2;
 					if (s.startsWith("G")) {
 						ms.setGranted();
@@ -1004,23 +975,26 @@ public class TrackCase {
 			// more sophisticated similarity measurement
 		}
 		if (!ret && hearingDate != null) {// not found among hearings, check that date:
-			List<OrderEntry> ors = findOrder(hearingDate, 2, ms.subtype);
+			List<TrackEntry> ors = findOrder(hearingDate, 2, ms.subtype);
 			if (ors.size() > 0) {
-				OrderEntry or = ors.get(0);
+				TrackEntry or = ors.get(0);
+				OrderEntry ore = (OrderEntry) or.getTypeSpecific();
 				if (ors.size() > 1) {
-					int ml = ms.fuzzyMatchMotion(or.content);
+					int ml = ms.fuzzyMatchMotion(ore.content);
 					for (int k = 1; k < ors.size(); k++) {
-						OrderEntry he = ors.get(k);
-						int kl = ms.fuzzyMatchMotion(he.content);
+						TrackEntry or2 = ors.get(k);
+						OrderEntry ore2 = (OrderEntry) or2.getTypeSpecific();
+						int kl = ms.fuzzyMatchMotion(ore2.content);
 						if (kl > ml) {
 							ml = kl;
-							or = he;
+							or = or2;
+							ore = ore2;
 						}
 					}
 				}
 				ms.addOrder(or);
 				orlist.remove(or);
-				for (Pair p : or.gds) {
+				for (Pair p : ore.gds) {
 					String s = (String) p.o2;
 					if (s.startsWith("G")) {
 						ms.setGranted();
@@ -1042,25 +1016,27 @@ public class TrackCase {
 		return ret;
 	}
 
-	boolean findMatchingReplies(MotionEntry ms) {
+	boolean findMatchingReplies(TrackEntry te) {
+		MotionEntry ms = (MotionEntry) te.getTypeSpecific();
 		Date hearingDate = ms.finalHearingDate;
 		for (int i = 0; i < replies.size(); i++) {
-			ReplyEntry lm = replies.get(i);
-			if (hearingDate != null && lm.date.after(hearingDate)) {
+			TrackEntry le = replies.get(i);
+			ReplyEntry lm = (ReplyEntry) le.getTypeSpecific();
+			if (hearingDate != null && le.date.after(hearingDate)) {
 				break;
 			}
-			if (lm.items == null) {
+			if (le.items == null) {
 				continue;
 			}
-			String motion = (String) lm.items.get("motion");
+			String motion = (String) le.items.get("motion");
 			if (motion == null) {
 				continue;
 			}
-			if (lm.date.before(ms.date)) {
+			if (le.date.before(te.date)) {
 				continue;
 			}
 			if (ms.matchMotion(motion)) {
-				ms.addReplyEntry(lm);
+				ms.addReplyEntry(le);
 				replies.remove(i);
 				i--;
 				continue;

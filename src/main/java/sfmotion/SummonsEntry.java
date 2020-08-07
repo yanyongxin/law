@@ -1,19 +1,10 @@
 package sfmotion;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 //
-public class SummonsEntry extends TrackEntry {
+public class SummonsEntry {
 	//SUMMONS ON COMPLAINT (TRANSACTION ID # 60057326), PROOF OF SERVICE ONLY, FILED BY PLAINTIFF BARRIENTOS, CLAUDIA CRUZ SERVED JAN-06-2017, PERSONAL SERVICE AS TO DEFENDANT YOUNG, LILLIE PEARL
 	//SUMMONS ON COMPLAINT FILED BY PLAINTIFF STRONG, PAUL SERVED MAR-14-2017, POSTING AND MAILING AS TO DEFENDANT TAYLOR, DAVID
 	static final String regSummons1 = "^SUMMONS\\s*ON\\s*COMPLAINT\\,?\\s*(?<transactionID>\\(TRANSACTION\\s*ID\\s*\\#\\s*\\d+\\))?\\,?\\s*(?<prejudgmentClaim>PREJUDGMENT\\sCLAIM\\sOF\\sRIGHT\\sOF\\sPOSSESSION\\,?\\s?)?(?<pos>PROOF\\s*OF\\s*SERVICE\\s*(ONLY)?)?.+?FILED\\s*BY\\s*(?<filer>.+?)"
@@ -37,45 +28,7 @@ public class SummonsEntry extends TrackEntry {
 		return s.split(sreg);
 	}
 
-	List<String> noUse;
-
-	public SummonsEntry(String _sdate, String _text, Map<String, Object> _items) {
-		super(_sdate, _text, SUMMONS);
-		items = _items;
-	}
-
-	public SummonsEntry(String _sdate, String _text, Map<String, Object> _items, List<String> _noUse) {
-		super(_sdate, _text, SUMMONS);
-		items = _items;
-		noUse = _noUse;
-	}
-
-	public static void main(String[] args) throws IOException {
-		if (args.length != 3) {
-			System.out.println("args: infile outfile failfile");
-			System.exit(-1);
-		}
-		String infile = args[0];
-		String outfile = args[1];
-		BufferedReader br = new BufferedReader(new FileReader(infile));
-		BufferedWriter wr = new BufferedWriter(new FileWriter(outfile));
-		BufferedWriter wr2 = new BufferedWriter(new FileWriter(args[2]));
-		String line;
-		while ((line = br.readLine()) != null) {
-			String[] splits = line.split("\\t");
-			if (splits.length != 3) {
-				continue;
-			}
-			SummonsEntry se = parse(splits[1], splits[2]);
-			if (se != null) {
-				wr.write(se.toString() + "\n");
-			} else {
-				wr2.write(line + "\n");
-			}
-		}
-		br.close();
-		wr.close();
-		wr2.close();
+	public SummonsEntry() {
 	}
 
 	static boolean testSummons(String s) {
@@ -91,59 +44,58 @@ public class SummonsEntry extends TrackEntry {
 		return false;
 	}
 
-	static SummonsEntry parse(String _sdate, String _text) {
-		if (!_text.startsWith("SUMMONS")) {
-			return null;
+	public static boolean parse(TrackEntry e) {
+		if (!e.text.startsWith("SUMMONS")) {
+			return false;
 		}
-		Map<String, Object> items = new TreeMap<>();
-		Matcher m = pSummons1.matcher(_text);
+		Matcher m = pSummons1.matcher(e.text);
 		if (m.find()) {
-			String item;
-			items.put("document", "COMPLAINT");
-			item = m.group("filer");
-			if (item != null) {
-				items.put("filer", item);
+			e.storeItem("document", "COMPLAINT");
+			String filer = m.group("filer");
+			if (filer != null) {
+				e.storeItem("filer", filer);
 			}
-			item = m.group("receiver");
-			if (item != null) {
-				items.put("receiver", item);
+			String receiver = m.group("receiver");
+			if (receiver != null) {
+				e.storeItem("receiver", receiver);
 			}
-			item = m.group("serveDate");
-			if (item != null) {
-				items.put("serveDate", item);
+			String serveDate = m.group("serveDate");
+			if (serveDate != null) {
+				e.storeItem("serveDate", serveDate);
 			}
-			item = m.group("transactionID");
-			if (item != null) {
-				items.put("transactionID", item);
+			String transactionID = m.group("transactionID");
+			if (transactionID != null) {
+				e.storeItem("transactionID", serveDate);
 			}
-			item = m.group("prejudgmentClaim");
-			if (item != null) {
-				items.put("prejudgmentClaim", item);
+			String prejudgmentClaim = m.group("prejudgmentClaim");
+			if (prejudgmentClaim != null) {
+				e.storeItem("prejudgmentClaim", prejudgmentClaim);
 			}
-			item = m.group("pos");
-			if (item != null) {
-				items.put("pos", item);
+			String pos = m.group("pos");
+			if (pos != null) {
+				e.storeItem("pos", pos);
 			}
-			item = m.group("serviceMethod");
-			if (item != null) {
-				items.put("serviceMethod", item);
+			String serviceMethod = m.group("serviceMethod");
+			if (serviceMethod != null) {
+				e.storeItem("serviceMethod", serviceMethod);
 			}
-			return new SummonsEntry(_sdate, _text, items);
+			e.setType(TrackEntry.SUMMONS);
+			return true;
 		} else {
-			m = pSummons2.matcher(_text);
+			m = pSummons2.matcher(e.text);
 			if (m.find()) {
-				String item = m.group("document");
-				if (item != null) {
-					items.put("document", item);
+				String document = m.group("document");
+				if (document != null) {
+					e.storeItem("document", document);
 				}
-				item = m.group("receiver");
-				if (item != null) {
-					items.put("receiver", item);
+				String receiver = m.group("receiver");
+				if (receiver != null) {
+					e.storeItem("receiver", receiver);
 				}
-				return new SummonsEntry(_sdate, _text, items);
+				e.setType(TrackEntry.SUMMONS);
+				return true;
 			} else {
-				List<String> noUse = new ArrayList<>();
-				String[] splits = _text.split(sreg);
+				String[] splits = e.text.split(sreg);
 				boolean bready = false;
 				if (splits.length > 1)
 					bready = true;
@@ -152,48 +104,39 @@ public class SummonsEntry extends TrackEntry {
 					if (p.startsWith("SUMMONS")) {// SUMMONS ON COMPLAINT,
 						int id = p.indexOf(" ON ");
 						if (id > 0) {
-							items.put("document", p.substring(id + 4));
+							e.storeItem("document", p.substring(id + 4));
 						}
 					} else if (p.startsWith("PROOF OF SERVICE")) {//PROOF OF SERVICE ONLY,
-						items.put("pos", p);
+						e.storeItem("pos", p);
 					} else if (p.startsWith("PERSONAL") || p.startsWith("SUBSTITUTE") || p.startsWith("MAIL") || p.startsWith("POSTING")) {//SERVED OCT-31-2016, 
-						items.put("serviceMethod", p);
+						e.storeItem("serviceMethod", p);
 					} else if (p.startsWith("SERVED")) {
-						items.put("serveDate", p);
+						e.storeItem("serveDate", p);
 					} else if (p.startsWith("[ORIGINALLY")) {//[ORIGINALLY FILED NOV-02-16] 
-						items.put("originalFile", p);
+						e.storeItem("originalFile", p);
 					} else if (p.startsWith("FILED BY")) {//FILED BY PLAINTIFF WILSON, MICHAEL GEARY 
-						items.put("filer", p.substring(1 + "FILED BY".length()).trim());
+						e.storeItem("filer", p.substring(1 + "FILED BY".length()).trim());
 					} else if (p.startsWith("AS TO")) {// DEFENDANT HAYNES, BRIAN
-						items.put("receiver", p.substring(5).trim());
+						e.storeItem("receiver", p.substring(5).trim());
 					} else if (p.startsWith("(TRANSACT")) {//(TRANSACTION ID # 60107832),
-						items.put("transactionID", p);
+						e.storeItem("transactionID", p);
 					} else if (p.startsWith("TO ")) {
-						items.put("receiver", p.substring(3).trim());
+						e.storeItem("receiver", p.substring(3).trim());
 					} else {
-						noUse.add(p);
+						e.storeItem("noUse", p);
 					}
 				}
 				if (bready) {
-					return new SummonsEntry(_sdate, _text, items, noUse);
+					e.setType(TrackEntry.SUMMONS);
+					return true;
 				}
 			}
 		}
-		return null;
+		return false;
 	}
 
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(super.toString() + "\n");
-		for (String key : items.keySet()) {
-			sb.append("\t" + key + ": " + items.get(key) + "\n");
-		}
-		if (noUse != null) {
-			for (String s : noUse) {
-				sb.append("\t" + "No Use: " + s + "\n");
-			}
-		}
-		return sb.toString();
+		return "";
 	}
 
 }

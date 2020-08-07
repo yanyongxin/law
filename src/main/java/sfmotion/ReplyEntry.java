@@ -9,7 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 //
-public class ReplyEntry extends TrackEntry {
+public class ReplyEntry {
 	//	static String regReplyInSupportMotion = "^REPLY\\s((MEMORANDUM|DECLARATION|BRIEF)\\s)?(OF\\s((DEFENDANT|PLAINTIFF)S?\\s)?.+?)?IN\\sSUPPORT\\sOF\\s((PLAINTIFF|DEFENDANT)\\'?S\\s)?(\\w+\\s)?(MOTION|DEMURRER|APPLICATION|REQUEST)";
 	//	static final String sreg = "\\b(?=(MOTION\\s+(FOR|TO)|PROOF\\s+OF\\s+SERVICE|Fee.{3,10}?\\)|TRANSACTION\\sID\\s.{6,20}?\\)|HEARING\\s*SET\\s*FOR|MEMORANDUM\\s+(OF\\s+POINTS\\s+AND\\s+AUTHORITIES\\s+)IN\\s+SUPPORT|\\,\\s+POINTS\\s+AND\\s+AUTHORITIES|DECLARATION|FILED\\s+BY))";
 	static final String sreg = "(?=\\(TRANSACTION|FILED\\s+BY)";
@@ -36,20 +36,20 @@ public class ReplyEntry extends TrackEntry {
 		System.out.println(text2);
 	}
 
-	public ReplyEntry(String _sdate, String _text) {
-		super(_sdate, _text, REPLY);
+	public ReplyEntry() {
 	}
 
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("Reply\t\t" + date + "\t" + text + "\n");
-		if (items != null) {
-			String mt = (String) items.get("motion");
-			if (mt != null) {
-				sb.append("\t\t\tMotion\t" + mt + "\n");
-			}
-		}
-		return sb.toString();
+	public String toString() {// in the items
+		return "";
+		//		StringBuilder sb = new StringBuilder();
+		//		sb.append("Reply\t\t" + date + "\t" + text + "\n");
+		//		if (items != null) {
+		//			String mt = (String) items.get("motion");
+		//			if (mt != null) {
+		//				sb.append("\t\t\tMotion\t" + mt + "\n");
+		//			}
+		//		}
+		//		return sb.toString();
 	}
 
 	public static void main(String[] args) throws IOException {
@@ -98,53 +98,55 @@ public class ReplyEntry extends TrackEntry {
 		br.close();
 	}
 
-	public static ReplyEntry parse(String _sdate, String _text) {
-		if (!_text.startsWith("REPLY")) {
-			return null;
+	public static boolean parse(TrackEntry e) {
+		if (!e.text.startsWith("REPLY")) {
+			return false;
 		}
-		ReplyEntry entry = new ReplyEntry(_sdate, _text);
-		Matcher m = pReplyInSupportMotion.matcher(entry.text);
+		ReplyEntry entry = new ReplyEntry();
+		Matcher m = pReplyInSupportMotion.matcher(e.text);
 		if (m.find()) {
 			String document = m.group("document");
 			String docuparty = m.group("docuparty");
 			int motionStart = m.start("motion");
-			String motion = entry.text.substring(motionStart);
+			String motion = e.text.substring(motionStart);
 			String[] mots = motion.split("\\(");
-			entry.storeItem("document", document);
-			entry.storeItem("docuparty", docuparty);
-			entry.storeItem("motion", mots[0]);
+			e.storeItem("document", document);
+			e.storeItem("docuparty", docuparty);
+			e.storeItem("motion", mots[0]);
 		} else {
-			Matcher mm = pReplyToOppo.matcher(entry.text);
+			Matcher mm = pReplyToOppo.matcher(e.text);
 			if (mm.find()) {
 				String opposer = mm.group("opposer");
 				String motioner = mm.group("motioner");
 				int motionStart = mm.start("motion");
-				String motion = entry.text.substring(motionStart);
+				String motion = e.text.substring(motionStart);
 				String[] mots = motion.split("\\(");
-				entry.storeItem("opposer", opposer);
-				entry.storeItem("motioner", motioner);
-				entry.storeItem("motion", mots[0]);
+				e.storeItem("opposer", opposer);
+				e.storeItem("motioner", motioner);
+				e.storeItem("motion", mots[0]);
 			} else {
 				// there are 84 not parsed
-				String[] splits = entry.text.split(sreg);
+				String[] splits = e.text.split(sreg);
 				int idx = splits[0].indexOf("MOTION");
 				if (idx >= 0) {
-					entry.storeItem("motion", splits[0].substring(idx));
+					e.storeItem("motion", splits[0].substring(idx));
 				}
 				for (String s : splits) {
 					if (s.startsWith("FILED BY")) {
 						String filedby = s.substring("FILED BY".length() + 1);
-						entry.filer = filedby;
+						e.filer = filedby;
 						break;
 					}
 					if (s.startsWith("SUBMITTED BY")) {
 						String filedby = s.substring("SUBMITTED BY".length() + 1);
-						entry.filer = filedby;
+						e.filer = filedby;
 						break;
 					}
 				}
 			}
 		}
-		return entry;
+		e.setType(TrackEntry.REPLY);
+		e.setTypeSpecific(entry);
+		return true;
 	}
 }

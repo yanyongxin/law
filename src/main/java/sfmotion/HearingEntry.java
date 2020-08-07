@@ -1,10 +1,5 @@
 package sfmotion;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +9,7 @@ import java.util.regex.Pattern;
 import common.Role;
 import utils.Pair;
 
-public class HearingEntry extends TrackEntry {
+public class HearingEntry {
 	/**
 	 * SF Hearing types:
 	 * 
@@ -48,9 +43,8 @@ public class HearingEntry extends TrackEntry {
 	public Role authorRole = null;
 	public String authors = null;
 
-	public HearingEntry(String _sdate, String _text) {
-		super(_sdate, _text, HEARING);
-		analyze();
+	public HearingEntry(String _text) {
+		analyze(_text);
 		if (motion != null) {
 			if (motion.startsWith("MOTION") || motion.startsWith("MTN")) {
 				subtype = MotionEntry.TYPE_MOTION;
@@ -92,22 +86,20 @@ public class HearingEntry extends TrackEntry {
 		}
 	}
 
-	public static HearingEntry parse(String _sdate, String _text) {
-		Matcher m = pHearingEntries.matcher(_text);
+	public static boolean parse(TrackEntry e) {
+		Matcher m = pHearingEntries.matcher(e.text);
 		if (m.find()) {
-			HearingEntry entry = new HearingEntry(_sdate, _text);
-			return entry;
+			HearingEntry entry = new HearingEntry(e.text);
+			e.setType(TrackEntry.HEARING);
+			e.setTypeSpecific(entry);
+			return true;
 		}
-		return null;
+		return false;
 	}
 
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(super.toString() + "\n");
 		sb.append("\t\t\tmotion:\t" + motion + "\n");
-		//		if (offCalendar) {
-		//			sb.append("\t\t\tOff Calendar\n");
-		//		}
 		if (newDate != null) {
 			sb.append("\t\t\tContinued to: " + newDate + "\n");
 		}
@@ -141,7 +133,7 @@ public class HearingEntry extends TrackEntry {
 
 	//BE HEARD.{0,30} ON ((\w+)(?:-|\s)(\d+)(?:\,|-)\s*(\d+)|(\d+/\d+/\d+))
 	void setAuthor(String _author) {
-		Matcher m = pRoles.matcher(_author);
+		Matcher m = TrackEntry.pRoles.matcher(_author);
 		if (m.find()) {
 			String authRole = m.group("role").toUpperCase().replace('-', ' ');
 			if (authRole != null && authRole.startsWith("DEFT")) {
@@ -149,7 +141,7 @@ public class HearingEntry extends TrackEntry {
 			}
 			authorRole = new Role(authRole);
 			authors = _author.substring(m.end()).replaceAll("^\\W|\\W$", "").trim();
-			Matcher mmm = pRoles.matcher(authors);
+			Matcher mmm = TrackEntry.pRoles.matcher(authors);
 			if (mmm.find()) {// do it twice to handle "PLAINTIFF/CROSS-DEFENDANTS","DEFENDANT/CROSS COMPLAINANT", "DEFENDANT/CROSS-DEFENDANT"
 				authors = authors.substring(mmm.end()).replaceAll("^\\W|\\W$", "").trim();// ignore the second role
 			}
@@ -161,7 +153,7 @@ public class HearingEntry extends TrackEntry {
 	static final String regMasterDate = "MASTER (?:\\w+\\s){1,4}ON\\s" + regDate;
 	static final Pattern pdate = Pattern.compile(regMasterDate, Pattern.CASE_INSENSITIVE);
 
-	void analyze() {
+	void analyze(String text) {
 		if (text.startsWith("MASTER CALENDAR MOTION CALENDAR ON AUG-30-2018 IN DEPT. 206, DEFENDANT DELANCEY STREET FOUNDATION DBA DELANCEY STREET MOVING'S")) {
 			System.out.print("");
 		}
@@ -184,7 +176,7 @@ public class HearingEntry extends TrackEntry {
 					oldDate = utils.DateTime.getSqlDate(list);
 				}
 			}
-			Matcher mm = pRoles.matcher(head);
+			Matcher mm = TrackEntry.pRoles.matcher(head);
 			if (mm.find()) {
 				String s = head.substring(mm.start());
 				setAuthor(s);
@@ -299,40 +291,4 @@ public class HearingEntry extends TrackEntry {
 		}
 	}
 
-	static void test2() {
-		for (int j = 0; j < p.length; j++) {
-			System.out.println(p[j]);
-			HearingEntry he = parse("2018-08-23", p[j]);
-			System.out.println(he);
-		}
-	}
-
-	//HearingEntry parse(String _sdate, String _text)
-	public static void main(String[] args) throws IOException {
-		test2();
-		if (args.length != 2) {
-			System.out.println("args: infile outfile");
-			System.exit(-1);
-		}
-		String infile = args[0];
-		BufferedReader br = new BufferedReader(new FileReader(infile));
-		BufferedWriter wr1 = new BufferedWriter(new FileWriter(args[1]));
-		String line;
-		int count1 = 0;
-		while ((line = br.readLine()) != null) {
-			String[] splits = line.split("\\t");
-			if (splits.length != 3)
-				continue;
-			HearingEntry d = HearingEntry.parse(splits[1], splits[2]);
-			if (d != null) {
-				wr1.write(line + "\n");
-				count1++;
-				continue;
-			}
-		}
-		br.close();
-		wr1.write("count: " + count1 + "\n");
-		wr1.close();
-		System.out.println("Hearing : " + count1);
-	}
 }

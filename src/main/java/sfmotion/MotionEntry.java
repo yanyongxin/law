@@ -1,9 +1,6 @@
 package sfmotion;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Date;
 import java.util.ArrayList;
@@ -19,7 +16,7 @@ import com.google.common.collect.Multiset;
 
 import utils.Pair;
 
-public class MotionEntry extends TrackEntry {
+public class MotionEntry {
 	// For subtypes:
 	public static final int TYPE_UNKNOWN = 0;
 	public static final int TYPE_MOTION = 1;
@@ -75,10 +72,10 @@ public class MotionEntry extends TrackEntry {
 	// There are other dates set at the same entry for various 
 	// other milestones, such Proof of service, opposition, memorandom, declarations, etc.
 	// We'll add them later.		
-	List<HearingEntry> hearingEntries = new ArrayList<>();// Should change to Hearings. in SF court, it's called Law and Motion.
-	List<OrderEntry> orders = new ArrayList<>();
-	public List<OppositionEntry> oppositions = new ArrayList<>();
-	public List<ReplyEntry> replies = new ArrayList<>();
+	List<TrackEntry> hearingEntries = new ArrayList<>();// Should change to Hearings. in SF court, it's called Law and Motion.
+	List<TrackEntry> orders = new ArrayList<>();
+	public List<TrackEntry> oppositions = new ArrayList<>();
+	public List<TrackEntry> replies = new ArrayList<>();
 	List<TrackEntry> group = new ArrayList<>();
 	List<TrackEntry> sequence;
 	// It can be more complicated than this, such as moot, partial grant partial deny. grant cause 1 and 3, deny cause 2 and 4.
@@ -92,7 +89,7 @@ public class MotionEntry extends TrackEntry {
 	public int subtype = TYPE_UNKNOWN;
 
 	static void testing() {
-		MotionEntry me = new MotionEntry("2018-12-12", test1, test1);
+		MotionEntry me = new MotionEntry(test1);
 		boolean b = me._matchMotion(test1, test2);
 		System.out.print(b);
 	}
@@ -107,8 +104,18 @@ public class MotionEntry extends TrackEntry {
 
 	static final Pattern pMil = Pattern.compile("MOTIONS? IN LIMINE|\\bMIL\\b", Pattern.CASE_INSENSITIVE);
 
-	public MotionEntry(String _sdate, String _text, String _m) {
-		super(_sdate, _text, MOTION);
+	public MotionEntry(String _m) {
+		motionString = _m;
+		Matcher mt = pMil.matcher(_m);
+		if (mt.find()) {
+			b_motionInLimine = true;
+			subtype = TYPE_MOTION;
+		} else {
+			subtype = findSubtype(_m);
+		}
+	}
+
+	private void setMotionString(String _m) {
 		motionString = _m;
 		Matcher mt = pMil.matcher(_m);
 		if (mt.find()) {
@@ -121,7 +128,7 @@ public class MotionEntry extends TrackEntry {
 
 	public void addToGroup(TrackEntry e) {
 		if (e.type != null && e.type.equals(TrackEntry.MOTION)) {
-			MotionEntry me = (MotionEntry) e;
+			MotionEntry me = (MotionEntry) e.typeSpecific;
 			if (!me.group.isEmpty()) {
 				boolean b = me.group.remove(this);
 				//				if (b) {
@@ -140,8 +147,7 @@ public class MotionEntry extends TrackEntry {
 		return mt.find();
 	}
 
-	public MotionEntry(String _sdate, String _text, List<String> _m) {
-		super(_sdate, _text, MOTION);
+	public MotionEntry(List<String> _m) {
 		motionString = _m;
 		String m = _m.get(0);
 		Matcher mt = pMil.matcher(m);
@@ -174,7 +180,8 @@ public class MotionEntry extends TrackEntry {
 		return ((Integer) (winner.o2)).intValue();
 	}
 
-	static MotionEntry parse1(String _sdate, String txt) {
+	static boolean parse1(TrackEntry e) {
+		String txt = e.text;
 		Matcher m = pMotion1.matcher(txt);
 		if (m.find()) {// change to while(m.find()). Some have multiple motions in one docket entry
 			String parties = m.group("parties");
@@ -191,24 +198,28 @@ public class MotionEntry extends TrackEntry {
 			//			String mon = monthLookup.get(month);
 			//			Date hearingdate = Date.valueOf(year + "-" + mon + "-" + sdate);
 			Date hearingdate = utils.DateTime.getSqlDate(dlist);
-			MotionEntry ms = new MotionEntry(_sdate, txt, motionProper);
+			MotionEntry ms = new MotionEntry(motionProper);
+			e.setType(TrackEntry.MOTION);
+			e.setTypeSpecific(ms);
 			ms.setHearingDate(hearingdate);
-			ms.setTransactionID(transactionID);
-			ms.setFiler(filer);
+			e.setTransactionID(transactionID);
+			e.setFiler(filer);
 			ms.setParty(parties);
-			return ms;
+			return true;
 		} else {
 			Matcher mm = pMotion2.matcher(txt);
 			if (mm.find()) {
 				String motionProper = mm.group("motionProper").trim();
 				String transactionID = mm.group("transactionID");
 				String filer = mm.group("filer");
-				MotionEntry ms = new MotionEntry(_sdate, txt, motionProper);
-				ms.setTransactionID(transactionID);
-				ms.setFiler(filer);
-				return ms;
+				MotionEntry ms = new MotionEntry(motionProper);
+				e.setType(TrackEntry.MOTION);
+				e.setTypeSpecific(ms);
+				e.setTransactionID(transactionID);
+				e.setFiler(filer);
+				return true;
 			}
-			return null;
+			return false;
 		}
 	}
 
@@ -216,10 +227,11 @@ public class MotionEntry extends TrackEntry {
 		partyRaw = _party;
 	}
 
-	static MotionEntry parse(String _sdate, String txt) {
+	public static boolean parse(TrackEntry e) {
 		//		if (txt.startsWith("MOTION TO CONTINUE COURT TRIAL / NOTICE OF MOTION & JOINT MOTION TO CONTINUE TRIAL DATE;")) {
 		//			System.out.print("");
 		//		}
+		String txt = e.text;
 		Matcher m = pMotionEntry.matcher(txt);
 		if (m.find()) {// change to while(m.find()). Some have multiple motions in one docket entry
 			Date hearingDate = null;
@@ -275,7 +287,7 @@ public class MotionEntry extends TrackEntry {
 				Pair p = plist.get(0);
 				String mtn = (String) (p.o1);
 				if (plist.size() == 1) {
-					ms = new MotionEntry(_sdate, txt, mtn);
+					ms = new MotionEntry(mtn);
 				} else {
 					Integer i0 = (Integer) (p.o2);
 					Pair p1 = plist.get(0);
@@ -285,34 +297,36 @@ public class MotionEntry extends TrackEntry {
 						List<String> mlist = new ArrayList<>();
 						mlist.add(mtn);
 						mlist.add(mtn1);
-						ms = new MotionEntry(_sdate, txt, mlist);
+						ms = new MotionEntry(mlist);
 					} else {
-						ms = new MotionEntry(_sdate, txt, mtn);
+						ms = new MotionEntry(mtn);
 					}
 				}
 				if (ms != null) {
 					ms.setHearingDate(hearingDate);
 					if (transactionID != null) {
-						ms.setTransactionID(transactionID);
+						e.setTransactionID(transactionID);
 					}
 					if (filer != null) {
-						ms.setFiler(filer);
+						e.setFiler(filer);
 					}
 				}
-				return ms;
+				if (ms != null) {
+					e.setType(TrackEntry.MOTION);
+					e.setTypeSpecific(ms);
+					return true;
+				}
+				return false;
 			}
 		} else {
-			MotionEntry me = parse1(_sdate, txt);
-			if (me != null) {
-				System.out.print("");
-			}
-			return me;
+			boolean b = parse1(e);
+			//			if (b != null) {
+			//				System.out.print("");
+			//			}
+			return b;
 		}
-		MotionEntry me = parse1(_sdate, txt);
-		//		if (me != null) {
-		//			System.out.print("");
-		//		}
-		return me;
+		boolean b = parse1(e);
+		return b;
 	}
 
 	Object getMotion() {
@@ -522,19 +536,19 @@ public class MotionEntry extends TrackEntry {
 		hearingDate = _d;
 	}
 
-	public void addHearingEntry(HearingEntry _lm) {
+	public void addHearingEntry(TrackEntry _lm) {
 		hearingEntries.add(_lm);
 	}
 
-	public void addOppositionEntry(OppositionEntry _lm) {
+	public void addOppositionEntry(TrackEntry _lm) {
 		oppositions.add(_lm);
 	}
 
-	public void addReplyEntry(ReplyEntry _lm) {
+	public void addReplyEntry(TrackEntry _lm) {
 		replies.add(_lm);
 	}
 
-	public void addOrder(OrderEntry or) {
+	public void addOrder(TrackEntry or) {
 		orders.add(or);
 	}
 
@@ -574,7 +588,6 @@ public class MotionEntry extends TrackEntry {
 
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(super.toString() + "\n");
 		sb.append("\t\t\tMotion\t" + motionString + "\n");
 		if (hearingDate != null)
 			sb.append("\t\t\tHSet\t" + hearingDate + "\n");
@@ -611,51 +624,6 @@ public class MotionEntry extends TrackEntry {
 			}
 		}
 		return sb.toString();
-	}
-
-	// keep only the cases that contain "MOTION|APPLICATION|DEMURRER"
-	public static void main(String[] args) throws IOException {
-		testing();
-		if (args.length != 3) {
-			System.out.println("args: infile motions nomotions");
-			System.exit(-1);
-		}
-		String infile = args[0];
-		BufferedReader br = new BufferedReader(new FileReader(infile));
-		BufferedWriter wr1 = new BufferedWriter(new FileWriter(args[1]));
-		BufferedWriter wr2 = new BufferedWriter(new FileWriter(args[2]));
-		String line;
-		int count = 0;
-		int total = 0;
-		while ((line = br.readLine()) != null) {
-			String[] items = line.split("\\t");
-			//			findMotion(items[2], line, wr1, wr2);
-			MotionEntry e = parse1(items[1], items[2]);
-			if (e != null) {
-				wr1.write(line + "\n");
-				if (e.partyRaw != null)
-					wr1.write("parties: " + e.partyRaw + "\n");
-				if (e.motionString != null)
-					wr1.write("motionProper: " + e.motionString + "\n");
-				if (e.transactionID != null)
-					wr1.write("transactionID: " + e.transactionID + "\n");
-				if (e.filer != null)
-					wr1.write("filer: " + e.filer + "\n");
-				if (e.hearingDate != null)
-					wr1.write("Hearing: " + e.hearingDate + "\n\n");
-				count++;
-			} else {
-				wr2.write(line + "\n");
-			}
-			total++;
-		}
-		br.close();
-		wr1.write("count: " + count + "\n");
-		wr1.close();
-		total -= count;
-		wr2.write("count: " + total + "\t");
-		wr2.close();
-		System.out.println("Motions: " + count + ", Not motions: " + total);
 	}
 
 	static void findMotion(String s, String line, BufferedWriter wr1, BufferedWriter wr2) throws IOException {

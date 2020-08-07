@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 
 import utils.Pair;
 
-public class OrderEntry extends TrackEntry {
+public class OrderEntry {
 	/*
 	 * Order type 1: grant/deny motion, application, demurrer:
 	 * 
@@ -57,26 +57,27 @@ public class OrderEntry extends TrackEntry {
 	public String content; // for subtype = ORDER_GRANTDENY_MOTION
 	public List<Pair> gds = new ArrayList<>(); // grant, deny, sustain, overrule
 
-	public OrderEntry(String _sdate, String _text) {
-		super(_sdate, _text, ORDER);
+	public OrderEntry() {
 	}
 
-	public static OrderEntry parse(String _sdate, String _text) {
-		if (_text.startsWith("ORDER DENYING DEFENDANT'S PROTECTIVE ORDER MOTION")) {
+	public static boolean parse(TrackEntry e) {
+		if (e.text.startsWith("ORDER DENYING DEFENDANT'S PROTECTIVE ORDER MOTION")) {
 			System.out.print("");
 		}
-		Matcher m = pOrder.matcher(_text);
+		Matcher m = pOrder.matcher(e.text);
 		if (!m.find()) {
-			return null;
+			return false;
 		}
-		OrderEntry entry = new OrderEntry(_sdate, _text);
-		String[] proper = _text.split("\\(TRANS");
+		OrderEntry entry = new OrderEntry();
+		String[] proper = e.text.split("\\(TRANS");
 		String text = proper[0];
 		m = pOrderToShowCause.matcher(text);
 		if (m.find()) {
 			entry.subtype = ORDER_TO_SHOW_CAUSE;
 			entry.content = text.substring(m.end()).trim();
-			return entry;
+			e.setType(TrackEntry.ORDER);
+			e.setTypeSpecific(entry);
+			return true;
 		}
 		m = pMotionTitle.matcher(text);
 		if (m.find()) {
@@ -108,9 +109,11 @@ public class OrderEntry extends TrackEntry {
 					entry.gds.add(new Pair(Integer.valueOf(mgd.start()), "OVER"));
 				}
 			}
-			return entry;
+			e.setType(TrackEntry.ORDER);
+			e.setTypeSpecific(entry);
+			return true;
 		} else {
-			Matcher mback = pOrderBackup.matcher(entry.text);
+			Matcher mback = pOrderBackup.matcher(e.text);
 			if (mback.find()) {
 				String gd = mback.group("gd");
 				if (gd != null) {
@@ -131,20 +134,38 @@ public class OrderEntry extends TrackEntry {
 				}
 				entry.subtype = ORDER_GRANTDENY_MOTION;
 			} else {
-				int idx = entry.text.indexOf("ORDER");
+				int idx = e.text.indexOf("ORDER");
 				if (idx >= 0) {
-					entry.content = entry.text.substring(idx + "ORDER".length()).trim();
+					entry.content = e.text.substring(idx + "ORDER".length()).trim();
 				}
 				entry.subtype = ORDER_OTHER;
 			}
 		}
-		return entry;
+		e.setType(TrackEntry.ORDER);
+		e.setTypeSpecific(entry);
+		return true;
 	}
 
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("Order\t\t" + date + "\t" + text + "\n");
 		sb.append("\t\t\tMotion:\t" + content + "\n");
+		for (Pair p : gds) {
+			Integer ii = (Integer) p.o1;
+			String gd = (String) p.o2;
+			if (gd.startsWith("G")) {
+				sb.append("\t\t\t" + ii + " Granted\n");
+			} else if (gd.startsWith("D")) {
+				sb.append("\t\t\t" + ii + " Denied\n");
+			} else if (gd.startsWith("S")) {
+				sb.append("\t\t\t" + ii + " Sustained\n");
+			} else if (gd.startsWith("OVER")) {
+				sb.append("\t\t\t" + ii + " Overruled\n");
+			} else if (gd.startsWith("OFF")) {
+				sb.append("\t\t\t" + ii + " OFF CALENDAR\n");
+			} else if (gd.startsWith("M")) {
+				sb.append("\t\t\t" + ii + " Moot\n");
+			}
+		}
 		return sb.toString();
 	}
 }

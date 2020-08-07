@@ -1,6 +1,6 @@
 package sfmotion;
 
-public class CaseManagementConferenceEntry extends TrackEntry {
+public class CaseManagementConferenceEntry {
 	/**
 	 * 	CASE MANAGEMENT CONFERENCE SET FOR MAY-09-2018 AT 10:30 AM IN DEPARTMENT 610 FOR THE SUBMISSION OF CASE MANAGEMENT STATEMENTS. THE APR-10-2018 ORDER TO SHOW CAUSE IS OFF CALENDAR. NOTICE SENT BY COURT.
 		CASE MANAGEMENT CONFERENCE OF MAY-09-2018 CONTINUED TO JUN-13-2018 AT 10:30 AM IN DEPARTMENT 610 FOR STATUS OF CONSOLIDATION. NOTICE SENT BY COURT.
@@ -16,15 +16,17 @@ public class CaseManagementConferenceEntry extends TrackEntry {
 	*/
 	SFMotionEntry entry;
 
-	public CaseManagementConferenceEntry(String _sdate, String _text) {
-		super(_sdate, _text, CASE_MANAGEMENT_CONFERENCE);
+	public CaseManagementConferenceEntry() {
 	}
 
-	public static CaseManagementConferenceEntry parse(String _sdate, String _text) {
-		if (!_text.startsWith("CASE MANAGEMENT CONFERENCE")) {
-			return null;
+	public static boolean parse(TrackEntry e) {
+		if (!e.text.startsWith("CASE MANAGEMENT CONFERENCE")) {
+			return false;
 		}
 		// do nothing for now:
-		return new CaseManagementConferenceEntry(_sdate, _text);
+		CaseManagementConferenceEntry o = new CaseManagementConferenceEntry();
+		e.setType(TrackEntry.CASE_MANAGEMENT_CONFERENCE);
+		e.setTypeSpecific(o);
+		return true;
 	}
 }

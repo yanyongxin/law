@@ -15,12 +15,8 @@ import java.util.Map;
 import common.Role;
 import sfmotion.ComplaintEntry;
 import sfmotion.EntitiesAndCaseDockets;
-import sfmotion.HearingEntry;
 import sfmotion.LegalCase;
 import sfmotion.MotionEntry;
-import sfmotion.OppositionEntry;
-import sfmotion.OrderEntry;
-import sfmotion.ReplyEntry;
 import sfmotion.TrackEntry;
 import sfmotion.TrackEntry.DePhrase;
 import sfmotion.TrackEntry.Section;
@@ -36,7 +32,7 @@ public class TrackMotion {
 	static String[] entityResources = { "C:\\data\\191023\\dockets\\judgeparty/ca_sfc_party.txt",
 			"C:\\data\\191023\\dockets\\judgeparty/ca_sfc_judge.txt",
 			"C:\\data\\191023\\dockets\\judgeparty/ca_sfc_attorney.txt",
-			"C:\\data\\191023\\dockets/motions_3.txt" };
+			"C:\\data\\191023\\dockets/testline.txt" };
 
 	private static void ruleEngineParse(TrackEntry e, String id) {
 		if (e.text.startsWith("Payment")) {
@@ -54,6 +50,7 @@ public class TrackMotion {
 				srun.execute();
 				Map<Integer, List<Phrase>> rpmap = srun.findAllPhrases();
 				if (rpmap.size() > 0) {
+					sec.rpmap = rpmap;
 					List<Integer> keylist = Analysis.buildKeyList(rpmap);
 					//			assertTrue(keylist.size() > 0);
 					//					keylist.add(tokens.size());
@@ -155,14 +152,11 @@ public class TrackMotion {
 			System.out.println(cnt++ + " ================ " + cs.getID() + " ==================\n");
 			TrackEntry e0 = cs.entries.get(0); // first entry is always Complaint in San Francisco
 			ruleEngineParse(e0, cs.getID());
-			ComplaintEntry c = new ComplaintEntry(e0.sdate, e0.text);
-			cs.addEntry(c);
+			ComplaintEntry.parse(e0);
 			for (int i = 1; i < cs.entries.size(); i++) {
 				TrackEntry e = cs.entries.get(i);
 				ruleEngineParse(e, cs.getID());
 				TrackEntry.analyze(e);
-				cs.addEntry(e);
-
 			}
 			cs.findlastDate();
 			cs.generateLists();
@@ -170,43 +164,43 @@ public class TrackMotion {
 			//			countGrouped += cs.groupTransactions();
 			//			duplicates += cs.removeDuplicateMotions1();
 			cs.trackMotionSequences();
-			List<MotionEntry> mslist = cs.getMotionList();
-			List<HearingEntry> hrlist = cs.getHearingEntries();
-			List<OrderEntry> orlist = cs.getOrderEntries();
-			for (MotionEntry ms : mslist) {
+			List<TrackEntry> mslist = cs.getMotionList();
+			List<TrackEntry> hrlist = cs.getHearingEntries();
+			List<TrackEntry> orlist = cs.getOrderEntries();
+			for (TrackEntry te : mslist) {
+				MotionEntry ms = (MotionEntry) te.getTypeSpecific();
 				if (ms.isTracked() || (ms.hearingDate != null && ms.hearingDate.after(cs.lastDate))) {// hearing date in the future
 					if (ms.subtype == MotionEntry.TYPE_APPLIC) {
 						nAppTracked++;
-						wr7.write(cs.id + "\n" + ms.toString() + "\n\n");
+						wr7.write(cs.id + "\n" + te.toString() + "\n\n");
 					} else if (ms.subtype == MotionEntry.TYPE_DEMURR) {
 						nDemTracked++;
-						wr8.write(cs.id + "\n" + ms.toString() + "\n\n");
+						wr8.write(cs.id + "\n" + te.toString() + "\n\n");
 					} else {
 						nMotionTracked++;
-						wr1.write(cs.id + "\n" + ms.toString() + "\n\n");
+						wr1.write(cs.id + "\n" + te.toString() + "\n\n");
 					}
 				} else {
-					//					if (ms.isMotionInLimine()) {
-					//						nMotionInLimine++;
-					//					}
 					if (ms.subtype == MotionEntry.TYPE_APPLIC) {
 						nAppUntracked++;
-						wr9.write(cs.id + "\n" + ms.toString() + "\n\n");
+						wr9.write(cs.id + "\n" + te.toString() + "\n\n");
 					} else if (ms.subtype == MotionEntry.TYPE_DEMURR) {
 						nDemUntracked++;
-						wr10.write(cs.id + "\n" + ms.toString() + "\n\n");
+						wr10.write(cs.id + "\n" + te.toString() + "\n\n");
 					} else {
 						nMotionUntracked++;
-						wr2.write(cs.id + "\n" + ms.toString() + "\n\n");
+						wr2.write(cs.id + "\n" + te.toString() + "\n\n");
 					}
 				}
 			}
-			for (HearingEntry hr : hrlist) {
-				wr3.write(cs.id + "\n" + hr.toString() + "\n\n");
+			for (TrackEntry he : hrlist) {
+				//				HearingEntry hr = (HearingEntry) he.getTypeSpecific();
+				wr3.write(cs.id + "\n" + he.toString() + "\n\n");
 				nUnHearing++;
 			}
-			for (OrderEntry or : orlist) {
-				wr4.write(cs.id + "\n" + or.toString() + "\n\n");
+			for (TrackEntry oe : orlist) {
+				//				OrderEntry or = (OrderEntry) oe.getTypeSpecific();
+				wr4.write(cs.id + "\n" + oe.toString() + "\n\n");
 				nUnOrder++;
 			}
 			if (cs.mlnlists != null || cs.oplists != null) {
@@ -214,8 +208,8 @@ public class TrackMotion {
 				if (cs.mlnlists != null) {
 					for (Role key : cs.mlnlists.keySet()) {
 						wr11.write("Motions In Limine from " + key + ":\n");
-						List<MotionEntry> list = cs.mlnlists.get(key);
-						for (MotionEntry me : list) {
+						List<TrackEntry> list = cs.mlnlists.get(key);
+						for (TrackEntry me : list) {
 							nMotionInLimine++;
 							wr11.write(me.toString() + "\n");
 						}
@@ -224,19 +218,19 @@ public class TrackMotion {
 				if (cs.oplists != null) {
 					for (Role key : cs.oplists.keySet()) {
 						wr11.write("Oppositions from " + key + ":\n");
-						List<OppositionEntry> list = cs.oplists.get(key);
-						for (OppositionEntry me : list) {
+						List<TrackEntry> list = cs.oplists.get(key);
+						for (TrackEntry me : list) {
 							nOppositions++;
 							wr11.write(me.toString() + "\n");
 						}
 					}
 				}
 			}
-			for (OppositionEntry hr : cs.oppositions) {
+			for (TrackEntry hr : cs.oppositions) {
 				wr5.write(cs.id + "\n" + hr.toString() + "\n\n");
 				nUnOppos++;
 			}
-			for (ReplyEntry or : cs.replies) {
+			for (TrackEntry or : cs.replies) {
 				wr6.write(cs.id + "\n" + or.toString() + "\n\n");
 				nUnReply++;
 			}

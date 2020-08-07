@@ -1,16 +1,17 @@
 package sfmotion;
 
-import java.io.IOException;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ComplaintEntry extends TrackEntry {
+import common.Role;
+
+public class ComplaintEntry {
 	static final String regComplaint = "^(?<caseType>.+?)" + "(COMPLAINT\\s*.+?FILED\\s*BY\\s*PLAINTIFFS?)(?<plaintiffs>.+?)"
 			+ "(AS\\s*TO\\s*DEFENDANTS?(?<defendants>.+?))"
-			+ "(?<summons>SUMMONS\\s*ISSUED\\,?\\s*)" + "(?<coverSheet>JUDICIAL\\s*COUNCIL\\s*CIVIL\\s*CASE\\s*COVER\\s*SHEETS?\\s*FILED\\s*)?"
+			+ "(?<summons>(NO )?SUMMONS\\s*ISSUED\\,?\\s*)" + "(?<coverSheet>JUDICIAL\\s*COUNCIL\\s*CIVIL\\s*CASE\\s*COVER\\s*SHEETS?\\s*FILED\\s*)?"
 			+ "(CASE\\s*MANAGEMENT\\s*CONFERENCE\\s*SCHEDULED\\s*FOR\\s*(?<caseManagementConferenceDate>\\w{3,10}-\\d\\d-\\d{2,4})\\s*)?"
 			+ "(PROOF\\s*OF\\s*SERVICE\\s*DUE\\s*ON\\s*(?<posDate>\\w{3,10}-\\d\\d-\\d{2,4})\\s*)?"
 			+ "(CASE\\s*MANAGEMENT\\s*STATEMENT\\s*DUE\\s*\\s*ON\\s*(?<caseManageStatementDate>\\w{3,10}-\\d\\d-\\d{2,4})\\s*)?" + "(\\(Fee\\:(?<fee>.+?)\\))?";
@@ -42,46 +43,72 @@ public class ComplaintEntry extends TrackEntry {
 			"PETITION FOR WRIT OF MANDATE FILED BY PETITIONER O'DORISIO MD, JAMES EDWARD AS TO RESPONDENT MEDICAL BOARD OF CALIFORNIA JUDICIAL COUNCIL CIVIL CASE COVER SHEET FILED (Fee:450.00)",
 	};
 
-	public static void main(String[] args) throws IOException {
-		for (String s : testcases) {
-			ComplaintEntry ce = new ComplaintEntry("2010-09-11", s);
-			System.out.print(ce);
-		}
+	public ComplaintEntry() {
 	}
 
-	public ComplaintEntry(String _sdate, String _text) {
-		super(_sdate, _text, COMPLAINT);
-		parse();
-	}
-
-	boolean parse() {
-		Matcher m = pComplaint.matcher(text);
+	public static boolean parse(TrackEntry e) {
+		Matcher m = pComplaint.matcher(e.text);
 		if (m.find()) {
-			caseType = m.group("caseType").trim();
-			plaintiffs = m.group("plaintiffs").trim();
-			filer = plaintiffs; // filer is a field in Entry, parent class
-			role = "PLAINTIFF"; // role is a field in Entry, parent class
-			defendants = m.group("defendants").trim();
-			summons = m.group("summons");
-			coverSheet = m.group("coverSheet");
-			caseManagementConferenceDate = m.group("caseManagementConferenceDate");
-			posDate = m.group("posDate");
-			caseManageStatementDate = m.group("caseManageStatementDate");
-			fee = m.group("fee");
+			String caseType = m.group("caseType").trim();
+			if (caseType != null) {
+				e.storeItem("caseType", caseType);
+			}
+			String plaintiffs = m.group("plaintiffs");
+			if (plaintiffs != null) {
+				e.storeItem("plaintiffs", plaintiffs.trim());
+			}
+			e.filer = plaintiffs; // filer is a field in Entry, parent class
+			e.role = Role.PLAINTIFF; // role is a field in Entry, parent class
+			String defendants = m.group("defendants");
+			if (defendants != null) {
+				e.storeItem("defendants", defendants.trim());
+			}
+			String summons = m.group("summons");
+			if (summons != null) {
+				e.storeItem("summons", summons.trim());
+			}
+			String coverSheet = m.group("coverSheet");
+			if (coverSheet != null) {
+				e.storeItem("coverSheet", coverSheet.trim());
+			}
+			String caseManagementConferenceDate = m.group("caseManagementConferenceDate");
+			if (coverSheet != null) {
+				e.storeItem("caseManagementConferenceDate", caseManagementConferenceDate.trim());
+			}
+			String posDate = m.group("posDate");
+			if (posDate != null) {
+				e.storeItem("posDate", posDate.trim());
+			}
+			String caseManageStatementDate = m.group("caseManageStatementDate");
+			if (caseManageStatementDate != null) {
+				e.storeItem("caseManageStatementDate", caseManageStatementDate.trim());
+			}
+			String fee = m.group("fee");
+			if (fee != null) {
+				e.storeItem("fee", fee.trim());
+			}
+			e.setType(TrackEntry.COMPLAINT);
 			return true;
 		}
-		m = pPetition.matcher(text);
+		m = pPetition.matcher(e.text);
 		if (m.find()) {
-			caseType = m.group("caseType");
+			String caseType = m.group("caseType");
 			if (caseType != null)
 				caseType = caseType.trim();
-			plaintiffs = m.group("plaintiffs").trim();
-			filer = plaintiffs; // filer is a field in Entry, parent class
-			role = "PLAINTIFF"; // role is a field in Entry, parent class
-			defendants = m.group("defendants");
-			if (defendants != null)
-				defendants = defendants.trim();
-			coverSheet = m.group("coverSheet");
+			String plaintiffs = m.group("plaintiffs").trim();
+			if (plaintiffs != null) {
+				e.storeItem("plaintiffs", plaintiffs);
+			}
+			e.filer = plaintiffs; // filer is a field in Entry, parent class
+			e.role = Role.PLAINTIFF; // role is a field in Entry, parent class
+			String defendants = m.group("defendants");
+			if (defendants != null) {
+				e.storeItem("defendants", defendants.trim());
+			}
+			String coverSheet = m.group("coverSheet");
+			if (coverSheet != null) {
+				e.storeItem("coverSheet", coverSheet.trim());
+			}
 			String hearing = m.group("hearingSetFor");
 			if (hearing != null) {
 				String month = m.group("month");
@@ -91,38 +118,44 @@ public class ComplaintEntry extends TrackEntry {
 				dlist.add(month);
 				dlist.add(sdate);
 				dlist.add(year);
-				hearingdate = Utils.getSqlDate(dlist);
+				Date hearingdate = Utils.getSqlDate(dlist);
+				e.storeItem("hearingdate", hearingdate);
 			}
-			fee = m.group("fee");
+			String fee = m.group("fee");
+			if (fee != null) {
+				e.storeItem("fee", fee.trim());
+			}
+			e.setType(TrackEntry.COMPLAINT);
 			return true;
 		}
 		return false;
 	}
 
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(text + "\n");
-		if (caseType != null)
-			sb.append("\t" + "caseType: " + caseType + "\n");
-		if (plaintiffs != null)
-			sb.append("\t" + "plaintiffs: " + plaintiffs + "\n");
-		if (defendants != null)
-			sb.append("\t" + "defendants: " + defendants + "\n");
-		if (summons != null)
-			sb.append("\t" + "summons: " + summons + "\n");
-		if (coverSheet != null)
-			sb.append("\t" + "coverSheet: " + coverSheet + "\n");
-		if (caseManagementConferenceDate != null)
-			sb.append("\t" + "caseManagementConferenceDate: " + caseManagementConferenceDate + "\n");
-		if (hearingdate != null)
-			sb.append("\t" + "hearingdate: " + hearingdate + "\n");
-		if (posDate != null)
-			sb.append("\t" + "posDate: " + posDate + "\n");
-		if (caseManageStatementDate != null)
-			sb.append("\t" + "caseManageStatementDate: " + caseManageStatementDate + "\n");
-		if (fee != null)
-			sb.append("\t" + "fee: " + fee + "\n");
-		return sb.toString();
+		return "";
+		//		StringBuilder sb = new StringBuilder();
+		//		sb.append(text + "\n");
+		//		if (caseType != null)
+		//			sb.append("\t" + "caseType: " + caseType + "\n");
+		//		if (plaintiffs != null)
+		//			sb.append("\t" + "plaintiffs: " + plaintiffs + "\n");
+		//		if (defendants != null)
+		//			sb.append("\t" + "defendants: " + defendants + "\n");
+		//		if (summons != null)
+		//			sb.append("\t" + "summons: " + summons + "\n");
+		//		if (coverSheet != null)
+		//			sb.append("\t" + "coverSheet: " + coverSheet + "\n");
+		//		if (caseManagementConferenceDate != null)
+		//			sb.append("\t" + "caseManagementConferenceDate: " + caseManagementConferenceDate + "\n");
+		//		if (hearingdate != null)
+		//			sb.append("\t" + "hearingdate: " + hearingdate + "\n");
+		//		if (posDate != null)
+		//			sb.append("\t" + "posDate: " + posDate + "\n");
+		//		if (caseManageStatementDate != null)
+		//			sb.append("\t" + "caseManageStatementDate: " + caseManageStatementDate + "\n");
+		//		if (fee != null)
+		//			sb.append("\t" + "fee: " + fee + "\n");
+		//		return sb.toString();
 	}
 
 }

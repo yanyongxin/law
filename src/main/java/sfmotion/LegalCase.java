@@ -245,7 +245,7 @@ public class LegalCase {
 		TrackEntry e = entries.get(0);
 		//		complaint = new Complaint(id + "\t" + e.sdate + "\t" + e.text);
 
-		complaint = new ComplaintEntry(e.sdate, e.text);
+		//		complaint = new ComplaintEntry(e.sdate, e.text);
 
 		for (int i = 1; i < entries.size(); i++) {
 			String[] split = entries.get(i).text.split("FILED BY");
