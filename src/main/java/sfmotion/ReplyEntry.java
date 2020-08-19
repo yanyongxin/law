@@ -5,8 +5,12 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import sftrack.TrackCase.MotionLink;
 
 //
 public class ReplyEntry {
@@ -34,6 +38,12 @@ public class ReplyEntry {
 			}
 		}
 		System.out.println(text2);
+	}
+
+	public List<MotionLink> mlinkCandidates = new ArrayList<>();
+
+	public void addMotionLinkCandidate(MotionLink ml) {
+		mlinkCandidates.add(ml);
 	}
 
 	public ReplyEntry() {
@@ -103,45 +113,47 @@ public class ReplyEntry {
 			return false;
 		}
 		ReplyEntry entry = new ReplyEntry();
-		Matcher m = pReplyInSupportMotion.matcher(e.text);
+		if (e.text.startsWith("REPLY MEMORANDUM IN SUPPORT OF PLAINTIFF'S RENEWED MOTION FOR JUDGMENT ON THE PLEADINGS AS TO FIRST")) {
+			System.out.print("");
+		}
+		String[] splits = e.text.split(sreg);
+		for (String s : splits) {
+			if (s.startsWith("FILED BY")) {
+				String filedby = s.substring("FILED BY".length() + 1);
+				e.filer = filedby;
+				break;
+			}
+			if (s.startsWith("SUBMITTED BY")) {
+				String filedby = s.substring("SUBMITTED BY".length() + 1);
+				e.filer = filedby;
+				break;
+			}
+		}
+		Matcher m = pReplyInSupportMotion.matcher(splits[0]);
 		if (m.find()) {
 			String document = m.group("document");
 			String docuparty = m.group("docuparty");
 			int motionStart = m.start("motion");
-			String motion = e.text.substring(motionStart);
+			String motion = splits[0].substring(motionStart);
 			String[] mots = motion.split("\\(");
 			e.storeItem("document", document);
 			e.storeItem("docuparty", docuparty);
 			e.storeItem("motion", mots[0]);
 		} else {
-			Matcher mm = pReplyToOppo.matcher(e.text);
+			Matcher mm = pReplyToOppo.matcher(splits[0]);
 			if (mm.find()) {
 				String opposer = mm.group("opposer");
 				String motioner = mm.group("motioner");
 				int motionStart = mm.start("motion");
-				String motion = e.text.substring(motionStart);
+				String motion = splits[0].substring(motionStart);
 				String[] mots = motion.split("\\(");
 				e.storeItem("opposer", opposer);
 				e.storeItem("motioner", motioner);
 				e.storeItem("motion", mots[0]);
 			} else {
-				// there are 84 not parsed
-				String[] splits = e.text.split(sreg);
 				int idx = splits[0].indexOf("MOTION");
 				if (idx >= 0) {
 					e.storeItem("motion", splits[0].substring(idx));
-				}
-				for (String s : splits) {
-					if (s.startsWith("FILED BY")) {
-						String filedby = s.substring("FILED BY".length() + 1);
-						e.filer = filedby;
-						break;
-					}
-					if (s.startsWith("SUBMITTED BY")) {
-						String filedby = s.substring("SUBMITTED BY".length() + 1);
-						e.filer = filedby;
-						break;
-					}
 				}
 			}
 		}

@@ -14,6 +14,7 @@ import org.simmetrics.metrics.BlockDistance;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 
+import sftrack.TrackCase.MotionLink;
 import utils.Pair;
 
 public class MotionEntry {
@@ -72,11 +73,16 @@ public class MotionEntry {
 	// There are other dates set at the same entry for various 
 	// other milestones, such Proof of service, opposition, memorandom, declarations, etc.
 	// We'll add them later.		
-	List<TrackEntry> hearingEntries = new ArrayList<>();// Should change to Hearings. in SF court, it's called Law and Motion.
-	List<TrackEntry> orders = new ArrayList<>();
+	public List<MotionLink> hrCandidates = new ArrayList<>();// hearing candidates
+	public List<MotionLink> orCandidates = new ArrayList<>();// order candidates
+	public List<MotionLink> opCandidates = new ArrayList<>();// opposition candidates
+	public List<MotionLink> repCandidates = new ArrayList<>();// reply candidates
+	public List<TrackEntry> hearings = new ArrayList<>();// in SF court, it's called Law and Motion.
+	public List<TrackEntry> orders = new ArrayList<>();
 	public List<TrackEntry> oppositions = new ArrayList<>();
 	public List<TrackEntry> replies = new ArrayList<>();
-	List<TrackEntry> group = new ArrayList<>();
+	public List<TrackEntry> others = new ArrayList<>();
+	//	List<TrackEntry> group = new ArrayList<>();
 	List<TrackEntry> sequence;
 	// It can be more complicated than this, such as moot, partial grant partial deny. grant cause 1 and 3, deny cause 2 and 4.
 	boolean grant = false;
@@ -87,6 +93,8 @@ public class MotionEntry {
 	boolean offCalendar = false;
 	public boolean b_motionInLimine = false;
 	public int subtype = TYPE_UNKNOWN;
+	public List<Pair> hearDates = new ArrayList<>();
+	//	List<TrackEntry> 
 
 	static void testing() {
 		MotionEntry me = new MotionEntry(test1);
@@ -98,6 +106,10 @@ public class MotionEntry {
 		return (grant | deny | sustain | overrule | moot | offCalendar);
 	}
 
+	public boolean isOff() {
+		return offCalendar;
+	}
+
 	boolean isMotionInLimine() {
 		return b_motionInLimine;
 	}
@@ -105,7 +117,7 @@ public class MotionEntry {
 	static final Pattern pMil = Pattern.compile("MOTIONS? IN LIMINE|\\bMIL\\b", Pattern.CASE_INSENSITIVE);
 
 	public MotionEntry(String _m) {
-		motionString = _m;
+		motionString = _m.trim();
 		Matcher mt = pMil.matcher(_m);
 		if (mt.find()) {
 			b_motionInLimine = true;
@@ -116,7 +128,7 @@ public class MotionEntry {
 	}
 
 	private void setMotionString(String _m) {
-		motionString = _m;
+		motionString = _m.trim();
 		Matcher mt = pMil.matcher(_m);
 		if (mt.find()) {
 			b_motionInLimine = true;
@@ -126,21 +138,21 @@ public class MotionEntry {
 		}
 	}
 
-	public void addToGroup(TrackEntry e) {
-		if (e.type != null && e.type.equals(TrackEntry.MOTION)) {
-			MotionEntry me = (MotionEntry) e.typeSpecific;
-			if (!me.group.isEmpty()) {
-				boolean b = me.group.remove(this);
-				//				if (b) {
-				//					System.out.print("");
-				//				}
-				group.addAll(me.group);
-			}
-			me.group.clear();
-		}
-		if (!group.contains(e))
-			group.add(e);
-	}
+	//	public void addToGroup(TrackEntry e) {
+	//		if (e.type != null && e.type.equals(TrackEntry.MOTION)) {
+	//			MotionEntry me = (MotionEntry) e.typeSpecific;
+	//			if (!me.group.isEmpty()) {
+	//				boolean b = me.group.remove(this);
+	//				//				if (b) {
+	//				//					System.out.print("");
+	//				//				}
+	//				group.addAll(me.group);
+	//			}
+	//			me.group.clear();
+	//		}
+	//		if (!group.contains(e))
+	//			group.add(e);
+	//	}
 
 	public static boolean containsMIL(String s) {
 		Matcher mt = pMil.matcher(s);
@@ -333,6 +345,7 @@ public class MotionEntry {
 		return motionString;
 	}
 
+	// how many leading words match:
 	public int fuzzyMatchMotion(String s) {
 		if (motionString instanceof String) {
 			String mts = (String) motionString;
@@ -364,6 +377,28 @@ public class MotionEntry {
 		return countMax;
 	}
 
+	public double matchMotionScore(String s) {
+		if (motionString instanceof String) {
+			String mtn = (String) motionString;
+			//			if (this.subtype == MotionEntry.TYPE_APPLIC) {
+			//				mtn = orderReplace(mtn);
+			//				s = orderReplace(s);
+			//			}
+			double score = matchMotionScore(s, mtn);
+			return score;
+		} else {
+			List<String> list = (List<String>) motionString;
+			double maxScore = 0.0;
+			for (String mtn : list) {
+				//				mtn = orderReplace(mtn);
+				double score = matchMotionScore(s, mtn);
+				if (score > maxScore)
+					maxScore = score;
+			}
+			return maxScore;
+		}
+	}
+
 	public boolean matchMotion(String s) {
 		if (motionString instanceof String) {
 			String mtn = (String) motionString;
@@ -388,7 +423,8 @@ public class MotionEntry {
 	}
 
 	private String orderReplace(String s) {
-		s = s.replaceAll("FOR ORDER", "").replaceAll("ENTRY OF", "").replaceAll("\\b(TO|FOR|THE|OF|AS|A|AN)\\b", "").replaceAll("\\p{Punct}", "").replaceAll("\\s+", " ").trim();
+		//		s = s.replaceAll("FOR ORDER", "").replaceAll("ENTRY OF", "").replaceAll("\\b(TO|FOR|THE|OF|AS|A|AN)\\b", "").replaceAll("\\p{Punct}", "").replaceAll("\\s+", " ").trim();
+		s = s.replaceAll("FOR ORDER", "").replaceAll("ENTRY OF", "").replaceAll("\\b(THE|OF|AS|A|AN)\\b", "").replaceAll("\\p{Punct}", "").replaceAll("\\s+", " ").trim();
 		s = s.replaceAll("COMPLT", "COMPLAINT").replaceAll("JUDGMNT", "JUDGMENT");
 		s = s.replaceAll("\\bMTN\\b", "MOTION");
 		return s;
@@ -440,6 +476,52 @@ public class MotionEntry {
 		return false;
 	}
 
+	/**
+	 * This is a simple match. A better version should return a matching measure. The calling program can compare the measure
+	 * from competing matches to make a best choice.
+	 * 
+	 * @param s
+	 * @param mtn
+	 * @return
+	 */
+	public double matchMotionScore(String s, String mtn) {
+		if (s == null)
+			return 0.0;
+		if (mtn == null)
+			return 0.0;
+		Matcher m = pContinueTrial.matcher(mtn);
+		if (m.find()) {
+			Matcher mm = pContinueTrial.matcher(s);
+			if (mm.find()) {
+				// "MOTION FOR A TRIAL CONTINUANCE" matches "MOTION TO CONTINUE TRIAL DATE"
+				return 1.0;
+			}
+		}
+		s = s.replaceAll("\\(.+?(\\)|$)", "").replaceAll("\\,|\\.|\\bETC\\b|\\\"", " ").replaceAll("NOTICE OF MOTION AND", "").trim().replaceAll("'S$", "");
+		mtn = mtn.replaceAll("\\(.+?(\\)|$)", "").replaceAll("\\,|\\.|\\bETC\\b|\\\"", " ").replaceAll("NOTICE OF MOTION AND", "").trim().replaceAll("'S$", "");
+		s = s.replaceAll("\\b1ST", "FIRST").replaceAll("\\b2ND", "SECOND").replaceAll("\\b3RD", "THIRD");
+		mtn = mtn.replaceAll("\\b1ST", "FIRST").replaceAll("\\b2ND", "SECOND").replaceAll("\\b3RD", "THIRD");
+		String s1 = s.replaceAll("\\s+|-", " ");
+		String s2 = mtn.replaceAll("\\s+|-", " ");
+		//		String[] s1s = s1.split("'S\\b");
+		//		s1 = s1s[0];
+		//		String[] s2s = s2.split("'S\\b");
+		//		s2 = s2s[0];
+		s1 = s1.replaceAll("'S\\b", "S"); // PLAINTIFF'S ==> PLAINTIFFS
+		s2 = s2.replaceAll("'S\\b", "S");
+
+		String ss1 = orderReplace(s1);
+		String ss2 = orderReplace(s2);
+		double score1 = _matchMotionScore(ss1, ss2);
+		s1 = s.replaceAll("\\s+", " ").replaceAll("-", "").trim();
+		s2 = mtn.replaceAll("\\s+", " ").replaceAll("-", "").trim();
+		ss1 = orderReplace(s1);
+		ss2 = orderReplace(s2);
+		double score2 = _matchMotionScore(ss1, ss2);
+		double score = Math.max(score1, score2);
+		return score;
+	}
+
 	private boolean _matchMotion(String s1, String s2) {
 		if (s1.startsWith(s2)) {
 			return true;
@@ -472,6 +554,49 @@ public class MotionEntry {
 		if (score > 0.73)
 			return true;
 		return false;
+	}
+
+	public void addHearingCandidate(MotionLink ml) {
+		hrCandidates.add(ml);
+	}
+
+	public void addOrderCandidate(MotionLink ml) {
+		orCandidates.add(ml);
+	}
+
+	public void addOppositionCandidate(MotionLink ml) {
+		opCandidates.add(ml);
+	}
+
+	public void addReplyCandidate(MotionLink ml) {
+		repCandidates.add(ml);
+	}
+
+	private double _matchMotionScore(String s1, String s2) {
+		if (s1.startsWith(s2)) {
+			return 1.0;
+		} else if (s2.startsWith(s1)) {
+			return 1.0;
+		}
+		if (s1.startsWith("MOTION TO") && s2.startsWith("MOTION FOR")) {
+			return 0.0;
+		}
+		if (s1.startsWith("MOTION FOR") && s2.startsWith("MOTION TO")) {
+			return 0.0;
+		}
+		String[] ss = s1.split("\\s+");
+		String[] sm = s2.split("\\s+");
+		String[] s11;
+		String[] s22;
+		if (ss.length <= sm.length) {
+			s11 = ss;
+			s22 = sm;
+		} else {
+			s11 = sm;
+			s22 = ss;
+		}
+		// more sophisticated matching here:
+		return (double) _matchScore1(s11, s22);
 	}
 
 	private float _matchScore(String[] shortlist, String[] longlist) {
@@ -537,19 +662,23 @@ public class MotionEntry {
 	}
 
 	public void addHearingEntry(TrackEntry _lm) {
-		hearingEntries.add(_lm);
+		if (!hearings.contains(_lm))
+			hearings.add(_lm);
 	}
 
 	public void addOppositionEntry(TrackEntry _lm) {
-		oppositions.add(_lm);
+		if (!oppositions.contains(_lm))
+			oppositions.add(_lm);
 	}
 
 	public void addReplyEntry(TrackEntry _lm) {
-		replies.add(_lm);
+		if (!replies.contains(_lm))
+			replies.add(_lm);
 	}
 
-	public void addOrder(TrackEntry or) {
-		orders.add(or);
+	public void addOrderEntry(TrackEntry or) {
+		if (!orders.contains(or))
+			orders.add(or);
 	}
 
 	public void setGranted() {
@@ -577,13 +706,67 @@ public class MotionEntry {
 		this.finalHearingDate = dt;
 	}
 
+	public void setFinalHearingDate() {
+		if (finalHearingDate != null)
+			return;
+		if (hearDates != null) {
+			Pair p = hearDates.get(hearDates.size() - 1);
+			finalHearingDate = (Date) p.o2;
+		}
+	}
+
+	public void setOrderFlagsFromHearings() {
+		for (TrackEntry e : hearings) {
+			HearingEntry he = (HearingEntry) e.getTypeSpecific();
+			for (Pair p : he.gds) {
+				String gd = (String) p.o2;
+				if (gd.startsWith("G")) {
+					grant = true;
+				} else if (gd.startsWith("D")) {
+					deny = true;
+				} else if (gd.startsWith("S")) {
+					sustain = true;
+				} else if (gd.startsWith("OVER")) {
+					overrule = true;
+				} else if (gd.startsWith("OFF")) {
+					offCalendar = true;
+				} else if (gd.startsWith("M")) {
+					moot = true;
+				}
+			}
+		}
+	}
+
+	public void setOrderFlagsFromOrders() {
+		for (TrackEntry e : orders) {
+			OrderEntry he = (OrderEntry) e.getTypeSpecific();
+			for (Pair p : he.gds) {
+				String gd = (String) p.o2;
+				if (gd.startsWith("G")) {
+					grant = true;
+				} else if (gd.startsWith("D")) {
+					deny = true;
+				} else if (gd.startsWith("S")) {
+					sustain = true;
+				} else if (gd.startsWith("OVER")) {
+					overrule = true;
+				} else if (gd.startsWith("OFF")) {
+					offCalendar = true;
+				} else if (gd.startsWith("M")) {
+					moot = true;
+				}
+			}
+		}
+	}
+
 	public void organizeSequence() {
 		sequence = new ArrayList<>();
 		sequence.addAll(oppositions);
 		sequence.addAll(replies);
-		sequence.addAll(hearingEntries);
+		sequence.addAll(hearings);
 		sequence.addAll(orders);
 		Collections.sort(sequence);
+		setOrderFlagsFromOrders();
 	}
 
 	public String toString() {
@@ -614,15 +797,15 @@ public class MotionEntry {
 		if (offCalendar) {
 			sb.append("Ruling\t\tOFF CALENDAR");
 		}
-		if (!group.isEmpty()) {
-			sb.append("\nGroup members:\n");
-			for (TrackEntry e : group) {
-				if (e.type != null && e.type.equals(TrackEntry.MOTION)) {
-					sb.append("Extra: " + e + "\n");
-				} else
-					sb.append(e + "\n");
-			}
-		}
+		//		if (!group.isEmpty()) {
+		//			sb.append("\nGroup members:\n");
+		//			for (TrackEntry e : group) {
+		//				if (e.type != null && e.type.equals(TrackEntry.MOTION)) {
+		//					sb.append("Extra: " + e + "\n");
+		//				} else
+		//					sb.append(e + "\n");
+		//			}
+		//		}
 		return sb.toString();
 	}
 

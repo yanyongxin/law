@@ -226,11 +226,11 @@ public class TrackMotion {
 					}
 				}
 			}
-			for (TrackEntry hr : cs.oppositions) {
+			for (TrackEntry hr : cs.caseOppositionList) {
 				wr5.write(cs.id + "\n" + hr.toString() + "\n\n");
 				nUnOppos++;
 			}
-			for (TrackEntry or : cs.replies) {
+			for (TrackEntry or : cs.caseReplyList) {
 				wr6.write(cs.id + "\n" + or.toString() + "\n\n");
 				nUnReply++;
 			}

@@ -7,6 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import common.Role;
+import sftrack.TrackCase.MotionLink;
 import utils.Pair;
 
 public class HearingEntry {
@@ -24,7 +25,7 @@ public class HearingEntry {
 	 * 2. UNCONTESTED CALENDAR
 	 */
 	static final Pattern pHearingEntries = Pattern.compile(
-			"^(LAW.{1,6}MOTION|MOTION)|^DISCOVERY\\,?\\s*302|^(MASTER|UNCONTESTED).+?CALENDAR|REAL\\s*PROPERTY\\/HOUSING\\s*MOTION\\,?\\s*501|^TRIAL\\s*MOTION|^NOT REPORTED\\.|^HEARING",
+			"^(LAW.{1,6}MOTION|MOTION)|^DISCOVERY\\,?\\s*302|^(MASTER|UNCONTESTED)\\s+((MOTION|COURT)\\s*)?CALENDAR|REAL\\s*PROPERTY\\/HOUSING\\s*MOTION\\,?\\s*501|^TRIAL\\s*MOTION|^NOT REPORTED\\.|^HEARING",
 			Pattern.CASE_INSENSITIVE);
 	static final Pattern pMotionTitle = Pattern.compile("APPLICATION|MOTIONS?\\s+(TO|FOR|IN\\sLIMINE)|DEMURRERS?\\sTO.+?(COMPLAINT|ANSWER)", Pattern.CASE_INSENSITIVE);//|(EX\\\\sPARTE\\\\s)?APPLICATION
 	static final Pattern pGrantDeny = Pattern.compile("((is|are)\\s)?(?<gd1>Granted|den(ying|ied)|MOOT|SUSTAIN(ED|ING)|OVERRUL(ED|ING))|(THE\\s*COURT\\s+(?<gd2>GRANTS|DENIES))",
@@ -36,12 +37,18 @@ public class HearingEntry {
 	MotionEntry ms;
 	public List<Pair> gds = new ArrayList<>();
 	// track changes in calendar:
+	// CA_SFC_464545	2019-07-03	MASTER CALENDAR MOTION CALENDAR ON JUL-09-2019 IN DEPT. 206, DEFENDANT NORMAN CHARLES CONTRUCTION, INC.'S MOTION FOR TRIAL CONTINUANCE WITH A HEARING DATE OF 7/9/19 AT 9:30AM IN DEPT. 206 IS OFF CALENDAR PER REQUEST OF MOVING PARTY. (206)
 	public Date oldDate = null;
 	public Date newDate = null;
 	public boolean offCalendar = false;
 	public int subtype = MotionEntry.TYPE_UNKNOWN;
 	public Role authorRole = null;
 	public String authors = null;
+	public List<MotionLink> mlinkCandidates = new ArrayList<>();
+
+	public void addMotionLinkCandidate(MotionLink ml) {
+		mlinkCandidates.add(ml);
+	}
 
 	public HearingEntry(String _text) {
 		analyze(_text);
@@ -154,17 +161,17 @@ public class HearingEntry {
 	static final Pattern pdate = Pattern.compile(regMasterDate, Pattern.CASE_INSENSITIVE);
 
 	void analyze(String text) {
-		if (text.startsWith("MASTER CALENDAR MOTION CALENDAR ON AUG-30-2018 IN DEPT. 206, DEFENDANT DELANCEY STREET FOUNDATION DBA DELANCEY STREET MOVING'S")) {
-			System.out.print("");
-		}
+		//		if (text.startsWith("MASTER CALENDAR MOTION CALENDAR ON AUG-30-2018 IN DEPT. 206, DEFENDANT DELANCEY STREET FOUNDATION DBA DELANCEY STREET MOVING'S")) {
+		//			System.out.print("");
+		//		}
 		Matcher m = pMotionTitle.matcher(text);
 		String body = "";
 		String head = text;
 		List<String> list = new ArrayList<>();
 		if (m.find()) {
-			head = text.substring(0, m.start());
-			body = text.substring(m.start());
-			motion = text.substring(m.start());
+			head = text.substring(0, m.start()).trim();
+			body = text.substring(m.start()).trim();
+			motion = text.substring(m.start()).trim();
 			if (head.startsWith("MASTER")) {
 				Matcher mh = pdate.matcher(head);
 				if (mh.find()) {
@@ -178,7 +185,7 @@ public class HearingEntry {
 			}
 			Matcher mm = TrackEntry.pRoles.matcher(head);
 			if (mm.find()) {
-				String s = head.substring(mm.start());
+				String s = head.substring(mm.start()).trim();
 				setAuthor(s);
 			}
 		}
@@ -207,7 +214,8 @@ public class HearingEntry {
 		//			return;
 		//		}
 		Matcher mgd = pGrantDeny.matcher(body);
-		while (mgd.find()) {
+		int start = 0;
+		while (mgd.find(start)) {
 			String gd = mgd.group("gd1");
 			if (gd == null)
 				gd = mgd.group("gd2");
@@ -222,6 +230,7 @@ public class HearingEntry {
 			} else if (gd.startsWith("M")) {
 				gds.add(new Pair(Integer.valueOf(mgd.start()), "M"));
 			}
+			start = mgd.start() + 4;
 			motionEndOffset = Math.min(motionEndOffset, mgd.start());
 			motionEndFound = true;
 			//			if (motionEndOffset == 0) {
@@ -233,7 +242,7 @@ public class HearingEntry {
 		//			return;
 		//		}
 		if (motionEndFound) {
-			motion = body.substring(0, motionEndOffset);
+			motion = body.substring(0, motionEndOffset).trim();
 			return;
 		}
 		Matcher mcd = pContinuedTo.matcher(body);
@@ -267,7 +276,7 @@ public class HearingEntry {
 			motionEndOffset = Math.min(motionEndOffset, mcd.start());
 		}
 		if (motionEndOffset < body.length()) {
-			motion = body.substring(0, motionEndOffset);
+			motion = body.substring(0, motionEndOffset).trim();
 			return;
 		}
 	}

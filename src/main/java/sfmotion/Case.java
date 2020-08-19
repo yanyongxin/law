@@ -993,7 +993,7 @@ public class Case {
 				}
 			}
 			if (ms.matchMotion(or.content)) {
-				ms.addOrder(or);
+				ms.addOrderEntry(or);
 				orlist.remove(i);
 				for (Pair p : or.gds) {
 					String s = (String) p.o2;
@@ -1033,7 +1033,7 @@ public class Case {
 						}
 					}
 				}
-				ms.addOrder(or);
+				ms.addOrderEntry(or);
 				orlist.remove(or);
 				for (Pair p : or.gds) {
 					String s = (String) p.o2;

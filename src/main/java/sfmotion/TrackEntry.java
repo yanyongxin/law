@@ -139,7 +139,9 @@ public class TrackEntry implements Comparable<TrackEntry> {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(this.toTypeString() + "\n");
-		sb.append(typeSpecific.toString() + "\n");
+		String s = typeSpecific.toString();
+		if (s.length() > 0)
+			sb.append(s + "\n");
 		if (items != null)
 			for (String key : items.keySet()) {
 				sb.append("\t\t\t" + key + ": " + items.get(key) + "\n");

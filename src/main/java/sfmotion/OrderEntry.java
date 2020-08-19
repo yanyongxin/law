@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import sftrack.TrackCase.MotionLink;
 import utils.Pair;
 
 public class OrderEntry {
@@ -61,15 +62,15 @@ public class OrderEntry {
 	}
 
 	public static boolean parse(TrackEntry e) {
-		if (e.text.startsWith("ORDER DENYING DEFENDANT'S PROTECTIVE ORDER MOTION")) {
-			System.out.print("");
-		}
+		//		if (e.text.startsWith("NOTICE OF ENTRY OF ORDER/NOTICE OF RULING FILED GRANTING PLAINTIFF'S UNOPPOSED MOTION TO SEAL SECOND AMENDED COMPLAINT;")) {
+		//			System.out.print("");
+		//		}
 		Matcher m = pOrder.matcher(e.text);
 		if (!m.find()) {
 			return false;
 		}
 		OrderEntry entry = new OrderEntry();
-		String[] proper = e.text.split("\\(TRANS");
+		String[] proper = e.raw.split("\\(TRANS");
 		String text = proper[0];
 		m = pOrderToShowCause.matcher(text);
 		if (m.find()) {
@@ -81,8 +82,8 @@ public class OrderEntry {
 		}
 		m = pMotionTitle.matcher(text);
 		if (m.find()) {
-			String body = text.substring(0, m.start());
-			entry.content = text.substring(m.start());
+			String body = text.substring(0, m.start()).trim();
+			entry.content = text.substring(m.start()).trim();
 			if (entry.content.startsWith("DEMURR")) {
 				entry.subtype = ORDER_OVERSUST_DEMURRER;
 			} else {
@@ -97,7 +98,8 @@ public class OrderEntry {
 				}
 			}
 			Matcher mgd = pGrantDeny.matcher(body);
-			while (mgd.find()) {
+			int start = 0;
+			while (mgd.find(start)) {
 				String gd = mgd.group("gd");
 				if (gd.startsWith("G")) {
 					entry.gds.add(new Pair(Integer.valueOf(mgd.start()), "G"));
@@ -108,6 +110,7 @@ public class OrderEntry {
 				} else if (gd.startsWith("O")) {
 					entry.gds.add(new Pair(Integer.valueOf(mgd.start()), "OVER"));
 				}
+				start = mgd.start() + 4;
 			}
 			e.setType(TrackEntry.ORDER);
 			e.setTypeSpecific(entry);
@@ -144,6 +147,12 @@ public class OrderEntry {
 		e.setType(TrackEntry.ORDER);
 		e.setTypeSpecific(entry);
 		return true;
+	}
+
+	public List<MotionLink> mlinkCandidates = new ArrayList<>();
+
+	public void addMotionLinkCandidate(MotionLink ml) {
+		mlinkCandidates.add(ml);
 	}
 
 	public String toString() {

@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,8 +46,11 @@ public class TrackCase {
 	//	static final String regSep = "AS TO|FILED BY|\\(TRANSACTION.+?\\)|\\(FEE.+?\\|HEARING SET|)";
 	public static Pattern ptransactionID = Pattern.compile("\\(TRANSACTION\\sID\\s\\#\\s+(\\d+)\\)", Pattern.CASE_INSENSITIVE);
 	static final String[] ROLENAMES = { "APPELLANT", "CROSS DEFENDANT", "CROSS COMPLAINANT", "DEFENDANT", "PLAINTIFF", "CLAIMANT", "OTHER", };
-	static int MAX_ALLOWED_DAYS_WITH_GD = 4;
+	static int MAX_ALLOWED_DAYS_WITH_GD = 3;
 	static int MAX_ALLOWED_DAYS_NO_GD = 14;
+	static double IGNORE_THRESHOLD = 0.6; // ignore any match below this
+	static double TRUST_THRESHOLD = 0.94; // accept any match above this
+	static double RANGE_THRESHOLD = 0.04; // any match as score in this range are considered same
 
 	Map<String, List<TrackEntry>> transactions = new TreeMap<>();
 	public List<TrackEntry> entries;
@@ -69,10 +73,10 @@ public class TrackCase {
 	List<Party> partylist;
 
 	List<TrackEntry> motionlist = new ArrayList<>();
-	List<TrackEntry> hrlist = new ArrayList<>();
-	List<TrackEntry> orlist = new ArrayList<>();
-	public List<TrackEntry> oppositions = new ArrayList<>(); //  
-	public List<TrackEntry> replies = new ArrayList<>(); //  
+	List<TrackEntry> caseHearingsList = new ArrayList<>();
+	List<TrackEntry> caseOrderList = new ArrayList<>();
+	public List<TrackEntry> caseOppositionList = new ArrayList<>(); //  
+	public List<TrackEntry> caseReplyList = new ArrayList<>(); //  
 	// Motions In limine grouped together:
 	public Map<Role, List<TrackEntry>> mlnlists;
 	public Map<Role, List<TrackEntry>> oplists;
@@ -82,6 +86,14 @@ public class TrackCase {
 	List<TrackEntry> opsToMiFromPlaintiff; // Oppositions to defendant's motion in limine from plaintiff
 	List<TrackEntry> opsToMiFromUnknown; // Oppositions to motion in limine from unknown party roles
 	List<TrackEntry> otherMilist; // declarations, proof of services, from both parties lumped together
+	List<MotionLink> mHearingLinks; // similarity links between motion-related entries
+	List<MotionLink> mOrderLinks; // similarity links between motion-related entries
+	List<MotionLink> mOppositionLinks; // similarity links between motion-related entries
+	List<MotionLink> mReplyLinks; // similarity links between motion-related entries
+	List<MotionLink> maxHearingLinks = new ArrayList<>(); // surviving maximum motion-hearing links
+	List<MotionLink> maxOrderLinks = new ArrayList<>(); // surviving maximum motion-order links
+	List<MotionLink> maxOppositionLinks = new ArrayList<>(); // surviving maximum motion-opposition links
+	List<MotionLink> maxReplyLinks = new ArrayList<>(); // surviving maximum motion-reply links
 
 	public String getID() {
 		return id;
@@ -334,11 +346,11 @@ public class TrackCase {
 			}
 			oplist.add(e);
 		} else
-			oppositions.add(e);
+			caseOppositionList.add(e);
 	}
 
 	public void addReply(TrackEntry e) {
-		replies.add(e);
+		caseReplyList.add(e);
 	}
 
 	public void generateLists() {
@@ -369,42 +381,42 @@ public class TrackCase {
 	 *  
 	 * @return
 	 */
-	int removeDuplicateMotions() {
-		int count = 0;
-		for (int i = 0; i < motionlist.size(); i++) {
-			TrackEntry s = motionlist.get(i);
-			MotionEntry ms = (MotionEntry) s.getTypeSpecific();
-			String tid = s.transactionID;
-			if (tid != null) {
-				List<TrackEntry> list = transactions.get(tid);
-				if (list != null) {
-					for (TrackEntry e : list) {
-						if (e.type == null) {
-							motionlist.remove(e);
-						} else if (s != e && e.type.equals(TrackEntry.MOTION)) {
-							MotionEntry me = (MotionEntry) e.getTypeSpecific();
-							if (me.subtype == ms.subtype) {
-								// need to remove one, remove the one does not have hearing date:
-								if (ms.hearingDate != null && me.hearingDate == null) {
-									motionlist.remove(e);
-								} else if (ms.hearingDate == null && me.hearingDate != null) {
-									motionlist.remove(s);
-									MotionEntry mt = me;
-									s = e;
-									ms = mt;
-									i--;
-								}
-								count++;
-							}
-						}
-						if (s != e)
-							ms.addToGroup(e);
-					}
-				}
-			}
-		}
-		return count;
-	}
+	//	int removeDuplicateMotions() {
+	//		int count = 0;
+	//		for (int i = 0; i < motionlist.size(); i++) {
+	//			TrackEntry s = motionlist.get(i);
+	//			MotionEntry ms = (MotionEntry) s.getTypeSpecific();
+	//			String tid = s.transactionID;
+	//			if (tid != null) {
+	//				List<TrackEntry> list = transactions.get(tid);
+	//				if (list != null) {
+	//					for (TrackEntry e : list) {
+	//						if (e.type == null) {
+	//							motionlist.remove(e);
+	//						} else if (s != e && e.type.equals(TrackEntry.MOTION)) {
+	//							MotionEntry me = (MotionEntry) e.getTypeSpecific();
+	//							if (me.subtype == ms.subtype) {
+	//								// need to remove one, remove the one does not have hearing date:
+	//								if (ms.hearingDate != null && me.hearingDate == null) {
+	//									motionlist.remove(e);
+	//								} else if (ms.hearingDate == null && me.hearingDate != null) {
+	//									motionlist.remove(s);
+	//									MotionEntry mt = me;
+	//									s = e;
+	//									ms = mt;
+	//									i--;
+	//								}
+	//								count++;
+	//							}
+	//						}
+	//						if (s != e)
+	//							ms.addToGroup(e);
+	//					}
+	//				}
+	//			}
+	//		}
+	//		return count;
+	//	}
 
 	int groupTransactions() {
 		int count = 0;
@@ -423,7 +435,7 @@ public class TrackCase {
 				}
 			}
 		}
-		for (TrackEntry ms : oppositions) {
+		for (TrackEntry ms : caseOppositionList) {
 			String tid = ms.transactionID;
 			if (tid != null) {
 				List<TrackEntry> list = transactions.get(tid);
@@ -435,7 +447,7 @@ public class TrackCase {
 				}
 			}
 		}
-		for (TrackEntry ms : orlist) {
+		for (TrackEntry ms : caseOrderList) {
 			String tid = ms.transactionID;
 			if (tid != null) {
 				List<TrackEntry> list = transactions.get(tid);
@@ -447,7 +459,7 @@ public class TrackCase {
 				}
 			}
 		}
-		for (TrackEntry ms : hrlist) {
+		for (TrackEntry ms : caseHearingsList) {
 			String tid = ms.transactionID;
 			if (tid != null) {
 				List<TrackEntry> list = transactions.get(tid);
@@ -459,7 +471,7 @@ public class TrackCase {
 				}
 			}
 		}
-		for (TrackEntry ms : replies) {
+		for (TrackEntry ms : caseReplyList) {
 			String tid = ms.transactionID;
 			if (tid != null) {
 				List<TrackEntry> list = transactions.get(tid);
@@ -577,15 +589,15 @@ public class TrackCase {
 	}
 
 	public List<TrackEntry> getHearingEntries() {
-		return hrlist;
+		return caseHearingsList;
 	}
 
 	public List<TrackEntry> getOrderEntries() {
-		return orlist;
+		return caseOrderList;
 	}
 
 	void addHearingEntry(TrackEntry _lm) {
-		hrlist.add(_lm);
+		caseHearingsList.add(_lm);
 	}
 
 	void addMotion(List<TrackEntry> _mslist) {
@@ -611,10 +623,285 @@ public class TrackCase {
 	}
 
 	void addOrder(TrackEntry _or) {
-		orlist.add(_or);
+		caseOrderList.add(_or);
 	}
 
 	public void trackMotionSequences() {
+		for (TrackEntry ms : motionlist) {
+			findHearingLinks(ms);
+		}
+		// register links on each TrackEntry:
+		addMotionHearingCandidates();
+		iterateHearings();
+		// iterate until find:
+		for (TrackEntry ms : motionlist) {
+			findOrderLinks(ms);
+			findOppositionLinks(ms);
+			findReplieLinks(ms);
+		}
+		// register links on each TrackEntry:
+		addMotionOrderCandidates();
+		addMotionOppositionCandidates();
+		addMotionReplyCandidates();
+		// iterate until find:
+		iterateOrders();
+		iterateOppositions();
+		iterateReplies();
+
+		organizeSequences();
+	}
+
+	public void organizeSequences() {
+		for (TrackEntry ms : motionlist) {
+			MotionEntry me = (MotionEntry) ms.getTypeSpecific();
+			me.organizeSequence();
+		}
+	}
+
+	/**
+	 * decide which Motion-Hearing Link should be used. Eliminate those not appropriate ones.
+	 */
+	public void iterateHearings() {
+		/*
+		 *  1. 回答：有没有必要递推？
+		 *  2. 不递推是什么做法？
+		 *  3. 挑最大的
+		 *  4. 挑唯一的
+		 *  5. 然后看 相互抵触的。
+		 *  6. 多个hearing: 是否满足“不断推迟”的要求 
+		*/
+
+		for (TrackEntry e : caseHearingsList) {
+			HearingEntry he = (HearingEntry) e.getTypeSpecific();
+			double scoreMax = 0.0;
+			MotionLink lkMax = null;
+			for (MotionLink lk : he.mlinkCandidates) {
+				double v = lk.getValue();
+				if (v > scoreMax) {
+					scoreMax = v;
+					lkMax = lk;
+				}
+			}
+			if (lkMax != null) {
+				MotionEntry me = (MotionEntry) lkMax.t1.getTypeSpecific();
+				//				me.addHearingEntry(e);
+				maxHearingLinks.add(lkMax);
+			}
+			he.mlinkCandidates.clear();
+		}
+		for (TrackEntry e : motionlist) {
+			MotionEntry me = (MotionEntry) e.getTypeSpecific();
+			double scoreMax = 0.0;
+			MotionLink lkMax = null;
+			for (MotionLink lk : me.hrCandidates) {
+				double v = lk.getValue();
+				if (v > scoreMax) {
+					scoreMax = v;
+					lkMax = lk;
+				}
+			}
+			if (lkMax != null) {
+				for (MotionLink lk : me.hrCandidates) {
+					double v = lk.getValue();
+					if (v >= TRUST_THRESHOLD || v >= scoreMax - RANGE_THRESHOLD) {
+						//						me.addHearingEntry(lk.t2);
+						if (!maxHearingLinks.contains(lk))
+							maxHearingLinks.add(lk);
+					}
+				}
+			}
+			me.hrCandidates.clear();
+			if (me.hearings.size() > 1)
+				Collections.sort(me.hearings);
+			if (me.hearings.size() > 0) {
+				me.finalHearingDate = me.hearings.get(me.hearings.size() - 1).getDate();
+			}
+		}
+		for (MotionLink lk : maxHearingLinks) {
+			MotionEntry me = (MotionEntry) lk.t1.getTypeSpecific();
+			HearingEntry he = (HearingEntry) lk.t2.getTypeSpecific();
+			me.hrCandidates.add(lk);
+			he.mlinkCandidates.add(lk);
+			me.addHearingEntry(lk.t2);
+			caseHearingsList.remove(lk.t2);
+		}
+
+		for (TrackEntry e : motionlist) {
+			MotionEntry me = (MotionEntry) e.getTypeSpecific();
+			me.setOrderFlagsFromHearings();
+			me.setFinalHearingDate();
+		}
+
+		for (TrackEntry ht : caseHearingsList) {
+			HearingEntry he = (HearingEntry) ht.getTypeSpecific();
+			if (he.mlinkCandidates.size() > 1) {
+				/** this means one hearing is linked to two or more motions
+				 * case 1:
+				 * 	these motions are really the same motion. The first is "NOTICE OF MOTION"
+				 * it satisfy 2 conditions:
+				 * (1) happen within 2 days, most likely same day.
+				 * (2) motion text match each other
+				 * case 2:
+				 * 		only one link is correct
+				 * signs that one link is incorrect:
+				 * (1) the motion has other hearings
+				 * (2) the other hearing matches planned hearing date
+				 * (3) the motion is off calendar
+				 * (4) this link is either too close to the motion date (<30 days) or too far (>60 days)
+				 * Solution:
+				 * 	score: (1) date score (2) match score (3) motion has other hearing score
+				 * after scoring all links, keep the highest one.
+				*/
+				;
+			}
+		}
+	}
+
+	/**
+	 * decide which Motion-Order Link should be used. Eliminate those not appropriate ones.
+	 */
+	public void iterateOrders() {
+		for (TrackEntry e : caseOrderList) {
+			OrderEntry or = (OrderEntry) e.getTypeSpecific();
+			double scoreMax = 0.0;
+			MotionLink lkMax = null;
+			for (MotionLink lk : or.mlinkCandidates) {
+				double v = lk.getValue();
+				if (v > scoreMax) {
+					scoreMax = v;
+					lkMax = lk;
+				}
+			}
+			if (lkMax != null) {
+				MotionEntry me = (MotionEntry) lkMax.t1.getTypeSpecific();
+				me.addOrderEntry(e);
+				maxOrderLinks.add(lkMax);
+			}
+		}
+		for (TrackEntry e : motionlist) {
+			MotionEntry me = (MotionEntry) e.getTypeSpecific();
+			double scoreMax = 0.0;
+			MotionLink lkMax = null;
+			for (MotionLink lk : me.orCandidates) {
+				double v = lk.getValue();
+				if (v > scoreMax) {
+					scoreMax = v;
+					lkMax = lk;
+				}
+			}
+			if (lkMax != null) {
+				for (MotionLink lk : me.orCandidates) {
+					double v = lk.getValue();
+					if (v >= TRUST_THRESHOLD || v >= scoreMax - RANGE_THRESHOLD) {
+						me.addOrderEntry(lk.t2);
+						if (!maxOrderLinks.contains(lk))
+							maxOrderLinks.add(lk);
+					}
+				}
+			}
+		}
+		for (MotionLink lk : maxOrderLinks) {
+			caseOrderList.remove(lk.t2);
+		}
+	}
+
+	/**
+	 * decide which Motion-Order Link should be used. Eliminate those not appropriate ones.
+	 */
+	public void iterateOppositions() {
+		for (TrackEntry e : caseOppositionList) {
+			OppositionEntry or = (OppositionEntry) e.getTypeSpecific();
+			double scoreMax = 0.0;
+			MotionLink lkMax = null;
+			for (MotionLink lk : or.mlinkCandidates) {
+				double v = lk.getValue();
+				if (v > scoreMax) {
+					scoreMax = v;
+					lkMax = lk;
+				}
+			}
+			if (lkMax != null) {
+				MotionEntry me = (MotionEntry) lkMax.t1.getTypeSpecific();
+				me.addOppositionEntry(e);
+				maxOppositionLinks.add(lkMax);
+			}
+		}
+		for (TrackEntry e : motionlist) {
+			MotionEntry me = (MotionEntry) e.getTypeSpecific();
+			double scoreMax = 0.0;
+			MotionLink lkMax = null;
+			for (MotionLink lk : me.opCandidates) {
+				double v = lk.getValue();
+				if (v > scoreMax) {
+					scoreMax = v;
+					lkMax = lk;
+				}
+			}
+			if (lkMax != null) {
+				for (MotionLink lk : me.opCandidates) {
+					double v = lk.getValue();
+					if (v >= TRUST_THRESHOLD || v >= scoreMax - RANGE_THRESHOLD) {
+						me.addOppositionEntry(lk.t2);
+						if (!maxOppositionLinks.contains(lk))
+							maxOppositionLinks.add(lk);
+					}
+				}
+			}
+		}
+		for (MotionLink lk : maxOppositionLinks) {
+			caseOppositionList.remove(lk.t2);
+		}
+	}
+
+	/**
+	 * decide which Motion-Order Link should be used. Eliminate those not appropriate ones.
+	 */
+	public void iterateReplies() {
+		for (TrackEntry e : caseReplyList) {
+			ReplyEntry or = (ReplyEntry) e.getTypeSpecific();
+			double scoreMax = 0.0;
+			MotionLink lkMax = null;
+			for (MotionLink lk : or.mlinkCandidates) {
+				double v = lk.getValue();
+				if (v > scoreMax) {
+					scoreMax = v;
+					lkMax = lk;
+				}
+			}
+			if (lkMax != null) {
+				MotionEntry me = (MotionEntry) lkMax.t1.getTypeSpecific();
+				me.addReplyEntry(e);
+				maxReplyLinks.add(lkMax);
+			}
+		}
+		for (TrackEntry e : motionlist) {
+			MotionEntry me = (MotionEntry) e.getTypeSpecific();
+			double scoreMax = 0.0;
+			MotionLink lkMax = null;
+			for (MotionLink lk : me.repCandidates) {
+				double v = lk.getValue();
+				if (v > scoreMax) {
+					scoreMax = v;
+					lkMax = lk;
+				}
+			}
+			if (lkMax != null) {
+				for (MotionLink lk : me.repCandidates) {
+					double v = lk.getValue();
+					if (v >= TRUST_THRESHOLD || v >= scoreMax - RANGE_THRESHOLD) {
+						me.addReplyEntry(lk.t2);
+						if (!maxReplyLinks.contains(lk))
+							maxReplyLinks.add(lk);
+					}
+				}
+			}
+		}
+		for (MotionLink lk : maxReplyLinks) {
+			caseReplyList.remove(lk.t2);
+		}
+	}
+
+	public void trackMotionSequencesOld() {
 		for (TrackEntry ms : motionlist) {
 			findMatchingHearings(ms);
 			findMatchingOrders(ms);
@@ -628,7 +915,7 @@ public class TrackCase {
 	// Find hearing entry from a given date
 	List<TrackEntry> findHearing(Date _hdate) {
 		List<TrackEntry> hrs = new ArrayList<TrackEntry>();
-		for (TrackEntry e : hrlist) {
+		for (TrackEntry e : caseHearingsList) {
 			HearingEntry he = (HearingEntry) e.getTypeSpecific();
 			if (he.motion == null)
 				continue;
@@ -646,7 +933,7 @@ public class TrackCase {
 	// Find order entry with n days from a given date
 	List<TrackEntry> findOrder(Date _hdate, int ndays, int subtype) {
 		List<TrackEntry> hrs = new ArrayList<>();
-		for (TrackEntry e : orlist) {
+		for (TrackEntry e : caseOrderList) {
 			OrderEntry oe = (OrderEntry) e.getTypeSpecific();
 			if (oe.content == null)
 				continue;
@@ -662,23 +949,40 @@ public class TrackCase {
 		return hrs;
 	}
 
-	boolean findMatchingOppositions(TrackEntry te) {
-		//		if (ms.text.startsWith("MOTION FOR SUMMARY JUDGMENT, PROOF OF SERVICE FILED BY PLAINTIFF COURTHOUSE VENTURES INC. HEARING SET FOR SEP-12-2018")) {
-		//			System.out.print("");
-		//		}
+	void findOppositionLinks(TrackEntry te) {
 		MotionEntry ms = (MotionEntry) te.getTypeSpecific();
 		Date hearingDate = ms.finalHearingDate;
-		//		List<HearingEntry> hrs = ms.hearingEntries;
-		//		if (hrs != null && hrs.size() > 0) {
-		//			HearingEntry hr = hrs.get(hrs.size() - 1);
-		//			if (hr.hearingDate != null)
-		//				hearingDate = hr.hearingDate;
-		//			else
-		//				hearingDate = hr.getDate();
-		//		}
+		if (hearingDate == null) {
+			hearingDate = addMonths(te.date, 1);
+		}
+		for (TrackEntry le : caseOppositionList) {
+			if (le.date.before(te.date)) {
+				continue;
+			}
+			if (hearingDate != null && le.date.after(hearingDate)) {
+				break;
+			}
+			if (le.items == null) {
+				continue;
+			}
+			String motion = (String) le.items.get("motion");
+			if (motion == null) {
+				continue;
+			}
+			double score = ms.matchMotionScore(motion);
+			if (score <= IGNORE_THRESHOLD)
+				continue;
+			MotionLink ml = new MotionLink(te, le, score);
+			addOppositionLink(ml);
+		}
+	}
+
+	boolean findMatchingOppositions(TrackEntry te) {
+		MotionEntry ms = (MotionEntry) te.getTypeSpecific();
+		Date hearingDate = ms.finalHearingDate;
 		int i = 0;
-		while (i < oppositions.size()) {
-			TrackEntry le = oppositions.get(i);
+		while (i < caseOppositionList.size()) {
+			TrackEntry le = caseOppositionList.get(i);
 			OppositionEntry lm = (OppositionEntry) le.getTypeSpecific();
 			if (hearingDate != null && le.date.after(hearingDate)) {
 				break;
@@ -696,14 +1000,9 @@ public class TrackCase {
 				i++;
 				continue;
 			}
-			//			HearingEntry h = ms.hearingEntries.get(ms.hearingEntries.size()-1);
-			//			Date day = h.hearingDate;
-			//			if(day==null) {
-			//				day = h.date;
-			//			}
 			if (ms.matchMotion(motion)) {
 				ms.addOppositionEntry(le);
-				oppositions.remove(i);
+				caseOppositionList.remove(i);
 				continue;
 			}
 			i++;
@@ -711,6 +1010,212 @@ public class TrackCase {
 		if (ms.oppositions.size() > 0)
 			return true;
 		return false;
+	}
+
+	public void addMLink(MotionLink ml) {
+		if (mHearingLinks == null) {
+			mHearingLinks = new ArrayList<>();
+		}
+		mHearingLinks.add(ml);
+	}
+
+	public void addOrderLink(MotionLink ml) {
+		if (mOrderLinks == null) {
+			mOrderLinks = new ArrayList<>();
+		}
+		mOrderLinks.add(ml);
+	}
+
+	public void addOppositionLink(MotionLink ml) {
+		if (mOppositionLinks == null) {
+			mOppositionLinks = new ArrayList<>();
+		}
+		mOppositionLinks.add(ml);
+	}
+
+	public void addReplyLink(MotionLink ml) {
+		if (mReplyLinks == null) {
+			mReplyLinks = new ArrayList<>();
+		}
+		mReplyLinks.add(ml);
+	}
+
+	public void findHearingLinks(TrackEntry mte) {
+		MotionEntry mm = (MotionEntry) mte.getTypeSpecific();
+		if (mm.hearingDate != null) {
+			Pair p = new Pair(new Double(1.0), mm.hearingDate);
+			mm.hearDates.add(p);
+		} else {
+			Date dt = (Date) mte.date.clone();
+			int m = mte.date.getMonth();
+			m += 3;
+			if (m > 11) {
+				m -= 12;
+				int y = mte.date.getYear();
+				y++;
+				dt.setYear(y);
+				dt.setMonth(m);
+			} else {
+				dt.setMonth(m);
+			}
+			Pair p = new Pair(new Double(1.0), dt);
+			mm.hearDates.add(p);
+		}
+		Date lastDate = (Date) mm.hearDates.get(mm.hearDates.size() - 1).o2;
+		//		if (mte.text.startsWith("NOTICE OF MOTION AND PLTF'S RENEWED MOTION FOR JUDGMENT ON THE PLEADINGS AS TO FIRST")) {
+		//			System.out.print("");
+		//		}
+		for (TrackEntry hte : caseHearingsList) {
+			HearingEntry hh = (HearingEntry) hte.getTypeSpecific();
+			// hearing cannot before motion date:
+			if (hte.date.before(mte.date)) {
+				continue;
+			}
+			if (hh.oldDate != null) {// hearing reschedule or cancelling usually contains mention of scheduled date:
+				if (hh.oldDate.after(lastDate)) {
+					continue;
+				}
+				if (mm.hearingDate != null && !hh.oldDate.equals(lastDate)) {
+					continue;
+				}
+			}
+			//			if (mte.text.startsWith("NOTICE OF MOTION AND PLTF'S RENEWED MOTION FOR JUDGMENT ON THE PLEADINGS AS TO FIRST")) {
+			//				if (hte.text.startsWith("LAW AND MOTION 302, PLAINTIFF ANTHONY LEE'S RENEWED MOTION FOR JUDGMENT ON THE PLEADINGS AS TO FIRST")) {
+			//					System.out.print("");
+			//				}
+			//			}
+			// actual hearing day (hte.date) cannot be too many days after the scheduled date (hearingdate):
+			//			if (mm.hearingDate != null) {
+			//				int daysAfter = utils.DateTime.daysInBetween(lastDate, hte.date);
+			//				if (daysAfter >= MAX_ALLOWED_DAYS_WITH_GD) {
+			//					break;
+			//				}
+			//			}
+			// different subtypes cannot mix:
+			if (hh.subtype != MotionEntry.TYPE_UNKNOWN && hh.subtype != mm.subtype) {
+				continue;
+			}
+			double weight = 0.0;
+			boolean bTooLate = false;
+			for (int i = mm.hearDates.size() - 1; i >= 0; i--) {
+				Pair p = mm.hearDates.get(i);
+				double v = (double) p.o1;
+				Date d = (Date) p.o2;
+				int daysAfter = utils.DateTime.daysInBetween(d, hte.date);
+				if (daysAfter < MAX_ALLOWED_DAYS_WITH_GD) {
+					if (daysAfter < -1 && !hh.offCalendar && hh.newDate == null)
+						continue;
+					weight = v;
+					break;
+				}
+				bTooLate = true;
+			}
+			if (weight <= IGNORE_THRESHOLD) {
+				if (bTooLate)
+					break;
+				continue;
+			}
+			if (mte.filer != null && mte.filer.length() > 4 && hh.authors != null && hh.authors.length() > 4) {
+				if (!mm.matchMotion(mte.filer, hh.authors)) {
+					continue;
+				}
+				// reaches here means good match 
+			} else if (mte.role != null && hh.authorRole != null) {
+				if (!mte.role.equals(hh.authorRole)) {
+					continue;
+				}
+				// reaches here means good match 
+			}
+			double score = mm.matchMotionScore(hh.motion);
+			score *= weight;
+			if (score <= IGNORE_THRESHOLD)
+				continue;
+			if (hh.offCalendar && score >= TRUST_THRESHOLD) {
+				mm.setOffCalendar(hte.date);
+				for (int i = mm.hearDates.size() - 1; i >= 0; i--) {
+					Pair q = mm.hearDates.get(i);
+					Date d = (Date) q.o2;
+					if (hte.date.before(d)) {
+						mm.hearDates.remove(i);
+					} else {
+						break;
+					}
+				}
+				Pair p = new Pair(new Double(score), hh.newDate);
+				mm.hearDates.add(p);
+				MotionLink ml = new MotionLink(mte, hte, score);
+				addMLink(ml);
+				return;
+			}
+			if (hh.newDate != null) {// moved to a new date
+				Pair p = new Pair(new Double(score), hh.newDate);
+				if (hh.newDate.after(lastDate)) {
+					lastDate = hh.newDate;
+					mm.hearDates.add(p);
+				} else {
+					boolean b = false;
+					for (int i = mm.hearDates.size() - 1; i >= 0; i--) {
+						Pair q = mm.hearDates.get(i);
+						double v = (double) q.o1;
+						Date d = (Date) q.o2;
+						int daysAfter = utils.DateTime.daysInBetween(d, hh.newDate);
+						if (daysAfter > 0) {
+							mm.hearDates.add(i + 1, p);
+							b = true;
+							break;
+						} else if (daysAfter == 0) {
+							if (score > v) {
+								mm.hearDates.remove(i);
+								mm.hearDates.add(i, p);
+								b = true;
+								break;
+							}
+						}
+					}
+					if (!b) {
+						mm.hearDates.add(0, p);
+					}
+				}
+			}
+			MotionLink ml = new MotionLink(mte, hte, score);
+			addMLink(ml);
+		}
+	}
+
+	void addMotionHearingCandidates() {
+		for (MotionLink ml : mHearingLinks) {
+			MotionEntry e1 = (MotionEntry) ml.t1.typeSpecific;
+			HearingEntry e2 = (HearingEntry) ml.t2.typeSpecific;
+			e1.addHearingCandidate(ml);
+			e2.addMotionLinkCandidate(ml);
+		}
+	}
+
+	void addMotionOrderCandidates() {
+		for (MotionLink ml : mOrderLinks) {
+			MotionEntry e1 = (MotionEntry) ml.t1.typeSpecific;
+			OrderEntry e2 = (OrderEntry) ml.t2.typeSpecific;
+			e1.addOrderCandidate(ml);
+			e2.addMotionLinkCandidate(ml);
+		}
+	}
+
+	void addMotionOppositionCandidates() {
+		for (MotionLink ml : mOppositionLinks) {
+			MotionEntry e1 = (MotionEntry) ml.t1.typeSpecific;
+			OppositionEntry e2 = (OppositionEntry) ml.t2.typeSpecific;
+			e1.addOppositionCandidate(ml);
+			e2.addMotionLinkCandidate(ml);
+		}
+	}
+
+	void addMotionReplyCandidates() {
+		for (MotionLink ml : mReplyLinks) {
+			MotionEntry e1 = (MotionEntry) ml.t1.typeSpecific;
+			ReplyEntry e2 = (ReplyEntry) ml.t2.typeSpecific;
+			e1.addReplyCandidate(ml);
+			e2.addMotionLinkCandidate(ml);
+		}
 	}
 
 	boolean findMatchingHearings(TrackEntry te) {
@@ -721,8 +1226,8 @@ public class TrackCase {
 		Date hearingDate = ms.hearingDate;
 		int i = 0;
 		boolean ret = false;
-		while (i < hrlist.size() && hearingDate != null) {
-			TrackEntry hte = hrlist.get(i);
+		while (i < caseHearingsList.size() && hearingDate != null) {
+			TrackEntry hte = caseHearingsList.get(i);
 			HearingEntry lm = (HearingEntry) hte.getTypeSpecific();
 			if (hte.date.before(te.date)) {
 				i++;
@@ -764,13 +1269,13 @@ public class TrackCase {
 					if (lm.offCalendar) {
 						ms.setOffCalendar(hte.date);
 						ms.addHearingEntry(hte);
-						hrlist.remove(i);
+						caseHearingsList.remove(i);
 						return true;
 					}
 					if (lm.newDate != null) {// moved to a new date
 						hearingDate = lm.newDate;
 						ms.addHearingEntry(hte);
-						hrlist.remove(i);
+						caseHearingsList.remove(i);
 						continue;
 					}
 				}
@@ -796,7 +1301,7 @@ public class TrackCase {
 						//					break;
 					}
 					ms.addHearingEntry(hte);
-					hrlist.remove(i);
+					caseHearingsList.remove(i);
 					continue;
 				}
 				// Otherwise, it's not for this Motion, ignore it:
@@ -827,7 +1332,7 @@ public class TrackCase {
 					}
 				}
 				ms.addHearingEntry(thr);
-				hrlist.remove(thr);
+				caseHearingsList.remove(thr);
 				if (hr.offCalendar) {
 					ms.setOffCalendar(thr.date);
 					return true;
@@ -856,8 +1361,8 @@ public class TrackCase {
 						ret = true;
 					}
 				}
-				while (i < hrlist.size()) {
-					TrackEntry he = hrlist.get(i);
+				while (i < caseHearingsList.size()) {
+					TrackEntry he = caseHearingsList.get(i);
 					if (he.date.after(oldhearingdate)) {
 						break;
 					}
@@ -889,7 +1394,7 @@ public class TrackCase {
 					}
 				}
 				ms.addHearingEntry(hr);
-				hrlist.remove(hr);
+				caseHearingsList.remove(hr);
 				if (hr1.offCalendar) {
 					ms.setOffCalendar(hr.date);
 					return true;
@@ -923,6 +1428,43 @@ public class TrackCase {
 		return ret;
 	}
 
+	public void findOrderLinks(TrackEntry te) {
+		MotionEntry ms = (MotionEntry) te.getTypeSpecific();
+		if (ms.isOff()) {
+			return;
+		}
+		for (TrackEntry or : caseOrderList) {
+			OrderEntry ore = (OrderEntry) or.getTypeSpecific();
+			if (or.date.before(te.date)) {
+				continue;
+			}
+			//			if (te.text.startsWith("NOTICE OF MOTION AND PLAINTIFFS MOTION TO SEAL PRELIMINARY-INJUNCTION PAPERS")) {
+			//				if (or.text.startsWith("ORDER GRANTING DEFENDANTS' HOSIE RICE LLP, SPENCER HOSIE, AND DIANE S. RICE'S MOTION")) {
+			//					System.out.print("");
+			//				}
+			//			}
+			double weight = 0.0;
+			int maxDays = MAX_ALLOWED_DAYS_NO_GD;
+			if (ms.isTracked())
+				maxDays = MAX_ALLOWED_DAYS_WITH_GD;
+			for (int i = ms.hearDates.size() - 1; i >= 0; i--) {
+				Pair p = ms.hearDates.get(i);
+				Date d = (Date) p.o2;
+				int daysAfter = utils.DateTime.daysInBetween(d, or.date);
+				if (daysAfter < 0 || daysAfter >= maxDays) {
+					continue;
+				}
+				weight = (double) p.o1;
+			}
+			double score = ms.matchMotionScore(ore.content);
+			score *= weight;
+			if (score <= IGNORE_THRESHOLD)
+				continue;
+			MotionLink ml = new MotionLink(te, or, score);
+			addOrderLink(ml);
+		}
+	}
+
 	boolean findMatchingOrders(TrackEntry te) {
 		//		if (ms.text.startsWith("EX PARTE APPLICATION FOR ORDER TO FILE CROSS COMPLAINT AGAINST VIKING")) {
 		//			System.out.print("");
@@ -931,8 +1473,8 @@ public class TrackCase {
 		Date hearingDate = ms.finalHearingDate;
 		boolean ret = false;
 		int i = 0;
-		while (i < orlist.size()) {
-			TrackEntry or = orlist.get(i);
+		while (i < caseOrderList.size()) {
+			TrackEntry or = caseOrderList.get(i);
 			OrderEntry ore = (OrderEntry) or.getTypeSpecific();
 			if (or.date.before(te.date)) {
 				i++;
@@ -949,8 +1491,8 @@ public class TrackCase {
 				}
 			}
 			if (ms.matchMotion(ore.content)) {
-				ms.addOrder(or);
-				orlist.remove(i);
+				ms.addOrderEntry(or);
+				caseOrderList.remove(i);
 				for (Pair p : ore.gds) {
 					String s = (String) p.o2;
 					if (s.startsWith("G")) {
@@ -992,8 +1534,8 @@ public class TrackCase {
 						}
 					}
 				}
-				ms.addOrder(or);
-				orlist.remove(or);
+				ms.addOrderEntry(or);
+				caseOrderList.remove(or);
 				for (Pair p : ore.gds) {
 					String s = (String) p.o2;
 					if (s.startsWith("G")) {
@@ -1016,11 +1558,63 @@ public class TrackCase {
 		return ret;
 	}
 
+	public Date addMonths(Date d, int inc) {
+		int y = d.getYear();
+		int m = d.getMonth();
+		m += inc;
+		Date n = (Date) d.clone();
+		if (m > 11) {
+			m -= 12;
+			y++;
+			n.setYear(y);
+			n.setMonth(m);
+			return n;
+		} else {
+			n.setMonth(m);
+			return n;
+		}
+	}
+
+	void findReplieLinks(TrackEntry te) {
+		MotionEntry ms = (MotionEntry) te.getTypeSpecific();
+		Date hearingDate = ms.finalHearingDate;
+		if (hearingDate == null) {
+			hearingDate = addMonths(te.date, 2);
+		}
+		if (te.text.startsWith("MOTION / NOTICE OF MOTION AND MOTION TO SEAL DEFENDANTS' VERIFIED CROSS-COMPLAINT")) {
+			System.out.print("");
+		}
+		for (int i = 0; i < caseReplyList.size(); i++) {
+			TrackEntry le = caseReplyList.get(i);
+			if (le.text.startsWith("REPLY MEMORANDUM IN SUPPORT OF PLAINTIFF/CROSS-DEFENDANTS SPECIAL MOTION TO STRIKE")) {
+				System.out.print("");
+			}
+			if (le.date.before(te.date)) {
+				continue;
+			}
+			if (hearingDate != null && le.date.after(hearingDate)) {
+				break;
+			}
+			if (le.items == null) {
+				continue;
+			}
+			String motion = (String) le.items.get("motion");
+			if (motion == null) {
+				continue;
+			}
+			double score = ms.matchMotionScore(motion);
+			if (score <= IGNORE_THRESHOLD)
+				continue;
+			MotionLink ml = new MotionLink(te, le, score);
+			addReplyLink(ml);
+		}
+	}
+
 	boolean findMatchingReplies(TrackEntry te) {
 		MotionEntry ms = (MotionEntry) te.getTypeSpecific();
 		Date hearingDate = ms.finalHearingDate;
-		for (int i = 0; i < replies.size(); i++) {
-			TrackEntry le = replies.get(i);
+		for (int i = 0; i < caseReplyList.size(); i++) {
+			TrackEntry le = caseReplyList.get(i);
 			ReplyEntry lm = (ReplyEntry) le.getTypeSpecific();
 			if (hearingDate != null && le.date.after(hearingDate)) {
 				break;
@@ -1037,7 +1631,7 @@ public class TrackCase {
 			}
 			if (ms.matchMotion(motion)) {
 				ms.addReplyEntry(le);
-				replies.remove(i);
+				caseReplyList.remove(i);
 				i--;
 				continue;
 			}
@@ -1158,4 +1752,53 @@ public class TrackCase {
 		}
 	}
 
+	/**
+	 * Similarity between two motion-related entries, including:
+	 *  Motion, Hearing, Order, Memorandom, declaration, opposition, reply.
+	 * Similar means: two entries refer to the same motion
+	 * value range: {0.0, 1.0}
+	 * 
+	 * @author yanyo
+	 *
+	 */
+	public static class MotionLink {
+		TrackEntry t1;
+		TrackEntry t2;
+		double value;
+		double increment;
+
+		double getValue() {
+			return value;
+		}
+
+		public MotionLink(TrackEntry _t1, TrackEntry _t2, double _v) {
+			t1 = _t1;
+			t2 = _t2;
+			value = _v;
+			increment = 0;
+		}
+
+		public void inc(double _inc) {
+			increment += _inc;
+		}
+
+		public void realizeIncrement() {
+			value += increment;
+			if (value > 1.0) {
+				value = 1.0;
+			}
+			if (value < 0) {
+				value = 0.0;
+			}
+			increment = 0;
+		}
+
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			sb.append(t1);
+			sb.append(t2);
+			sb.append("Score: " + value);
+			return sb.toString();
+		}
+	}
 }

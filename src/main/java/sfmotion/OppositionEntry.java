@@ -1,7 +1,11 @@
 package sfmotion;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import sftrack.TrackCase.MotionLink;
 
 public class OppositionEntry {
 	static final String regOpposition1 = "^OPPOSITION\\s((AND\\s)?(RESPONSE|OPPOSITION|OBJECTION)\\s)?(OF\\s(?<filer1>.+?))?TO\\s*(?<opposingParty>.+?)??(?<motion>(?<motionType>MOTION|DEMU*RRER|MIL|MTN|PETITION|EX PARTE ORDER|(THE\\s)?JUDGMENT|REQUEST|OBJECTION|NOTICE|(EX\\s*PARTE\\s)?APP(LICATION)?).+?)(?<transactionID>\\(TRANSACTION\\s*ID\\s*\\#\\s*\\d+\\))?\\,?\\s*FILED\\s*BY\\s*(?<filer>.+?)$";
@@ -128,6 +132,12 @@ public class OppositionEntry {
 		e.setType(TrackEntry.OPPOSITION);
 		e.setTypeSpecific(entry);
 		return true;
+	}
+
+	public List<MotionLink> mlinkCandidates = new ArrayList<>();
+
+	public void addMotionLinkCandidate(MotionLink ml) {
+		mlinkCandidates.add(ml);
 	}
 
 	public String toString() {// in the items
