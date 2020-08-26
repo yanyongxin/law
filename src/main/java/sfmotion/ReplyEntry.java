@@ -113,9 +113,9 @@ public class ReplyEntry {
 			return false;
 		}
 		ReplyEntry entry = new ReplyEntry();
-		if (e.text.startsWith("REPLY MEMORANDUM IN SUPPORT OF PLAINTIFF'S RENEWED MOTION FOR JUDGMENT ON THE PLEADINGS AS TO FIRST")) {
-			System.out.print("");
-		}
+		//		if (e.text.startsWith("REPLY MEMORANDUM IN SUPPORT OF PLAINTIFF'S RENEWED MOTION FOR JUDGMENT ON THE PLEADINGS AS TO FIRST")) {
+		//			System.out.print("");
+		//		}
 		String[] splits = e.text.split(sreg);
 		for (String s : splits) {
 			if (s.startsWith("FILED BY")) {

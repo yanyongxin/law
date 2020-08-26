@@ -175,6 +175,6 @@ public class OrderEntry {
 				sb.append("\t\t\t" + ii + " Moot\n");
 			}
 		}
-		return sb.toString();
+		return sb.toString().trim();
 	}
 }

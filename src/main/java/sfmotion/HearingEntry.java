@@ -127,7 +127,7 @@ public class HearingEntry {
 				sb.append("\t\t\t" + ii + " Moot\n");
 			}
 		}
-		return sb.toString();
+		return sb.toString().trim();
 	}
 
 	static final String regDate = "((\\w+)(?:-|\\s)(\\d+)(?:ST|ND|RD|TH)?(?:\\,|-|\\s)\\s*(\\d+)|(\\d+)/(\\d+)/(\\d+))";

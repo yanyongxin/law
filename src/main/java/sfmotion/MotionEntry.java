@@ -63,6 +63,7 @@ public class MotionEntry {
 	static final String test1 = "MOTION FOR DETERMINATION OF GOOD FAITH SETTLEMENT";
 	static final String test2 = "MOTION FOR GOOD FAITH SETTLEMENT DETERMINATION";
 
+	TrackEntry owner;
 	Object motionString;// "MOTION TO COMPEL ...", "MOTION IN LIMINE NO.3: TO EXCLUDE ..."
 	int motionOffset;
 	public Date hearingDate;
@@ -97,9 +98,111 @@ public class MotionEntry {
 	//	List<TrackEntry> 
 
 	static void testing() {
-		MotionEntry me = new MotionEntry(test1);
+		MotionEntry me = new MotionEntry(test1, null);
 		boolean b = me._matchMotion(test1, test2);
 		System.out.print(b);
+	}
+
+	public boolean combine(TrackEntry t) {
+		if (others.contains(t))// already in
+			return false;
+		MotionEntry m = (MotionEntry) t.getTypeSpecific();
+		if (!t.getType().equals(owner.getType())) {
+			return false;
+		}
+		MotionEntry mm = (MotionEntry) owner.getTypeSpecific();
+		if (!(m.subtype == mm.subtype)) {
+			return false;
+		}
+		others.add(0, t);
+		for (TrackEntry h : m.hearings) {
+			this.addHearingEntry(h);
+		}
+		m.hearings.clear();
+		for (TrackEntry h : m.orders) {
+			this.addOrderEntry(h);
+		}
+		m.orders.clear();
+		for (TrackEntry h : m.oppositions) {
+			this.addOppositionEntry(h);
+		}
+		m.oppositions.clear();
+		for (TrackEntry h : m.replies) {
+			this.addReplyEntry(h);
+		}
+		m.replies.clear();
+		for (TrackEntry h : m.others) {
+			this.addOtherEntry(h);
+		}
+		m.others.clear();
+		m.others.add(owner);
+		for (MotionLink lk : m.orCandidates) {
+			if (!orCandidates.contains(lk)) {
+				orCandidates.add(lk);
+			}
+		}
+		m.orCandidates.clear();
+		for (MotionLink lk : m.opCandidates) {
+			if (!opCandidates.contains(lk)) {
+				opCandidates.add(lk);
+			}
+		}
+		m.opCandidates.clear();
+		for (MotionLink lk : m.repCandidates) {
+			if (!repCandidates.contains(lk)) {
+				repCandidates.add(lk);
+			}
+		}
+		m.repCandidates.clear();
+
+		if (m.finalHearingDate != null) {
+			if (finalHearingDate == null) {
+				finalHearingDate = m.finalHearingDate;
+			} else {
+				if (m.finalHearingDate.after(finalHearingDate)) {
+					finalHearingDate = m.finalHearingDate;
+				}
+			}
+		}
+		for (Pair p : m.hearDates) {
+			addHearDate(p);
+		}
+		grant |= m.grant;
+		deny |= m.deny;
+		sustain |= m.sustain;
+		overrule |= m.overrule;
+		moot |= m.moot;
+		offCalendar |= m.offCalendar;
+		b_motionInLimine |= m.b_motionInLimine;
+		return true;
+	}
+
+	public void addHearDate(Pair p) {
+		Date d = (Date) p.o2;
+		int y = d.getYear();
+		int m = d.getMonth();
+		int d1 = d.getDate();
+		boolean b = false;
+		for (int i = 0; i < hearDates.size(); i++) {
+			Pair pp = hearDates.get(i);
+			Date dd = (Date) pp.o2;
+			int yy = dd.getYear();
+			int mm = dd.getMonth();
+			int d2 = dd.getDate();
+			if (yy == y && mm == m && d1 == d2) {
+				// same date, do not add
+				b = true;
+				break;
+			}
+			if (dd.after(d)) {
+				hearDates.add(i, p);
+				b = true;
+				break;
+			}
+		}
+		if (!b) {
+			hearDates.add(p);
+		}
 	}
 
 	public boolean isTracked() {
@@ -116,7 +219,8 @@ public class MotionEntry {
 
 	static final Pattern pMil = Pattern.compile("MOTIONS? IN LIMINE|\\bMIL\\b", Pattern.CASE_INSENSITIVE);
 
-	public MotionEntry(String _m) {
+	public MotionEntry(String _m, TrackEntry _owner) {
+		owner = _owner;
 		motionString = _m.trim();
 		Matcher mt = pMil.matcher(_m);
 		if (mt.find()) {
@@ -210,7 +314,7 @@ public class MotionEntry {
 			//			String mon = monthLookup.get(month);
 			//			Date hearingdate = Date.valueOf(year + "-" + mon + "-" + sdate);
 			Date hearingdate = utils.DateTime.getSqlDate(dlist);
-			MotionEntry ms = new MotionEntry(motionProper);
+			MotionEntry ms = new MotionEntry(motionProper, e);
 			e.setType(TrackEntry.MOTION);
 			e.setTypeSpecific(ms);
 			ms.setHearingDate(hearingdate);
@@ -224,7 +328,7 @@ public class MotionEntry {
 				String motionProper = mm.group("motionProper").trim();
 				String transactionID = mm.group("transactionID");
 				String filer = mm.group("filer");
-				MotionEntry ms = new MotionEntry(motionProper);
+				MotionEntry ms = new MotionEntry(motionProper, e);
 				e.setType(TrackEntry.MOTION);
 				e.setTypeSpecific(ms);
 				e.setTransactionID(transactionID);
@@ -299,7 +403,7 @@ public class MotionEntry {
 				Pair p = plist.get(0);
 				String mtn = (String) (p.o1);
 				if (plist.size() == 1) {
-					ms = new MotionEntry(mtn);
+					ms = new MotionEntry(mtn, e);
 				} else {
 					Integer i0 = (Integer) (p.o2);
 					Pair p1 = plist.get(0);
@@ -311,7 +415,7 @@ public class MotionEntry {
 						mlist.add(mtn1);
 						ms = new MotionEntry(mlist);
 					} else {
-						ms = new MotionEntry(mtn);
+						ms = new MotionEntry(mtn, e);
 					}
 				}
 				if (ms != null) {
@@ -676,6 +780,11 @@ public class MotionEntry {
 			replies.add(_lm);
 	}
 
+	public void addOtherEntry(TrackEntry o) {
+		if (!others.contains(o))
+			others.add(o);
+	}
+
 	public void addOrderEntry(TrackEntry or) {
 		if (!orders.contains(or))
 			orders.add(or);
@@ -709,7 +818,7 @@ public class MotionEntry {
 	public void setFinalHearingDate() {
 		if (finalHearingDate != null)
 			return;
-		if (hearDates != null) {
+		if (hearDates != null && hearDates.size() > 0) {
 			Pair p = hearDates.get(hearDates.size() - 1);
 			finalHearingDate = (Date) p.o2;
 		}
@@ -765,6 +874,7 @@ public class MotionEntry {
 		sequence.addAll(replies);
 		sequence.addAll(hearings);
 		sequence.addAll(orders);
+		sequence.addAll(others);
 		Collections.sort(sequence);
 		setOrderFlagsFromOrders();
 	}

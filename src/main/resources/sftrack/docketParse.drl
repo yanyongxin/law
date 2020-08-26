@@ -445,6 +445,24 @@ rule "NUMP_AND_NUMP"	//no opposition filed, and, good cause shown
 			ut.printPhrase(ph);
 		}
 end
+/* superceded by NP_AND_NP
+rule "Party_,_Party"	// John D. Smith, Kevin H. Spooner 
+	when
+		p1: Phrase(synType=="NP", head.isKindOf("LitigationParty")
+				,graph.containLink("define", null, head) ==null
+				, graph.topLink == null )
+		p2: Phrase(synType!=null, text==","||text=="AND"||text.equalsIgnoreCase(", and"), begToken==p1.endToken);
+		p3: Phrase(synType=="NP", head.isKindOf("LitigationParty"), graph.topLink == null, begToken==p2.endToken)
+	then
+		ut.print("Party_,_Party: " + p1 + ", " + p2 +", "+p3 );
+		String name = p1.getHead().getName().replaceAll("\\s+", "")  + "_,_" + p3.getHead().getName().replaceAll("\\s+", "");
+		Phrase ph = p1.addToSet(p2, p3, name, true);
+		if(ph != null){
+			insert(ph);
+			ut.printPhrase(ph);
+		}
+end
+*/
 rule "NP_AND_NP"	//no opposition filed, and, good cause shown
 	salience 100
 	when
@@ -1008,23 +1026,6 @@ rule "Party_Party"	// John D. Smith Kevin H. Spooner
 		}
 end
 
-
-rule "Party_,_Party"	// John D. Smith, Kevin H. Spooner
-	when
-		p1: Phrase(synType=="NP", head.isKindOf("LitigationParty")
-				,graph.containLink("define", null, head) ==null
-				, graph.topLink == null )
-		p2: Phrase(synType!=null, text==","||text=="AND"||text.equalsIgnoreCase(", and"), begToken==p1.endToken);
-		p3: Phrase(synType=="NP", head.isKindOf("LitigationParty"), graph.topLink == null, begToken==p2.endToken)
-	then
-		ut.print("Party_,_Party: " + p1 + ", " + p2 +", "+p3 );
-		String name = p1.getHead().getName().replaceAll("\\s+", "")  + "_,_" + p3.getHead().getName().replaceAll("\\s+", "");
-		Phrase ph = p1.addToSet(p2, p3, name, true);
-		if(ph != null){
-			insert(ph);
-			ut.printPhrase(ph);
-		}
-end
 
 
 rule "NP_,_IfAny_,"	// "provide copies of motions, opposition and reply, if any, to department 501 no later than ... "

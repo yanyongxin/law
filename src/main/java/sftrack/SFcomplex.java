@@ -28,14 +28,14 @@ public class SFcomplex {
 	static String[] entityResources = { "C:\\data\\191023\\dockets\\judgeparty/ca_sfc_party.txt",
 			"C:\\data\\191023\\dockets\\judgeparty/ca_sfc_judge.txt",
 			"C:\\data\\191023\\dockets\\judgeparty/ca_sfc_attorney.txt",
-			"C:\\data\\191023\\dockets/testline.txt" };
+			"C:\\data\\191023\\dockets/testline_1.txt" };
 
 	public static void main(String[] args) throws IOException {
 		System.out.println("Initialization ...");
 		legalang = LegaLanguage.initializeRuleEngine();
 		EntitiesAndCaseDockets etcd = new EntitiesAndCaseDockets(entityResources);
 		compareTwoEntries(etcd);
-		//		parseAllEntries(etcd);
+		//	parseAllEntries(etcd);
 	}
 
 	static void compareTwoEntries(EntitiesAndCaseDockets etcd) {
@@ -104,7 +104,30 @@ public class SFcomplex {
 		} catch (Exception ex) {
 			fail(ex.getMessage());
 		}
+		List<ComparePhrases> cps = new ArrayList<>();
+		for (int i = 0; i < plist1.size(); i++) {
+			Phrase p1 = plist1.get(i);
+			for (int j = 0; j < plist2.size(); j++) {
+				Phrase p2 = plist2.get(j);
+				ComparePhrases cp = new ComparePhrases(sec1, p1, sec2, p2);
+				cps.add(cp);
+			}
+		}
+		Collections.sort(cps);
+		for (int i = 0; i < cps.size(); i++) {
+			ComparePhrases cp = cps.get(i);
+			System.out.println(i + ":" + cp + "\n");
+		}
+	}
 
+	static boolean compareEntity(Entity e1, Entity e2) {
+		if (e1.entityType == e2.entityType) {
+			if (e1.theClass.name.equals(e2.theClass.name))
+				return true;
+			else
+				return false;
+		}
+		return false;
 	}
 
 	static void compareEntries(EntitiesAndCaseDockets etcd) {
@@ -275,7 +298,7 @@ public class SFcomplex {
 					tk.end += start;
 					tk.parent = sec.text;
 					Phrase ph = new Phrase(tk.text.toLowerCase(), j, j + 1, tokens);
-					if (tk.type == LexToken.LEX_SERIALNUMBER) {
+					if (tk.type == LexToken.LEX_SERIALNUMBER && !tk.text.equalsIgnoreCase("1ST") && !tk.text.equalsIgnoreCase("2ND")) {
 						ph.setSynType("NUMP");
 						Entity cls = legalang.getEntity("SerialValue");
 						Entity e = new Entity(tk.text.toLowerCase(), cls, Entity.TYPE_INSTANCE, legalang, j);
@@ -301,5 +324,149 @@ public class SFcomplex {
 			}
 		}
 		return phlist;
+	}
+
+	static class ComparePhrases implements Comparable<ComparePhrases> {
+		int score;
+		Section sec1, sec2;
+		Phrase ph1, ph2;
+		List<List<Link>> graphs = new ArrayList<>(); // linked graphs
+		List<Pair> entityPairs = new ArrayList<>();
+		List<Pair> linkPairs = new ArrayList<>();
+		List<String> hiLinks = new ArrayList<>();// both graph has shared node
+
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			sb.append("Score: " + score + "\n");
+			for (int i = 0; i < graphs.size(); i++) {
+				List<Link> g = graphs.get(i);
+				sb.append("graph_" + i + "\n");
+				for (Link lk : g) {
+					sb.append("\t" + lk.toString() + "\n");
+				}
+			}
+			return sb.toString();
+		}
+
+		public ComparePhrases(Section _s1, Phrase _p1, Section _s2, Phrase _p2) {
+			sec1 = _s1;
+			sec2 = _s2;
+			ph1 = _p1;
+			ph2 = _p2;
+			compareGraphs(ph1.graph, ph2.graph);
+		}
+
+		private void compareGraphs(ERGraph g1, ERGraph g2) {
+			// 1. find corresponding entities
+			for (int i = 0; i < g1.entities.size(); i++) {
+				Entity e1 = g1.entities.get(i);
+				for (int j = 0; j < g2.entities.size(); j++) {
+					Entity e2 = g2.entities.get(j);
+					if (e1.entityType == e2.entityType
+							&& e1.theClass.name.equals(e2.theClass.name)) {
+						Pair p = new Pair(e1, e2);
+						entityPairs.add(p);
+					}
+				}
+			}
+			// 2. find corresponding links
+			if (g1.links != null && g2.links != null)
+				for (int i = 0; i < g1.links.size(); i++) {
+					Link lk1 = g1.links.get(i);
+					for (int j = 0; j < g2.links.size(); j++) {
+						Link lk2 = g2.links.get(j);
+						if (lk1.type.equals(lk2.type)) {
+							Pair p1 = new Pair(lk1.e1, lk2.e1);
+							if (!entityPairs.contains(p1))
+								continue;
+							Pair p2 = new Pair(lk1.e2, lk2.e2);
+							if (!entityPairs.contains(p2))
+								continue;
+							Pair p = new Pair(lk1, lk2);
+							linkPairs.add(p);
+						}
+					}
+				}
+			// 3. find corresponding high links
+			for (int i = 0; i < linkPairs.size() - 1; i++) {
+				Pair p1 = linkPairs.get(i);
+				Link lk11 = (Link) p1.o1;
+				Link lk12 = (Link) p1.o2;
+				for (int j = i + 1; j < linkPairs.size(); j++) {
+					Pair p2 = linkPairs.get(j);
+					Link lk21 = (Link) p2.o1;
+					Link lk22 = (Link) p2.o2;
+					if (lk11.e1 == lk21.e1) {// first graph has a shared node
+						String s = "" + i + "" + j + "11";
+						if (lk12.e1 == lk22.e1) {// the second graphs same
+							hiLinks.add(s);
+						}
+					} else if (lk11.e1 == lk21.e2) {
+						String s = "" + i + "" + j + "12";
+						if (lk12.e1 == lk22.e2) {// the second graphs same
+							hiLinks.add(s);
+						}
+					} else if (lk11.e2 == lk21.e1) {// first graph has a shared node
+						String s = "" + i + "" + j + "21";
+						if (lk12.e2 == lk22.e1) {// the second graphs same
+							hiLinks.add(s);
+						}
+					} else if (lk11.e2 == lk21.e2) {
+						String s = "" + i + "" + j + "22";
+						if (lk12.e2 == lk22.e2) {// the second graphs same
+							hiLinks.add(s);
+						}
+					}
+				}
+			}
+			// find continuous graphs:
+			for (int i = 0; i < hiLinks.size(); i++) {
+				String s = hiLinks.get(i);
+				int ilk_1 = Integer.parseInt(s.substring(0, 1));
+				int ilk_2 = Integer.parseInt(s.substring(1, 2));
+				Link lk1 = (Link) linkPairs.get(ilk_1).o1;
+				Link lk2 = (Link) linkPairs.get(ilk_2).o1;
+				List<Link> grf1 = null;
+				List<Link> grf2 = null;
+				for (List<Link> grf : graphs) {
+					if (grf.contains(lk1)) {
+						grf1 = grf;
+						break;
+					}
+				}
+				for (List<Link> grf : graphs) {
+					if (grf.contains(lk2)) {
+						grf2 = grf;
+						break;
+					}
+				}
+				if (grf1 != null && grf2 != null) {
+					if (grf1 != grf2) { // combine
+						grf1.addAll(grf2);
+						graphs.remove(grf2);
+					}
+				} else if (grf1 != null) {
+					grf1.add(lk2);
+				} else if (grf2 != null) {
+					grf2.add(lk1);
+				} else {
+					List<Link> g = new ArrayList<>();
+					g.add(lk1);
+					g.add(lk2);
+					graphs.add(g);
+				}
+			}
+			// finally, calculating score:
+			int shareEntity = entityPairs.size();
+			int shareLinks = linkPairs.size();
+			int shareHiLinks = hiLinks.size();
+			score = shareEntity + 2 * shareLinks + 3 * shareHiLinks;
+		}
+
+		@Override
+		public int compareTo(ComparePhrases o) {
+			return o.score - score;
+		}
+
 	}
 }

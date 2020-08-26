@@ -1,4 +1,5 @@
 package utils;
+
 /**
  * Combine two objects into one.
  * 
@@ -17,7 +18,7 @@ public class Pair implements Comparable<Pair> {
 	public boolean equals(Object o) {
 		if (o instanceof Pair) {
 			Pair p = (Pair) o;
-			return p.o2.equals(o2);
+			return (o1.equals(p.o1) && o2.equals(p.o2));
 		}
 		return o.equals(o2);
 	}
@@ -42,5 +43,9 @@ public class Pair implements Comparable<Pair> {
 				return -1;
 		}
 		return 0;
+	}
+
+	public String toString() {
+		return o1.toString() + "\n" + o2.toString() + "\n";
 	}
 }
