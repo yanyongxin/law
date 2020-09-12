@@ -445,7 +445,7 @@ public class MotionEntry {
 		return b;
 	}
 
-	Object getMotion() {
+	public Object getMotion() {
 		return motionString;
 	}
 

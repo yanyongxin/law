@@ -20,8 +20,14 @@ import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import core.Analysis;
+import core.EntType;
+import core.LegaLanguage;
+import core.LegaLanguage.Srunner;
+import core.LexToken;
+import core.LitiEvent;
+import core.Phrase;
 import sftrack.DocketEntry.DockRef;
-import sftrack.LegaLanguage.Srunner;
 
 public class CaseData {
 	private static final Logger log = LoggerFactory.getLogger(CaseData.class);
@@ -446,7 +452,7 @@ public class CaseData {
 				if (verbose) {
 					log.debug(tk.toString());
 				}
-				Phrase ph = new Phrase(tk.text.toLowerCase(), i, i + 1, tokens);
+				Phrase ph = new Phrase(tk.getText().toLowerCase(), i, i + 1, tokens);
 				phlist.add(ph);
 			}
 		}

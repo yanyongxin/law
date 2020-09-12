@@ -28,6 +28,10 @@ import org.kie.api.runtime.KieContainer;
 import org.kie.internal.conf.ConstraintJittingThresholdOption;
 import org.kie.internal.io.ResourceFactory;
 
+import core.Entity;
+import core.LegaLanguage;
+import core.LexToken;
+import core.Phrase;
 import sfmotion.EntitiesAndCaseDockets;
 import sfmotion.LegalCase;
 import sfmotion.TrackEntry;
@@ -104,10 +108,10 @@ public class SFFilter {
 						StringBuilder sb = new StringBuilder();
 						for (int i = 0; i < phlist.size(); i++) {
 							Phrase ph = phlist.get(i);
-							if (ph.sentence.get(i).getType() == LexToken.LEX_ENTITY) {
+							if (ph.getSentence().get(i).getType() == LexToken.LEX_ENTITY) {
 								sb.append("entity_id ");
 							} else {
-								sb.append(ph.text.toLowerCase().trim() + " ");
+								sb.append(ph.getText().toLowerCase().trim() + " ");
 							}
 						}
 						String sbb = sb.toString().trim();
@@ -148,7 +152,7 @@ public class SFFilter {
 				Phrase ph = new Phrase(dp.text.toLowerCase(), tokens.size(), tokens.size() + 1, tokens);
 				tokens.add(tk);
 				phlist.add(ph);
-				ph.synType = "NP";//Clerk, Judge, Attorney, party
+				ph.setSynType("NP");//Clerk, Judge, Attorney, party
 				if (dp.entity instanceof sfmotion.Party) {
 					sfmotion.Party party = (sfmotion.Party) dp.entity;
 					if (party.type == sfmotion.Party.TYPE_INDIVIDUAL || party.type == sfmotion.Party.TYPE_MINOR) {
@@ -188,11 +192,11 @@ public class SFFilter {
 					tk.start += start; // shift to sentence coordinates
 					tk.end += start;
 					tk.parent = sec.text;
-					Phrase ph = new Phrase(tk.text.toLowerCase(), j, j + 1, tokens);
-					if (tk.type == LexToken.LEX_SERIALNUMBER) {
+					Phrase ph = new Phrase(tk.getText().toLowerCase(), j, j + 1, tokens);
+					if (tk.getType() == LexToken.LEX_SERIALNUMBER) {
 						ph.setSynType("NUMP");
 						Entity cls = legalang.getEntity("SerialValue");
-						Entity e = new Entity(tk.text.toLowerCase(), cls, Entity.TYPE_INSTANCE, legalang, j);
+						Entity e = new Entity(tk.getText().toLowerCase(), cls, Entity.TYPE_INSTANCE, legalang, j);
 						ph.setGraph(e);
 					}
 					phlist.add(ph);
@@ -210,7 +214,7 @@ public class SFFilter {
 		if (tokens != null) {
 			for (int i = 0; i < tokens.size(); i++) {
 				LexToken tk = tokens.get(i);
-				Phrase ph = new Phrase(tk.text.toLowerCase(), i, i + 1, tokens);
+				Phrase ph = new Phrase(tk.getText().toLowerCase(), i, i + 1, tokens);
 				phlist.add(ph);
 			}
 		}

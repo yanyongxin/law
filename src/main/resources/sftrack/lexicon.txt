@@ -27,6 +27,7 @@
 {"text":"agreement","type":"NP", "entity":"Agreement"}
 {"text":"all","type":"QUANTIFIER","entity":"QuantifierAll"}
 {"text":"Allow","type":"VP","tense":"present", "entity":"ProcAllow"}
+{"text":"Alleged","type":"VP","entity":"ProcAllege"}
 {"text":"also","type":"ADVP","entity":"Also"}
 {"text":"ALTERNATE","type":"ADJP","entity":"StatusAlternative"}
 {"text":"ALTERNATIVE","type":"ADJP","entity":"StatusAlternative"}
@@ -111,6 +112,7 @@
 {"text":"Bill\\s*of\\s*Costs?","type":"NP", "list":"bill", "entity":"BillofCosts"}
 {"text":"Bills","type":"NP", "entity":"BillRef"}
 {"text":"Bond","type":"VP","tense":"present", "entity":"ProcBond"}
+{"text":"Both","type":"ADJP", "entity":"StatusBoth"}
 {"text":"BREACH\\s*OF\\s*CONTRACT","type":"NP","list":"breach", "entity":"CrimeBreachOfContract"}
 {"text":"brief","type":"NP", "entity":"DocLegalBrief"}
 {"text":"briefing","type":"NP", "entity":"Briefing"}
@@ -408,6 +410,7 @@
 {"text":"DECEASED","type":"ADJP","entity":"StatusDeceased"}
 {"text":"December","type":"TIMEP","entity":"Month_12"}
 {"text":"DECLARATION","type":"NP","entity":"DocLegalDeclaration"}
+{"text":"DECLARATIONS","type":"NP","entity":"DocLegalDeclaration"}
 {"text":"Declaratory\\s*Judgment","type":"NP","list":"Declaratory", "entity":"DeclaratoryJudgment"}
 {"text":"Default","type":"NP", "entity":"DefaultDecision"}
 {"text":"Default\\s*Judgment","type":"NP","list":"Default", "entity":"DefaultJudgment"}
@@ -496,6 +499,7 @@
 {"text":"Estate","type":"NP", "entity":"PropertyEstate"}
 {"text":"Estimated","type":"ADJP", "entity":"StatusEstimated"}
 {"text":"\\,?\\s*esq(\\.|uire)?","type":"PERSONSUFFIX","list":", llc","entity":"PersonSuffix"}
+{"text":"EVIDENCE","type":"NP", "entity":"Evidence"}
 {"text":"EVID(ENCE|\\.)\\s*CODE","type":"NP","list":"evidence evid","entity":"EvidenceCode"}
 {"text":"EX\\s*PARTE","type":"ADJP","list":"ex exparte","entity":"StatusExParte"}
 {"text":"EXAMINATION","type":"NP", "entity":"ProcExam"}
@@ -598,6 +602,7 @@
 {"text":"in\\s*favor\\s*of","type":"PRP","list":"in", "entity":"inFavorOf"}
 {"text":"in\\s*support\\s*of","type":"PRP","list":"in", "entity":"inSupportOf"}
 {"text":"inc\\.?","type":"ORGSUFFIX","list":"inc", "entity":"CoTypeSuffix"}
+{"text":"including","type":"PRP", "entity":"including"}
 {"text":"INDEPENDENT","type":"ADJP", "entity":"StatusIndependent"}
 {"text":"information","type":"NP","entity":"Information"}
 {"text":"informing","type":"VP", "tense":"ing", "entity":"ProcInform"}
@@ -615,6 +620,7 @@
 {"text":"Interrogatory","type":"NP", "entity":"DocLegalInterrogatory"}
 {"text":"intervene","type":"VP", "tense":"present", "entity":"ProcIntervene"}
 {"text":"intervenor","type":"NP", "entity":"RoleLegalIntervenor"}
+{"text":"(Form(\\s(and|\\&)\\sspecial)?|special)\\s*Interrogator(y|ies)","type":"NP","list":"form", "entity":"DocLegalInterrogatory"}
 {"text":"Interrogatories","type":"NP", "entity":"DocLegalInterrogatory"}
 {"text":"Invalidity","type":"NP", "entity":"Invalidity"}
 {"text":"is","type":"VP","tense":"present", "entity":"ProcBe"}
@@ -716,7 +722,7 @@
 {"text":"MONETARY","type":"ADJP", "entity":"Monetary"}
 {"text":"moot","type":"NP", "entity":"Moot"}
 {"text":"motion","type":"NP", "entity":"DocLegalMotion"}
-{"text":"Motion\\s*for\\s*Leave","type":"NP", "list":"motion","entity":"DocLegalMotionForLeave"}
+//{"text":"Motion\\s*for\\s*Leave","type":"NP", "list":"motion","entity":"DocLegalMotionForLeave"}
 {"text":"Motion\\s*for\\s*Discovery","type":"NP", "list":"motion","entity":"DocLegalMotionForDiscovery"}
 {"text":"Motion\\s*to\\s*stay","type":"NP", "list":"motion","entity":"DocLegalMotionToStay"}
 {"text":"motions","type":"NP", "entity":"DocLegalMotion"}
@@ -743,7 +749,7 @@
 {"text":"notice\\s*of\\s*appeal","type":"NP", "list":"notice", "entity":"NoticeOfAppeal"}
 {"text":"NOTICE\\s*OF\\s*ENTRY\\s*OF\\s*ORDER","type":"NP", "list":"notice", "entity":"NoticeOfEntryOfOrder"}
 {"text":"NOTICE\\s*(OF\\s*)?ERRATA","type":"NP", "list":"notice", "entity":"NoticeOfErrata"}
-{"text":"notice\\s*of\\s*motion","type":"NP", "list":"notice", "entity":"NoticeOfMotion"}
+//{"text":"notice\\s*of\\s*motion","type":"NP", "list":"notice", "entity":"NoticeOfMotion"}
 {"text":"notice\\s*of\\s*ruling","type":"NP", "list":"notice", "entity":"NoticeOfRuling"}
 {"text":"Notification","type":"NP", "entity":"DocLegalNotice"}
 {"text":"November","type":"TIMEP","entity":"Month_11"}
@@ -963,6 +969,7 @@
 {"text":"served","type":"VP", "tense":"past", "entity":"ProcServeDoc"}
 {"text":"service","type":"VP", "tense":"present", "entity":"ProcServeDoc"}
 {"text":"service","type":"NP", "entity":"ProcServeDoc"}
+{"text":"session","type":"NP", "entity":"Session"}
 {"text":"set","type":"VP", "tense":"present", "entity":"ProcSet"}
 {"text":"set","type":"VP", "tense":"past", "entity":"ProcSet"}
 {"text":"set\\s*aside","type":"VP", "tense":"preset", "list":"set","entity":"ProcSetAside"}

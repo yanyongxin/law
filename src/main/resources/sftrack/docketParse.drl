@@ -1,10 +1,10 @@
 //created on: May 1, 2019
-package sftrack;
+package core;
 
 import java.util.ArrayList;
 import java.util.List;
 import sftrack.CaseData.LitiParty;
-import sftrack.LegaLanguage;
+import core.LegaLanguage;
 //declare any global variables here
 global ParseUtil ut;
 global LegaLanguage onto;
@@ -320,18 +320,7 @@ rule "One_Bracket_Serial"
 		ut.printPhrase(ph);	
 end
 
-rule "Serial_NP"
-	when
-		p1: Phrase(synType=="NUMP", head.isKindOf("SerialValue"), text.length()>1)
-		// length>1 to exclude letter serials, such as A,B,C.... Letter serials can only be used in NP_serial: "ROOM D", "DEPT. F" 
-		p2: Phrase(synType=="NP", begToken==p1.endToken)
-	then
-		ut.print("Find Serial_NP: " + p1 + ", " + p2);
-		Link r = new Link("hasSerial", p2.getHead(), p1.getHead());
-		Phrase ph = new Phrase(p1, p2, r, 2);
-		insert(ph);
-		ut.printPhrase(ph);
-end
+
 
 rule "OrgCo_,_CoTypeSuffix"
 	when
@@ -1242,16 +1231,16 @@ rule "PRP_VP"
 		ut.printPhrase(ph);
 end
 
-
+/*
 rule "NP_PRP_not_headLast"	//MOTION OF DEFENDANT RECOLOGY INC FOR PEREMPTORY DISQUALIFICATION OF ASSIGNED JUDGE
-	salience 100
+	salience -1000
 	when
 		p1: Phrase(synType=="NP", g1 : graph, !headLast(), h1:head, lh: lastHead
 				, lastPhrase.synType=="NP"||lastPhrase.synType=="ORGSUFFIX"
 				, graph.containLink("hasDET", head, null)==null
 				, graph.containLink("hasOwner", head, null)==null)
 		p2: Phrase(synType=="PRP", head.isKindOf("PRPRelation"), !head.isKindOf("of"), h2:head
-				, graph.topLink != null, graph.topLink.getType()=="PRPRelation", lk2: graph.topLink, begToken==p1.endToken)
+				, graph.topLink != null, graph.topLink.getType()=="PRPRelation", lk2: graph.topLink, !lk2.arg2.isKindOf(h1), begToken==p1.endToken)
 		// onto triple: head_1 PRP head_2: Document	for	Process
 		lkx : Link(type==h2.getTheClass().getName(), h1.isKindOf(arg1), lk2.arg2.isKindOf(arg2))
 //		not Link(type==h2.getTheClass().getName(), lh.isKindOf(arg1), lk2.arg2.isKindOf(arg2))
@@ -1268,14 +1257,14 @@ rule "NP_PRP_not_headLast"	//MOTION OF DEFENDANT RECOLOGY INC FOR PEREMPTORY DIS
 		insert(ph);
 		ut.printPhrase(ph);
 end
-
+*/
 
 rule "NP_PRP_headLast"//COMPLIANCE WITH PROTECTIVE ORDER
 	when
 		//"DISMISSAL OF COMPLAINT WITH PREJUDICE" will not work because of "headLast()" 
 		p1: Phrase(synType=="NP", lk : graph.topLink, g1 : graph
-				, headLast()||getLastHead().isKindOf("StatusProc")
-				, lk1 : graph.containLink("hasMember", head, null)
+				, headLast()||getLastHead().isKindOf("StatusProc")||(graph.containLink("of", head, getLastHead())!=null)
+		//		, lk1 : graph.containLink("hasMember", head, null)
 		//, graph.prpCount <3
 				, graph.containLink("hasDET", head, null)==null
 //				, graph.containLink("ugoerOfProc", head, null)==null
@@ -1595,10 +1584,24 @@ rule "VP_PRP_and_PRP" //Summons Reissued as to Fandango Inc. c/o CT Corp. and at
 			insert(ph);
 		ut.printPhrase(ph);
 end
+/*
+rule "Serial_NP"
+	when
+		p1: Phrase(synType=="NUMP", head.isKindOf("SerialValue"), text.length()>1)
+		// length>1 to exclude letter serials, such as A,B,C.... Letter serials can only be used in NP_serial: "ROOM D", "DEPT. F" 
+		p2: Phrase(synType=="NP", begToken==p1.endToken)
+	then
+		ut.print("Find Serial_NP: " + p1 + ", " + p2);
+		Link r = new Link("hasSerial", p2.getHead(), p1.getHead());
+		Phrase ph = new Phrase(p1, p2, r, 2);
+		insert(ph);
+		ut.printPhrase(ph);
+end
+*/
 
 rule "ADJP_NP"
 	when
-		p1: Phrase(synType=="ADJP" ||synType=="QUANTIFIER"  )
+		p1: Phrase(synType=="ADJP" ||synType=="QUANTIFIER"||(synType=="NUMP"&&head.isKindOf("SerialValue")&&text.length()>1) )
 		p2: Phrase(synType=="NP", begToken==p1.endToken, !isSet(), toplink2 : graph.topLink)
 		(or eval(toplink2==null) eval(toplink2 !=null && onto.isKindOf(toplink2.getType(), "compoundRelation") ))
 	then
@@ -2518,12 +2521,9 @@ rule	"count phrases"
 		ph :Phrase(synType !=null)
 	then
 		int cnt = pc.incrementPhraseCount();
-//		if(cnt % 100 == 0){
-//			System.err.println("\nPhraseCount: " + cnt);
-			if(cnt >= 5000){
-				drools.halt();
-			}
-//		}
+		if(cnt >= 5000){
+			drools.halt();
+		}
 end
 
 
@@ -2593,7 +2593,7 @@ rule "OrgCo_Comma_Suffix"
 		ut.printPhrase(ph);
 end
 
-
+/*
 rule "OrgCo_infer_name"
 	salience -2000
 	when
@@ -2637,3 +2637,4 @@ rule "OrgCo_infer_name"
 			onto.createNewParty(partyName, onto, drools.getWorkingMemory(), p1.getHead());
 		}
 end
+*/

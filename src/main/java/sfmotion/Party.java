@@ -8,6 +8,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import core.Entity;
+import core.LegaLanguage;
+
 public class Party {
 
 	static final List<String> states = new ArrayList<>();
@@ -142,6 +145,22 @@ public class Party {
 	//GRAVES, NICHOLAS INDIVIDUALLY, AND ON BEHALF OF ALL OTHERS SIMILARLY SITUATED
 	String onBehalfOf;
 	List<String> asSomethingOf;
+	public Entity entity;
+
+	public void createEntity(LegaLanguage legalang) {
+		if (entity != null)
+			return;
+		if (type == sfmotion.Party.TYPE_INDIVIDUAL || type == sfmotion.Party.TYPE_MINOR) {
+			entity = new Entity(this.name, legalang.getEntity("IndividualParty"), Entity.TYPE_INSTANCE, legalang, -1);
+			entity.setObject(this);
+		} else if (type == sfmotion.Party.TYPE_DOESROESMOES) {
+			entity = new Entity(this.name, legalang.getEntity("GenericParty"), Entity.TYPE_INSTANCE, legalang, -1);
+			entity.setObject(this);
+		} else {
+			entity = new Entity(this.name, legalang.getEntity("OrgCoParty"), Entity.TYPE_INSTANCE, legalang, -1);
+			entity.setObject(this);
+		}
+	}
 
 	public void addDba(String _d) {
 		if (dba == null) {

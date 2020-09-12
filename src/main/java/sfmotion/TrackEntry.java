@@ -9,7 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import common.Role;
-import sftrack.Phrase;
+import core.Phrase;
 import utils.Pair;
 
 public class TrackEntry implements Comparable<TrackEntry> {
@@ -40,7 +40,7 @@ public class TrackEntry implements Comparable<TrackEntry> {
 	public static final String SUMMONS = "SMMS";
 	public static final String TRIAL = "TRAL";
 
-	static final Pattern pSec = Pattern.compile("\\b(filed by|as to|hearing set for)\\b", Pattern.CASE_INSENSITIVE);
+	static final Pattern pSec = Pattern.compile("\\b(filed by|as to|hearing set for|PROOF OF SERVICE)\\b", Pattern.CASE_INSENSITIVE);
 
 	public String raw; // raw docket entry text
 	public String text; // useful part of raw text, after remove junk, ignore stuff inside braces
@@ -324,6 +324,10 @@ public class TrackEntry implements Comparable<TrackEntry> {
 		Section(String _t, int _offset) {
 			text = _t;
 			offset = _offset;
+		}
+
+		public String toString() {
+			return text;
 		}
 	}
 

@@ -27,9 +27,6 @@ public class DroolsTest {
 			KieBuilder kbuilder = ks.newKieBuilder(kfs);
 			kbuilder.buildAll();
 			KieContainer kcontainer = ks.newKieContainer(kbuilder.getKieModule().getReleaseId());
-			//			KieBaseConfiguration kbConfig = KieServices.Factory.get().newKieBaseConfiguration();
-			//			kbConfig.setOption(ConstraintJittingThresholdOption.get(-1));
-			//			KieBase kbase = kcontainer.newKieBase(kbConfig);
 			KieBase kbase = kcontainer.getKieBase();
 			KieSession kSession = kbase.newKieSession();
 

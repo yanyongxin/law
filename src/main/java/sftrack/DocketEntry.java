@@ -11,6 +11,15 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import core.Analysis;
+import core.CaseNumber;
+import core.ERGraph;
+import core.Entity;
+import core.LegaLanguage;
+import core.LexToken;
+import core.Link;
+import core.LitiEvent;
+import core.Phrase;
 import sftrack.CaseData.LitiParty;
 
 public class DocketEntry {
@@ -490,10 +499,10 @@ public class DocketEntry {
 			if (la.size() == 0) {
 				continue;
 			}
-			int maxScore = la.get(0).score;
+			int maxScore = la.get(0).getScore();
 			for (int i = 0; i < la.size(); i++) {
 				Analysis a = la.get(i);
-				if (a.score == maxScore) {
+				if (a.getScore() == maxScore) {
 					List<Phrase> pl = a.getPhraseList();
 					plist.addAll(pl);
 				}
@@ -758,10 +767,10 @@ public class DocketEntry {
 		// Extract head, usually in the first phrase:
 		Phrase ph = plist.get(0);
 		// VP need special handling because head is usually a verb. But for analysis purposes, I need a noun, the subject of the VP.
-		if (ph.synType.equals("VP") && ph.subject != null) {
-			Phrase subject = ph.subject;
+		if (ph.getSynType().equals("VP") && ph.getSubject() != null) {
+			Phrase subject = ph.getSubject();
 			Entity eh = subject.getHead();
-			ph.graph.setHead(eh);
+			ph.getGraph().setHead(eh);
 		}
 		Entity hd = ph.getHead();
 		Analysis a = new Analysis(plist);
@@ -2008,7 +2017,7 @@ public class DocketEntry {
 					Link lk = g.containLink("in", numE, null);
 					if (lk != null) {
 						Entity e2 = lk.getArg2();
-						if (!ERGraph.caseNumberCompatible(e2.getName(), csnumber.raw)) {
+						if (!ERGraph.caseNumberCompatible(e2.getName(), csnumber.getRaw())) {
 							continue;
 							// DED order text can contain motion of other cases.
 							// See case 2000007339 (1:11-cv-00313-SLR), DE 315
@@ -2059,7 +2068,7 @@ public class DocketEntry {
 		Link lk = g.containLink("in", numE, null);
 		if (lk != null) {
 			Entity e2 = lk.getArg2();
-			if (!ERGraph.caseNumberCompatible(e2.getName(), csnumber.raw)) {
+			if (!ERGraph.caseNumberCompatible(e2.getName(), csnumber.getRaw())) {
 				return;
 				// DED order text can contain motion of other cases.
 				// See case 2000007339 (1:11-cv-00313-SLR), DE 315

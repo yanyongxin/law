@@ -23,7 +23,11 @@ import org.kie.api.runtime.KieContainer;
 import org.kie.internal.conf.ConstraintJittingThresholdOption;
 import org.kie.internal.io.ResourceFactory;
 
-import sftrack.LegaLanguage.Srunner;
+import core.Analysis;
+import core.ERGraph;
+import core.LegaLanguage;
+import core.Phrase;
+import core.LegaLanguage.Srunner;
 
 /**
  * Simplest program to invoke parser.

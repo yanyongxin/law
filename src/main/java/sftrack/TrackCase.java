@@ -17,6 +17,7 @@ import java.util.regex.Pattern;
 import javax.print.attribute.standard.MediaSize.Other;
 
 import common.Role;
+import core.Phrase;
 import sfmotion.CaseEntity;
 import sfmotion.CaseLink;
 import sfmotion.ComplaintEntry;
@@ -27,6 +28,8 @@ import sfmotion.OrderEntry;
 import sfmotion.PersonName;
 import sfmotion.ReplyEntry;
 import sfmotion.TrackEntry;
+import sfmotion.TrackEntry.Section;
+import sftrack.SFcomplex.ComparePhrases;
 import utils.Pair;
 
 public class TrackCase {
@@ -1196,10 +1199,54 @@ public class TrackCase {
 				}
 				// reaches here means good match 
 			}
+			// for Motion:
+			MotionEntry ms = (MotionEntry) mte.getTypeSpecific();
+			Object mss = ms.getMotion();
+			String mteMotionString = "";
+			if (mss instanceof String) {
+				mteMotionString = (String) mss;
+			} else {
+				@SuppressWarnings("unchecked")
+				List<String> lst = (List<String>) mss;
+				mteMotionString = lst.get(0);
+			}
+			List<Phrase> plistMte = TrackMotion.parseText(mteMotionString);
+			// for Hearing:
+			HearingEntry he = (HearingEntry) hte.getTypeSpecific();
+			String hes = he.motion;
+			List<Phrase> plistHte = TrackMotion.parseText(hes);
+			Section sec1 = mte.sections.get(0);
+			Section sec2 = hte.sections.get(0);
+			List<ComparePhrases> cp1 = SFcomplex.compareTwoPhraseLists(sec1, sec2);
+			List<ComparePhrases> cps = cp1;
+			int scoreGraph = 0;
+			if (cps != null) {
+				scoreGraph = cps.get(0).score;
+			}
 			double score = mm.matchMotionScore(hh.motion);
 			score *= weight;
-			if (score <= IGNORE_THRESHOLD)
-				continue;
+			boolean bAgree = true;
+			if (score <= IGNORE_THRESHOLD) {
+				if (scoreGraph >= 1)
+					bAgree = false;
+				else
+					continue;
+			} else {
+				if (scoreGraph < 1)
+					bAgree = false;
+			}
+			if (!bAgree) {
+				System.out.println("ScoreGraph:" + scoreGraph + ", score:" + score);
+				System.out.println("mte:\n" + mte + "hte:\n" + hte);
+				List<ComparePhrases> cp2 = SFcomplex.compareTwoPhraseListsComplete(sec1, sec2);
+				if (cp2 != null && cp1 != null && cp2.get(0).score > cp1.get(0).score) {
+					cps = cp2;
+				}
+				List<ComparePhrases> cp0 = SFcomplex.compareTwoPhraseLists(plistMte, plistHte);
+				if (cp0 != null && cp0.get(0).score < scoreGraph) {
+					System.out.println("cp0.score < scoreGraph");
+				}
+			}
 			if (hh.offCalendar && score >= TRUST_THRESHOLD) {
 				mm.setOffCalendar(hte.date);
 				for (int i = mm.hearDates.size() - 1; i >= 0; i--) {
@@ -1216,6 +1263,7 @@ public class TrackCase {
 					mm.hearDates.add(p);
 				}
 				MotionLink ml = new MotionLink(mte, hte, score);
+				ml.setComparePhrases(cps);
 				addMLink(ml);
 				return;
 			}
@@ -1250,6 +1298,7 @@ public class TrackCase {
 				}
 			}
 			MotionLink ml = new MotionLink(mte, hte, score);
+			ml.setComparePhrases(cps);
 			addMLink(ml);
 		}
 	}
@@ -1838,6 +1887,7 @@ public class TrackCase {
 		TrackEntry t2;
 		double value;
 		double increment;
+		List<ComparePhrases> cps;
 
 		double getValue() {
 			return value;
@@ -1848,6 +1898,10 @@ public class TrackCase {
 			t2 = _t2;
 			value = _v;
 			increment = 0;
+		}
+
+		public void setComparePhrases(List<ComparePhrases> _cp) {
+			cps = _cp;
 		}
 
 		public void inc(double _inc) {

@@ -13,6 +13,12 @@ import java.util.List;
 import java.util.Map;
 
 import common.Role;
+import core.Analysis;
+import core.Entity;
+import core.LegaLanguage;
+import core.LegaLanguage.Srunner;
+import core.LexToken;
+import core.Phrase;
 import sfmotion.ComplaintEntry;
 import sfmotion.EntitiesAndCaseDockets;
 import sfmotion.LegalCase;
@@ -20,7 +26,6 @@ import sfmotion.MotionEntry;
 import sfmotion.TrackEntry;
 import sfmotion.TrackEntry.DePhrase;
 import sfmotion.TrackEntry.Section;
-import sftrack.LegaLanguage.Srunner;
 import utils.Pair;
 
 public class TrackMotion {
@@ -54,7 +59,7 @@ public class TrackMotion {
 					List<Integer> keylist = Analysis.buildKeyList(rpmap);
 					//			assertTrue(keylist.size() > 0);
 					//					keylist.add(tokens.size());
-					keylist.add(phlist.get(phlist.size() - 1).endToken);
+					keylist.add(phlist.get(phlist.size() - 1).getEndToken());
 					ArrayList<Integer> segments = new ArrayList<Integer>();
 					List<List<Analysis>> lla = Analysis.findBestNew(rpmap, keylist, TOP_N, segments);
 					sec.plist = DocketEntry.getPhraseList(lla);
@@ -101,6 +106,57 @@ public class TrackMotion {
 		return tcs;
 	}
 
+	public static List<Phrase> parseText(String text) {
+		int start = 0;
+		List<Phrase> phlist = Collections.synchronizedList(new ArrayList<Phrase>());
+		List<LexToken> tokens = new ArrayList<>();
+		List<LexToken> tks = LexToken.tokenize(text);
+		List<Phrase> plist = null;
+		int j = tokens.size();
+		tokens.addAll(tks);
+		for (LexToken tk : tks) {
+			tk.start += start; // shift to sentence coordinates
+			tk.end += start;
+			tk.parent = text;
+			Phrase ph = new Phrase(tk.getText().toLowerCase(), j, j + 1, tokens);
+			if (tk.getType() == LexToken.LEX_SERIALNUMBER) {
+				ph.setSynType("NUMP");
+				Entity cls = legalang.getEntity("SerialValue");
+				Entity e = new Entity(tk.getText().toLowerCase(), cls, Entity.TYPE_INSTANCE, legalang, j);
+				ph.setGraph(e);
+			}
+			phlist.add(ph);
+			j++;
+		}
+		try {
+			//					Entity.resetSerial();
+			Srunner srun = legalang.createSrunner(true);
+			srun.insertList(phlist);
+			srun.execute();
+			Map<Integer, List<Phrase>> rpmap = srun.findAllPhrases();
+			if (rpmap.size() > 0) {
+				List<Integer> keylist = Analysis.buildKeyList(rpmap);
+				//			assertTrue(keylist.size() > 0);
+				//					keylist.add(tokens.size());
+				keylist.add(phlist.get(phlist.size() - 1).getEndToken());
+				ArrayList<Integer> segments = new ArrayList<Integer>();
+				List<List<Analysis>> lla = Analysis.findBestNew(rpmap, keylist, TOP_N, segments);
+				plist = DocketEntry.getPhraseList(lla);
+				//						System.out.println(e.text);
+				//					for (Phrase ph : sec.plist) {
+				//						System.out.println(ph.pprint("", false));
+				//					}
+				//							ERGraph g = plist.get(0).getGraph();
+			} else {
+				System.out.println("No phrase found for text=" + text);
+			}
+			srun.dispose();
+		} catch (Exception ex) {
+			fail(ex.getMessage());
+		}
+		return plist;
+	}
+
 	public static void main(String[] args) throws IOException {
 		if (args.length != 2) {
 			System.out.println("args: path number");
@@ -144,7 +200,7 @@ public class TrackMotion {
 		BufferedWriter wr11 = new BufferedWriter(new FileWriter(limineFile));
 		int countGrouped = 0;
 		int duplicates = 0;
-		legalang = LegaLanguage.initializeRuleEngine();
+		legalang = LegaLanguage.initializeRuleEngine(rulesFile, triplesFile, lexiconFile);
 		EntitiesAndCaseDockets etcd = new EntitiesAndCaseDockets(entityResources);
 		List<TrackCase> tcs = convertToTrackCases(etcd.cases);
 		int cnt = 1;
@@ -333,7 +389,7 @@ public class TrackMotion {
 				Phrase ph = new Phrase(dp.text.toLowerCase(), tokens.size(), tokens.size() + 1, tokens);
 				tokens.add(tk);
 				phlist.add(ph);
-				ph.synType = "NP";//Clerk, Judge, Attorney, party
+				ph.setSynType("NP");//Clerk, Judge, Attorney, party
 				if (dp.entity instanceof sfmotion.Party) {
 					sfmotion.Party party = (sfmotion.Party) dp.entity;
 					if (party.type == sfmotion.Party.TYPE_INDIVIDUAL || party.type == sfmotion.Party.TYPE_MINOR) {
@@ -373,11 +429,11 @@ public class TrackMotion {
 					tk.start += start; // shift to sentence coordinates
 					tk.end += start;
 					tk.parent = sec.text;
-					Phrase ph = new Phrase(tk.text.toLowerCase(), j, j + 1, tokens);
-					if (tk.type == LexToken.LEX_SERIALNUMBER) {
+					Phrase ph = new Phrase(tk.getText().toLowerCase(), j, j + 1, tokens);
+					if (tk.getType() == LexToken.LEX_SERIALNUMBER) {
 						ph.setSynType("NUMP");
 						Entity cls = legalang.getEntity("SerialValue");
-						Entity e = new Entity(tk.text.toLowerCase(), cls, Entity.TYPE_INSTANCE, legalang, j);
+						Entity e = new Entity(tk.getText().toLowerCase(), cls, Entity.TYPE_INSTANCE, legalang, j);
 						ph.setGraph(e);
 					}
 					phlist.add(ph);

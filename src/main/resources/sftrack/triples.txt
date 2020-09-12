@@ -312,6 +312,7 @@ in	instanceOf	PRPRelation
 InAccordanceWith	instanceOf	PRPRelation
 inFavorOf	instanceOf	PRPRelation
 inSupportOf	instanceOf	PRPRelation
+including	instanceOf	PRPRelation
 of	instanceOf	PRPRelation
 on	instanceOf	PRPRelation
 over	instanceOf	PRPRelation
@@ -508,6 +509,7 @@ Proceedings	subclassOf	Meeting
 ProcTrial	subclassOf	LitiPhase
 ProcTrial	subclassOf	Meeting
 Briefing	subclassOf	Meeting
+Session	subclassOf	Meeting
 LitigationParty	subclassOf	IntelAgent
 NonParty	subclassOf	RoleLegal
 MovingParty	subclassOf	LitigationParty
@@ -1069,7 +1071,9 @@ LegalDecision	subclassOf	LegalAuthorityDoc
 LegalRule	subclassOf	LegalAuthorityDoc
 LegalAuthorityDoc	subclassOf	Document
 ProcAcknowledge	define	TimeRef
+Document	including	Document
 Document	inSupportOf	Document
+Document	including	Document
 Process	inSupportOf	Document
 Document	inSupportOf	Process
 Process	inSupportOf	Process
@@ -1206,10 +1210,10 @@ Condition	subclassOf	Thing
 Property	subclassOf	Thing
 Asset	subclassOf	Property
 ProcConstitute	subclassOf	Process
-CrimeDangerousConditionOfPublicProperty	subclassOf	Crime
-CrimeFailureToWarn	subclassOf	Crime
-CrimeFraud	subclassOf	Crime
-CrimeBreachOfContract	subclassOf	Crime
+CrimeDangerousConditionOfPublicProperty	subclassOf	LegalCrime
+CrimeFailureToWarn	subclassOf	LegalCrime
+CrimeFraud	subclassOf	LegalCrime
+CrimeBreachOfContract	subclassOf	LegalCrime
 LegalRightOfPublicity	subclassOf	Rights
 Document	define	DocPapers
 ProcRelieve	subclassOf	Process
@@ -1501,6 +1505,7 @@ GeoPoliticalEntity	define	Representative
 OrgCo	define	Representative
 StatusPhysical	subclassOf	StatusProc
 Deposition	define	Document
+Deposition	define	Session
 ProcSeek	subclassOf	Process
 Document	ugoerOfProc	ProcSeek
 Process	ugoerOfProc	ProcSeek
@@ -1514,3 +1519,7 @@ ProcRequest	subSection	SetRef
 DocLegalReply	define	DocLegalMemorandum
 StatusRenewed	subclassOf	StatusProc
 Additur	subclassOf	LegalDecision
+StatusBoth	subclassOf	StatusProc
+ProcAllege	subclassOf	Process
+LegalCauseOfAction	for	LegalCrime
+Evidence	subclassOf	Document

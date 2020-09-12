@@ -6,7 +6,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import sftrack.LegaLanguage.Srunner;
+import core.LegaLanguage.Srunner;
 
 public class Phrase implements Cloneable {
 	private static final Logger log = LoggerFactory.getLogger(Phrase.class);
