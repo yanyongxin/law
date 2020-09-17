@@ -3,6 +3,8 @@ package sfmotion;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import legal.TrackEntry;
+
 public class ArbitrateEntry {
 	static final String arbitrate = "\\bARBITRAT";
 	static final Pattern parbitrate = Pattern.compile(arbitrate, Pattern.CASE_INSENSITIVE);

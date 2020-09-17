@@ -3,6 +3,8 @@ package sfmotion;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import legal.TrackEntry;
+
 public class ObjectionEntry extends TrackEntry {
 	static final String objection = "^OBJECTION";
 	static final Pattern pobjection = Pattern.compile(objection, Pattern.CASE_INSENSITIVE);

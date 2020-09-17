@@ -10,8 +10,10 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import sfmotion.TrackEntry.DePhrase;
-import sfmotion.TrackEntry.Section;
+import legal.FindEntitiesOfCases;
+import legal.TrackEntry;
+import legal.TrackEntry.DePhrase;
+import legal.TrackEntry.Section;
 import utils.Pair;
 
 /**
@@ -34,7 +36,7 @@ public class EntityAndCaseDocketsPacer {
 	public Map<String, CaseParties> parties;
 	public Map<String, CaseAttorneys> attorneys;
 	public List<Judge> judges;
-	public List<LegalCase> cases;
+	public List<FindEntitiesOfCases> cases;
 
 	static List<Judge> formJudgePatterns(List<PersonName> judgelist) {
 		List<Judge> jps = new ArrayList<>();
@@ -102,8 +104,8 @@ public class EntityAndCaseDocketsPacer {
 		}
 	}
 
-	void identifyEntities_1(List<LegalCase> cases) throws IOException {
-		for (LegalCase c : cases) {
+	void identifyEntities_1(List<FindEntitiesOfCases> cases) throws IOException {
+		for (FindEntitiesOfCases c : cases) {
 			CaseParties cp = parties.get(c.id);
 			CaseAttorneys ca = attorneys.get(c.id);
 			for (TrackEntry e : c.entries) {
@@ -260,9 +262,9 @@ public class EntityAndCaseDocketsPacer {
 		}
 	}
 
-	static List<LegalCase> readCases(String infile) throws IOException {
+	static List<FindEntitiesOfCases> readCases(String infile) throws IOException {
 		BufferedReader br = new BufferedReader(new FileReader(infile));
-		List<LegalCase> cases = new ArrayList<>();
+		List<FindEntitiesOfCases> cases = new ArrayList<>();
 		String caseID = "";
 		String line;
 		List<TrackEntry> entries = null;
@@ -273,7 +275,7 @@ public class EntityAndCaseDocketsPacer {
 			if (!items[0].equals(caseID)) {
 				caseID = items[0];
 				entries = new ArrayList<>();
-				LegalCase cs = new LegalCase(caseID, entries);
+				FindEntitiesOfCases cs = new FindEntitiesOfCases(caseID, entries);
 				cases.add(cs);
 			}
 			TrackEntry en = new TrackEntry(items[1], items[2]);

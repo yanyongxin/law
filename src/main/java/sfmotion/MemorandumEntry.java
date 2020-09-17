@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import legal.TrackEntry;
+
 public class MemorandumEntry {
 	static final String P_And_A = "(OF (POINTS? AND AUTHORITIES|P\\&?A)\\s)?";
 	static final String C_AND_D = "OF COSTS AND DISBURSEMENTS.+?";

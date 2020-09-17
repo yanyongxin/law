@@ -7,6 +7,8 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import legal.TrackEntry;
+
 public class DeclarationEntry {
 	static final String left = "(?=\\(TRANSACTION\\sID\\s.{6,40}?\\)|\\(SEALED DOCUMENT\\)|FILED\\s+BY)";
 	static final String right = "(?<=\\(TRANSACTION\\sID\\s.{6,40}?\\)|\\(SEALED DOCUMENT\\))";

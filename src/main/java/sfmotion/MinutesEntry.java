@@ -3,6 +3,8 @@ package sfmotion;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import legal.TrackEntry;
+
 public class MinutesEntry {
 	//	Line 22913: CA_SFC_479414	2017-05-17	MINI MINUTES FOR MAY-17-2017 01:30 PM FOR DEPT 501
 	//	Line 22920: CA_SFC_479414	2017-05-22	MINUTES FOR MAY-22-2017 10:45 AM

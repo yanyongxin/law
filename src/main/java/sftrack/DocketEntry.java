@@ -493,30 +493,6 @@ public class DocketEntry {
 		return ret;
 	}
 
-	public static List<Phrase> getPhraseList(List<List<Analysis>> lla) {
-		List<Phrase> plist = new ArrayList<Phrase>();
-		for (List<Analysis> la : lla) {
-			if (la.size() == 0) {
-				continue;
-			}
-			int maxScore = la.get(0).getScore();
-			for (int i = 0; i < la.size(); i++) {
-				Analysis a = la.get(i);
-				if (a.getScore() == maxScore) {
-					List<Phrase> pl = a.getPhraseList();
-					plist.addAll(pl);
-				}
-			}
-		}
-		return plist;
-	}
-
-	private Analysis buildAnalysis(List<List<Analysis>> lla) {
-		List<Phrase> plist = getPhraseList(lla);
-		Analysis an = new Analysis(plist);
-		return an;
-	}
-
 	private void findFrom(List<Phrase> plist) {
 		for (int i = 0; i < plist.size(); i++) {
 			Phrase pp = plist.get(i);
@@ -763,7 +739,7 @@ public class DocketEntry {
 			return;
 		}
 
-		List<Phrase> plist = getPhraseList(best);
+		List<Phrase> plist = Analysis.getPhraseList(best);
 		// Extract head, usually in the first phrase:
 		Phrase ph = plist.get(0);
 		// VP need special handling because head is usually a verb. But for analysis purposes, I need a noun, the subject of the VP.

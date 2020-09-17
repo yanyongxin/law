@@ -4,6 +4,8 @@ package sfmotion;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import legal.TrackEntry;
+
 public class CaseSettledEntry {
 	static final String settle = "CASE SETTLED|NOTICE OF SETTLEMENT(?!\\s+CONFERENCE)";
 	static final Pattern pSettle = Pattern.compile(settle, Pattern.CASE_INSENSITIVE);

@@ -14,6 +14,7 @@ import org.simmetrics.metrics.BlockDistance;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 
+import legal.TrackEntry;
 import sftrack.TrackCase.MotionLink;
 import utils.Pair;
 

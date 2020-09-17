@@ -3,6 +3,8 @@ package sfmotion;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import legal.TrackEntry;
+
 public class DismissalEntry {//
 	static final String entire = "DISMISSAL.{3,50}ENTIRE ACTION";
 	static final Pattern pEntire = Pattern.compile(entire, Pattern.CASE_INSENSITIVE);

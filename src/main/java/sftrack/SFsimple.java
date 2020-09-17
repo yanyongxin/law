@@ -26,8 +26,8 @@ import org.kie.internal.io.ResourceFactory;
 import core.Analysis;
 import core.ERGraph;
 import core.LegaLanguage;
-import core.Phrase;
 import core.LegaLanguage.Srunner;
+import core.Phrase;
 
 /**
  * Simplest program to invoke parser.
@@ -79,7 +79,7 @@ public class SFsimple {
 			keylist.add(phlist.size());
 			ArrayList<Integer> segments = new ArrayList<Integer>();
 			List<List<Analysis>> lla = Analysis.findBestNew(rpmap, keylist, TOP_N, segments);
-			List<Phrase> plist = DocketEntry.getPhraseList(lla);
+			List<Phrase> plist = Analysis.getPhraseList(lla);
 			ERGraph g = plist.get(0).getGraph();
 			srun.dispose();
 		} catch (Exception ex) {

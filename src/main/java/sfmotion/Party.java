@@ -49,7 +49,7 @@ public class Party {
 	static final Pattern pOnBehalfOf = Pattern.compile("( AND )?ON BEHALF OF\\b|\\bO/?B/?O\\b|ON THEIR OWN BEHALF", Pattern.CASE_INSENSITIVE);
 	static final Pattern pTrustee = Pattern.compile("TRUSTEE OF\\b", Pattern.CASE_INSENSITIVE);
 	static final String regAsSomethingOf = "\\bAS (\\w+ )+OF ";
-	static final Map<String, Integer> mapRole = new HashMap<>();
+	public static final Map<String, Integer> mapRole = new HashMap<>();
 	static final Map<Integer, String> mapRoleReverse = new HashMap<>();
 	static final public int TYPE_UNKNOWN = 0;
 	static final public int TYPE_INDIVIDUAL = 1;
@@ -60,30 +60,30 @@ public class Party {
 	static final public int TYPE_MINOR = 6;
 	static final public int TYPE_OTHER = 10;
 
-	static final int ROLE_UNKNOWN = 0;
-	static final int ROLE_PLAINTIFF = 1;
-	static final int ROLE_DEFENDANT = 2;
-	static final int ROLE_CROSS_PLAINTIFF = 3;
-	static final int ROLE_CROSS_DEFENDANT = 4;
-	static final int ROLE_PETITIONER = 5;
-	static final int ROLE_RESPONDENT = 6;
-	static final int ROLE_MINOR = 7;
-	static final int ROLE_CLAIMANT = 8;
-	static final int ROLE_DECEDENT = 9;
-	static final int ROLE_APPELLANT = 10;
-	static final int ROLE_TRUSTEE = 11;
-	static final int ROLE_CONSERVATEE = 12;
-	static final int ROLE_CONSERVATOR = 13;
-	static final int ROLE_GUARDIAN_AD_LITEM = 14;
-	static final int ROLE_INTERVENOR_DEFENDANT = 15;
-	static final int ROLE_INTERESTED_PARTY = 16;
-	static final int ROLE_ASSIGNEE = 17;
-	static final int ROLE_INTERVENOR = 18;
-	static final int ROLE_SUPPORTER = 19;
-	static final int ROLE_APPLICANT = 20;
-	static final int ROLE_CROSS_APPELLANT = 21;
-	static final int ROLE_INTERPLEADER = 22;
-	static final int ROLE_OTHER = 23;
+	public static final int ROLE_UNKNOWN = 0;
+	public static final int ROLE_PLAINTIFF = 1;
+	public static final int ROLE_DEFENDANT = 2;
+	public static final int ROLE_CROSS_PLAINTIFF = 3;
+	public static final int ROLE_CROSS_DEFENDANT = 4;
+	public static final int ROLE_PETITIONER = 5;
+	public static final int ROLE_RESPONDENT = 6;
+	public static final int ROLE_MINOR = 7;
+	public static final int ROLE_CLAIMANT = 8;
+	public static final int ROLE_DECEDENT = 9;
+	public static final int ROLE_APPELLANT = 10;
+	public static final int ROLE_TRUSTEE = 11;
+	public static final int ROLE_CONSERVATEE = 12;
+	public static final int ROLE_CONSERVATOR = 13;
+	public static final int ROLE_GUARDIAN_AD_LITEM = 14;
+	public static final int ROLE_INTERVENOR_DEFENDANT = 15;
+	public static final int ROLE_INTERESTED_PARTY = 16;
+	public static final int ROLE_ASSIGNEE = 17;
+	public static final int ROLE_INTERVENOR = 18;
+	public static final int ROLE_SUPPORTER = 19;
+	public static final int ROLE_APPLICANT = 20;
+	public static final int ROLE_CROSS_APPELLANT = 21;
+	public static final int ROLE_INTERPLEADER = 22;
+	public static final int ROLE_OTHER = 23;
 
 	static {
 		mapRole.put("PLAINTIFF", ROLE_PLAINTIFF);
@@ -131,16 +131,16 @@ public class Party {
 		mapRoleReverse.put(ROLE_OTHER, "OTHER");
 
 	}
-	List<String> raw = new ArrayList<>();
-	String name;
-	PersonName namePerson; // use only if type = TYPE_INDIVIDUAL
-	CorpName nameCorp; // use only if type = TYPE_ORGANIZATION
-	String address; // some have address in their name field
+	public List<String> raw = new ArrayList<>();
+	public String name;
+	public PersonName namePerson; // use only if type = TYPE_INDIVIDUAL
+	public CorpName nameCorp; // use only if type = TYPE_ORGANIZATION
+	public String address; // some have address in their name field
 
 	List<Integer> roles = new ArrayList<>();
 	public int type;// INDIVIDUAL, CORPORATION, GOVERNMENT, DOESROES, UNKNOWN
 	List<CorpName> dba;
-	String errSued;//SUED ERRONEOUSLY HEREIN AS TAKITAKI MITIGLI, (ERRONEOUSLY SUED HEREIN AS "ALDRY BONIFACIO")
+	public String errSued;//SUED ERRONEOUSLY HEREIN AS TAKITAKI MITIGLI, (ERRONEOUSLY SUED HEREIN AS "ALDRY BONIFACIO")
 	//HILL, DAVID INDIVIDUALLY, AND ON BEHALF OF THE ESTATE OF JAMES D. HILL, DECEASED
 	//GRAVES, NICHOLAS INDIVIDUALLY, AND ON BEHALF OF ALL OTHERS SIMILARLY SITUATED
 	String onBehalfOf;
@@ -317,7 +317,7 @@ public class Party {
 		raw.sort(new Cmp());
 	}
 
-	static class Cmp implements Comparator<String> {
+	public static class Cmp implements Comparator<String> {
 
 		@Override
 		public int compare(String o1, String o2) {
@@ -537,12 +537,12 @@ public class Party {
 		return sb.toString();
 	}
 
-	static class CorpName {
-		List<String> types = new ArrayList<>(); // inc, llp, corp, company, N.A., 
-		String stem; // Citiank
-		String name;
-		String attachment; // A MUNICIPAL CORPORATION, A NEW YORK CORPORATION, AS TRUSTEE OF THE XIAO ZHENG FAMILY LIVING TRUST, AS ASSIGNEE OF CITIBANK, N.A
-		Pattern pattern;
+	public static class CorpName {
+		public List<String> types = new ArrayList<>(); // inc, llp, corp, company, N.A., 
+		public String stem; // Citiank
+		public String name;
+		public String attachment; // A MUNICIPAL CORPORATION, A NEW YORK CORPORATION, AS TRUSTEE OF THE XIAO ZHENG FAMILY LIVING TRUST, AS ASSIGNEE OF CITIBANK, N.A
+		public Pattern pattern;
 
 		public CorpName(String _name) {
 			name = _name.replaceAll("^\\W+|\\W+$", "").trim();

@@ -7,9 +7,9 @@ import java.util.regex.Pattern;
 import utils.MyStringUtils;
 
 public class PersonName implements Comparable<PersonName> {
-	static final int GivMidSur = 1;
-	static final int SurGivMid = 2;
-	static final List<String> suffixNames = new ArrayList<>();
+	public static final int GivMidSur = 1;
+	public static final int SurGivMid = 2;
+	public static final List<String> suffixNames = new ArrayList<>();
 	static {
 		suffixNames.add("JR");
 		suffixNames.add("SR");
@@ -25,15 +25,15 @@ public class PersonName implements Comparable<PersonName> {
 		suffixNames.add("II");
 		suffixNames.add("ATTORNEY AT LAW");
 	}
-	String raw;
-	String surname;
-	String givname;
-	Object midname;
-	List<String> suffixes; // JR, MD, DDS,
-	List<String> akas;
-	boolean isSpanish = false;
+	public String raw;
+	public String surname;
+	public String givname;
+	public Object midname;
+	public List<String> suffixes; // JR, MD, DDS,
+	public List<String> akas;
+	public boolean isSpanish = false;
 
-	Pattern namePattern;
+	public Pattern namePattern;
 
 	public Pattern getPattern() {
 		if (namePattern != null)
@@ -725,7 +725,7 @@ public class PersonName implements Comparable<PersonName> {
 		}
 	}
 
-	void combine(PersonName _p) {
+	public void combine(PersonName _p) {
 		if (givname == null) {
 			if (_p.givname != null)
 				givname = _p.givname;

@@ -7,9 +7,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * Entity-Relation Graph.
  * 
@@ -17,7 +14,6 @@ import org.slf4j.LoggerFactory;
  * 
  */
 public class ERGraph implements Cloneable {
-	private static final Logger log = LoggerFactory.getLogger(ERGraph.class);
 	List<Entity> entities;
 	List<Link> links;
 	Entity headEntity;

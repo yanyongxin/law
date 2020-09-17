@@ -17,15 +17,15 @@ import core.Analysis;
 import core.Entity;
 import core.LegaLanguage;
 import core.LegaLanguage.Srunner;
+import court.EntitiesAndCaseDockets;
+import legal.FindEntitiesOfCases;
+import legal.TrackEntry;
+import legal.TrackEntry.DePhrase;
+import legal.TrackEntry.Section;
 import core.LexToken;
 import core.Phrase;
 import sfmotion.ComplaintEntry;
-import sfmotion.EntitiesAndCaseDockets;
-import sfmotion.LegalCase;
 import sfmotion.MotionEntry;
-import sfmotion.TrackEntry;
-import sfmotion.TrackEntry.DePhrase;
-import sfmotion.TrackEntry.Section;
 import utils.Pair;
 
 public class TrackMotion {
@@ -62,7 +62,7 @@ public class TrackMotion {
 					keylist.add(phlist.get(phlist.size() - 1).getEndToken());
 					ArrayList<Integer> segments = new ArrayList<Integer>();
 					List<List<Analysis>> lla = Analysis.findBestNew(rpmap, keylist, TOP_N, segments);
-					sec.plist = DocketEntry.getPhraseList(lla);
+					sec.plist = Analysis.getPhraseList(lla);
 					//						System.out.println(e.text);
 					//					for (Phrase ph : sec.plist) {
 					//						System.out.println(ph.pprint("", false));
@@ -78,7 +78,7 @@ public class TrackMotion {
 		}
 	}
 
-	static TrackCase convertOneLegalCaseToTrackCase(LegalCase cs) {
+	static TrackCase convertOneLegalCaseToTrackCase(FindEntitiesOfCases cs) {
 		TrackCase tc = new TrackCase(cs.getID());
 		tc.casetype = cs.casetype;
 		tc.caseSubtype = cs.caseSubtype;
@@ -87,7 +87,7 @@ public class TrackMotion {
 		tc.entries = cs.entries;
 		tc.daily = cs.daily;
 		tc.complaint = cs.complaint;
-		tc.gel = cs.gel;
+		tc.gel = cs.globalEntityList;
 		tc.glk = cs.glk;
 		tc.lastDate = cs.lastDate;
 		tc.judges = cs.judges;
@@ -97,9 +97,9 @@ public class TrackMotion {
 		return tc;
 	}
 
-	static List<TrackCase> convertToTrackCases(List<LegalCase> lcs) {
+	static List<TrackCase> convertToTrackCases(List<FindEntitiesOfCases> lcs) {
 		List<TrackCase> tcs = new ArrayList<>();
-		for (LegalCase cs : lcs) {
+		for (FindEntitiesOfCases cs : lcs) {
 			TrackCase tc = convertOneLegalCaseToTrackCase(cs);
 			tcs.add(tc);
 		}
@@ -141,7 +141,7 @@ public class TrackMotion {
 				keylist.add(phlist.get(phlist.size() - 1).getEndToken());
 				ArrayList<Integer> segments = new ArrayList<Integer>();
 				List<List<Analysis>> lla = Analysis.findBestNew(rpmap, keylist, TOP_N, segments);
-				plist = DocketEntry.getPhraseList(lla);
+				plist = Analysis.getPhraseList(lla);
 				//						System.out.println(e.text);
 				//					for (Phrase ph : sec.plist) {
 				//						System.out.println(ph.pprint("", false));
@@ -402,21 +402,21 @@ public class TrackMotion {
 						Entity e3 = new Entity(ph.getText(), legalang.getEntity("OrgCoParty"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 						ph.setGraph(e3);
 					}
-				} else if (dp.entity instanceof sfmotion.EntitiesAndCaseDockets.Attorney) {
+				} else if (dp.entity instanceof court.EntitiesAndCaseDockets.Attorney) {
 					//					legal.ExtractEntities.Attorney attorney = (legal.ExtractEntities.Attorney)p.entity;
 					Entity e3 = new Entity(ph.getText(), legalang.getEntity("Attorney"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 					ph.setGraph(e3);
-				} else if (dp.entity instanceof sfmotion.EntitiesAndCaseDockets.Judge) {
+				} else if (dp.entity instanceof court.EntitiesAndCaseDockets.Judge) {
 					//					legal.ExtractEntities.Judge judge = (legal.ExtractEntities.Judge)p.entity;
 					Entity e3 = new Entity(ph.getText(), legalang.getEntity("Judge"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 					ph.setGraph(e3);
-				} else if (dp.entity instanceof sfmotion.EntitiesAndCaseDockets.Clerk) {
+				} else if (dp.entity instanceof court.EntitiesAndCaseDockets.Clerk) {
 					Entity e3 = new Entity(ph.getText(), legalang.getEntity("Clerk"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 					ph.setGraph(e3);
-				} else if (dp.entity instanceof sfmotion.EntitiesAndCaseDockets.Reporter) {
+				} else if (dp.entity instanceof court.EntitiesAndCaseDockets.Reporter) {
 					Entity e3 = new Entity(ph.getText(), legalang.getEntity("Reporter"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 					ph.setGraph(e3);
-				} else if (dp.entity instanceof sfmotion.EntitiesAndCaseDockets.SFCaseNumber) {
+				} else if (dp.entity instanceof court.EntitiesAndCaseDockets.SFCaseNumber) {
 					Entity e3 = new Entity(ph.getText(), legalang.getEntity("SFCaseNumber"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 					ph.setGraph(e3);
 				}

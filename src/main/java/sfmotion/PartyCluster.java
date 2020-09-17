@@ -5,8 +5,15 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import sfmotion.LegalCase.CaseNames;
+import legal.CaseEntity;
+import legal.LegalCase.CaseNames;
 
+/**
+ * Contains all party entities of one case (identified by caseID): Plaintiffs, Defendants, etc.
+ *  
+ * @author yanyo
+ *
+ */
 public class PartyCluster {
 	static final String LLCP = "A (\\w+\\s){0,6}(COMPANY|PARTNERSHIP|CORP(ORATION))";
 	static final String leftBreak = "(?<=AN INDIVIDUAL\\,?|INCLUSIVE|AN ENTITY\\,?|\\bINC\\b\\.?+\\,?|LLC|LLP|\\bLP\\b)";
@@ -30,9 +37,6 @@ public class PartyCluster {
 
 	public PartyCluster(String _cid, String _text, String _role, int _count, List<CaseEntity> _gel) {
 		caseID = _cid;
-		if (_text.startsWith(" ")) {
-			System.out.print("");
-		}
 		text = _text;
 		role = _role;
 		count = _count;
@@ -42,8 +46,6 @@ public class PartyCluster {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(text + "\n\n");
-		//			sb.append("\tRole: " + role);
-		//			sb.append("\tCount: " + count);
 		for (CaseEntity e : list) {
 			sb.append("\t" + e.toString() + "\n");
 		}
@@ -116,7 +118,7 @@ public class PartyCluster {
 		return null;
 	}
 
-	void parse() {
+	public void parse(CaseNames cn) {
 		String[] sperr = text.split("ERRONEOUSLY SUED");
 		if (sperr.length > 1) {
 			text = sperr[0];
@@ -220,7 +222,6 @@ public class PartyCluster {
 			if (dba != null) {
 				currentEntity = dba;
 			} else {
-				CaseNames cn = mapParty.get(caseID);
 				List<Party> parties = cn.getParties();
 				String[] names = ss.split("(?=(\\b\\w+\\,))");
 				for (String nm : names) {

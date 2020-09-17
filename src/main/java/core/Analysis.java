@@ -158,6 +158,30 @@ public class Analysis {
 		return true;
 	}
 
+	public static List<Phrase> getPhraseList(List<List<Analysis>> lla) {
+		List<Phrase> plist = new ArrayList<Phrase>();
+		for (List<Analysis> la : lla) {
+			if (la.size() == 0) {
+				continue;
+			}
+			int maxScore = la.get(0).getScore();
+			for (int i = 0; i < la.size(); i++) {
+				Analysis a = la.get(i);
+				if (a.getScore() == maxScore) {
+					List<Phrase> pl = a.getPhraseList();
+					plist.addAll(pl);
+				}
+			}
+		}
+		return plist;
+	}
+
+	private Analysis buildAnalysis(List<List<Analysis>> lla) {
+		List<Phrase> plist = getPhraseList(lla);
+		Analysis an = new Analysis(plist);
+		return an;
+	}
+
 	public static List<List<List<Phrase>>> combine(List<Analysis> al) {
 		List<List<List<Phrase>>> ret = new ArrayList<List<List<Phrase>>>();
 		// each list under ret is a combination of phrases having the same phrase lengths

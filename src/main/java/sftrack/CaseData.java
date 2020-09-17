@@ -33,7 +33,6 @@ public class CaseData {
 	private static final Logger log = LoggerFactory.getLogger(CaseData.class);
 	static final int TOP_N = 3;
 	static final int SEMICOLON_LENGTH = 30;
-	//	static String dirroot = "/Users/yanyongxin/Documents/professional/lexprojects/legalgeno/jsonAll2";
 	static String dirroot = null;
 	//	String testText = null;
 	//	String testLexID = null;

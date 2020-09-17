@@ -3,6 +3,8 @@ package sfmotion;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import legal.TrackEntry;
+
 public class NoticeOfTrialEntry {
 	static final String noticeOfTimeAndPlaceOfTrial = "^NOTICE OF TIME";
 	static final Pattern pnoticeOfTimeAndPlaceOfTrial = Pattern.compile(noticeOfTimeAndPlaceOfTrial, Pattern.CASE_INSENSITIVE);

@@ -5,11 +5,11 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
 
 public class CaseNumber {
-	private static final Logger log = LoggerFactory.getLogger(CaseNumber.class);
+	//	private static final Logger log = LoggerFactory.getLogger(CaseNumber.class);
 	// 1:10-cv-00667-rk-sle
 	// month:year-cv-serial[-initials]
 	int month;
@@ -24,7 +24,7 @@ public class CaseNumber {
 		String test = args[0];
 		CaseNumber cn = new CaseNumber(test);
 		String tst = cn.toString();
-		log.info(tst);
+		//		log.info(tst);
 	}
 
 	public String getRaw() {

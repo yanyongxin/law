@@ -1,5 +1,7 @@
 package sfmotion;
 
+import legal.TrackEntry;
+
 public class DemurrerEntry {
 	TrackEntry entry;
 

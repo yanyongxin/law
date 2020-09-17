@@ -16,9 +16,13 @@ import java.util.regex.Pattern;
 
 import javax.print.attribute.standard.MediaSize.Other;
 
+import apps.SFcomplex;
+import apps.SFcomplex.ComparePhrases;
 import common.Role;
 import core.Phrase;
-import sfmotion.CaseEntity;
+import legal.CaseEntity;
+import legal.TrackEntry;
+import legal.TrackEntry.Section;
 import sfmotion.CaseLink;
 import sfmotion.ComplaintEntry;
 import sfmotion.HearingEntry;
@@ -27,9 +31,6 @@ import sfmotion.OppositionEntry;
 import sfmotion.OrderEntry;
 import sfmotion.PersonName;
 import sfmotion.ReplyEntry;
-import sfmotion.TrackEntry;
-import sfmotion.TrackEntry.Section;
-import sftrack.SFcomplex.ComparePhrases;
 import utils.Pair;
 
 public class TrackCase {

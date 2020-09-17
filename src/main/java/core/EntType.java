@@ -9,8 +9,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import sftrack.CaseData.LitiParty;
-
 public class EntType {
 	static final String pllc = "pllc|p\\.\\s*l\\.\\s*l\\.\\s*c\\."; // Professional
 																	// Limited
@@ -269,30 +267,31 @@ public class EntType {
 		}
 	}
 
-	public static void MergeAdditionalParties(List<LitiParty> parties, List<String> fm) throws Exception {
-		List<String> remain = new ArrayList<String>();
-		for (int i = 0; i < fm.size(); i++) {
-			if (fm.get(i).length() <= 2) {
-				continue;
-			}
-			boolean bmatch = false;
-			for (LitiParty lt : parties) {
-				Pattern ptn = lt.getPattern();
-				Matcher m = ptn.matcher(fm.get(i));
-				if (m.matches()) {
-					bmatch = true;
-					break;
+	/*
+		public static void MergeAdditionalParties(List<LitiParty> parties, List<String> fm) throws Exception {
+			List<String> remain = new ArrayList<String>();
+			for (int i = 0; i < fm.size(); i++) {
+				if (fm.get(i).length() <= 2) {
+					continue;
+				}
+				boolean bmatch = false;
+				for (LitiParty lt : parties) {
+					Pattern ptn = lt.getPattern();
+					Matcher m = ptn.matcher(fm.get(i));
+					if (m.matches()) {
+						bmatch = true;
+						break;
+					}
+				}
+				if (!bmatch) {
+					remain.add(fm.get(i));
 				}
 			}
-			if (!bmatch) {
-				remain.add(fm.get(i));
+			for (String rm : remain) {
+				parties.add(new LitiParty(rm));
 			}
 		}
-		for (String rm : remain) {
-			parties.add(new LitiParty(rm));
-		}
-	}
-
+	*/
 	private static String standardNameRegexReplacement(String r) {
 		r = r.replace(",", "\\,?");
 		r = r.replace(".", "\\.?");

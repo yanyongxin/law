@@ -7,6 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import common.Role;
+import legal.TrackEntry;
 import sftrack.TrackCase.MotionLink;
 import utils.Pair;
 

@@ -24,15 +24,15 @@ import org.kie.api.runtime.KieContainer;
 import org.kie.internal.conf.ConstraintJittingThresholdOption;
 import org.kie.internal.io.ResourceFactory;
 
-import sfmotion.EntitiesAndCaseDockets;
-import sfmotion.LegalCase;
+import court.EntitiesAndCaseDockets;
+import court.EntitiesAndCaseDockets.Attorney;
+import court.EntitiesAndCaseDockets.CaseAttorneys;
+import court.EntitiesAndCaseDockets.CaseParties;
+import legal.FindEntitiesOfCases;
+import legal.TrackEntry;
+import legal.TrackEntry.DePhrase;
+import legal.TrackEntry.Section;
 import sfmotion.Party;
-import sfmotion.TrackEntry;
-import sfmotion.EntitiesAndCaseDockets.Attorney;
-import sfmotion.EntitiesAndCaseDockets.CaseAttorneys;
-import sfmotion.EntitiesAndCaseDockets.CaseParties;
-import sfmotion.TrackEntry.DePhrase;
-import sfmotion.TrackEntry.Section;
 import track.LegaLang.Srunner;
 import utils.Pair;
 
@@ -74,7 +74,7 @@ public class Track {
 		legalang = Track.initializeRuleEngine();
 		EntitiesAndCaseDockets exE = new EntitiesAndCaseDockets(entityResources);
 		int caseCount = 0;
-		for (LegalCase cs : exE.cases) {
+		for (FindEntitiesOfCases cs : exE.cases) {
 			caseCount++;
 			//			if (caseCount < 2)
 			//				continue;
@@ -160,21 +160,21 @@ public class Track {
 						Entity e3 = new Entity(ph.getText(), legalang.getEntity("OrgCoParty"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 						ph.setGraph(e3);
 					}
-				} else if (dp.entity instanceof sfmotion.EntitiesAndCaseDockets.Attorney) {
+				} else if (dp.entity instanceof court.EntitiesAndCaseDockets.Attorney) {
 					//					legal.ExtractEntities.Attorney attorney = (legal.ExtractEntities.Attorney)p.entity;
 					Entity e3 = new Entity(ph.getText(), legalang.getEntity("Attorney"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 					ph.setGraph(e3);
-				} else if (dp.entity instanceof sfmotion.EntitiesAndCaseDockets.Judge) {
+				} else if (dp.entity instanceof court.EntitiesAndCaseDockets.Judge) {
 					//					legal.ExtractEntities.Judge judge = (legal.ExtractEntities.Judge)p.entity;
 					Entity e3 = new Entity(ph.getText(), legalang.getEntity("Judge"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 					ph.setGraph(e3);
-				} else if (dp.entity instanceof sfmotion.EntitiesAndCaseDockets.Clerk) {
+				} else if (dp.entity instanceof court.EntitiesAndCaseDockets.Clerk) {
 					Entity e3 = new Entity(ph.getText(), legalang.getEntity("Clerk"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 					ph.setGraph(e3);
-				} else if (dp.entity instanceof sfmotion.EntitiesAndCaseDockets.Reporter) {
+				} else if (dp.entity instanceof court.EntitiesAndCaseDockets.Reporter) {
 					Entity e3 = new Entity(ph.getText(), legalang.getEntity("Reporter"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 					ph.setGraph(e3);
-				} else if (dp.entity instanceof sfmotion.EntitiesAndCaseDockets.SFCaseNumber) {
+				} else if (dp.entity instanceof court.EntitiesAndCaseDockets.SFCaseNumber) {
 					Entity e3 = new Entity(ph.getText(), legalang.getEntity("SFCaseNumber"), Entity.TYPE_INSTANCE, legalang, ph.getBegToken());
 					ph.setGraph(e3);
 				}

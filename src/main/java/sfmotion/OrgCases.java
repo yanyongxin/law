@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import common.Role;
+import legal.TrackEntry;
 
 public class OrgCases {
 	// Organize motions in their life cycle

@@ -985,6 +985,7 @@
 {"text":"shall","type":"ADVP", "entity":"StatusShall"}
 {"text":"sheet","type":"NP", "entity":"Sheet"}
 {"text":"SHORTEN","type":"VP", "tense":"present", "entity":"ProcShorten"}
+{"text":"SHORTENING","type":"VP", "tense":"ing", "entity":"ProcShorten"}
 {"text":"shown","type":"VP", "tense":"past", "entity":"ProcShow"}
 {"text":"sign","type":"VP", "tense":"present", "entity":"ProcSignDoc"}
 {"text":"signed","type":"VP", "tense":"past", "entity":"ProcSignDoc"}

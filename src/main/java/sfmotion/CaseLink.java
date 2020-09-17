@@ -1,5 +1,7 @@
 package sfmotion;
 
+import legal.CaseEntity;
+
 public class CaseLink {
 	CaseEntity e1;
 	CaseEntity e2;
